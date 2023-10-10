@@ -1,2 +1,16 @@
 # lab1DSITJZ
 Lab 1: Calculator with Dalia Sebat, Ilai Tamari, Javin Zipkin
+
+STYLE GUIDE
+PARENTHESES AROUND RETURN STATEMENTS
+NOT THIS UGLY ASS SHIT {
+
+}
+PLS DO THIS
+{
+    YAY
+}
+NOT THIS 6+2+3 ARE YOU IN THIRD GRADE???
+DO THIS 6 + 2 + 3
+NOT THIS x=10
+THIS x = 10
