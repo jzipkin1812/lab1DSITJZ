@@ -25,33 +25,17 @@ Lexer::Lexer(string expression)
         {
             colNumber++;
             char currentChar = expression[i];
-            //cout << "CURRENT CHAR: " << currentChar << endl;
+            // cout << "CURRENT CHAR: " << currentChar << endl;
             switch (currentChar)
             {
-            case 'n':
-                if (i > 0 && expression[i - 1] == '\\')
-                {
-                    lineNumber++;
-                    colNumber = 0;
-                    continue;
-                }
-                else
-                {
-                    throw(i);
-                }
-            case '\\':
-                if (i + 1 < (int)expression.length() && expression[i + 1] == 'n')
-                {
-                    continue;
-                }
-                else
-                {
-                    throw(i);
-                }
+            case '\n':
+                lineNumber++;
+                colNumber = 0;
+                continue;
             case ' ':
                 if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
                 {
-                    throw(i);
+                    throw(colNumber);
                 }
                 if (currentString != "")
                 {
@@ -61,9 +45,10 @@ Lexer::Lexer(string expression)
                 continue;
             case ')':
             case '(':
+                // cout << "CURRENT STRING: " << currentString << endl;
                 if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
                 {
-                    throw(i);
+                    throw(colNumber);
                 }
                 if (currentString != "")
                 {
@@ -76,6 +61,7 @@ Lexer::Lexer(string expression)
             case '*':
             case '/':
                 currentString = currentChar;
+                // cout << "CURRENT STRING: " << currentString << endl;
                 tokens.push_back(Token(lineNumber, colNumber, currentString));
                 currentString = "";
                 continue;
@@ -84,10 +70,10 @@ Lexer::Lexer(string expression)
                 {
                     if (currentString == "")
                     {
-                        throw(i);
+                        throw(colNumber);
                     }
                 }
-                //cout << " IS DIGIT: " << isdigit(currentChar) << endl;
+                // cout << " IS DIGIT: " << isdigit(currentChar) << endl;
                 if (isdigit(currentChar) || currentChar == '.')
                 {
                     currentString += currentChar;
@@ -95,7 +81,7 @@ Lexer::Lexer(string expression)
                 }
                 else
                 {
-                    throw(i);
+                    throw(colNumber);
                 }
             }
         }
@@ -110,11 +96,16 @@ Lexer::Lexer(string expression)
 
 int main()
 {
-    string sExpression;
+    string sExpression = "";
+    string sPart;
 
-    cout << "Input the S-expression: ";
-    getline(cin, sExpression);
-
+    getline(cin, sPart);
+    while (sPart != "")
+    {
+        sExpression += (sPart + "\n");
+        getline(cin, sPart);
+    }
+    cout << "SEXPRESSIOM: " << sExpression << endl;
     Lexer myLexer = Lexer(sExpression);
     myLexer.print();
     // Parser myParser = Parser(myLexer.getTokens());
