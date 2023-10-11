@@ -5,16 +5,14 @@
 #include "lib/token.h"
 using namespace std;
 
-Lexer::vector<Token> tokenize(string expression)
-{
-    vector<Token> allTokens;
-    return(allTokens); //CODE STUB
+void Lexer::print(){
+    
 }
 
 int main()
 {
     string sExpression;
-    
+
     cout << "Input the S-expression: ";
     cin >> sExpression;
 
@@ -24,5 +22,5 @@ int main()
     myParser.print();
     cout << "Expression evaluates to: " << myParser.evaluate();
 
-    return(0);
+    return (0);
 }

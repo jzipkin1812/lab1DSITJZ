@@ -9,23 +9,22 @@ using namespace std;
 
 class Parser
 {
-    public:
-        double evaluate();
-        Parser(vector<Token> tokens);
-        void print();
-    
-    private:
-        
-        struct Node 
-        {
-            Token info;
-            vector<Node*> branches;
-            // useful constructor:
-            Token tk = Token{0, 0, ""};
-            // Node(tk) :  info(tk), branches() {}
-        };
+public:
+    double evaluate();
+    Parser(vector<Token> tokens);
+    void print();
 
-        Node * root;
+private:
+    struct Node
+    {
+        Token info;
+        vector<Node *> branches;
+        // useful constructor:
+        Token tk = Token{0, 0, ""};
+        // Node(tk) :  info(tk), branches() {}
+    };
+
+    Node *root;
 };
 
 #endif
