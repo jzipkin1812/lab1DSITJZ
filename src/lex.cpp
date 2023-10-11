@@ -10,7 +10,7 @@ void Lexer::print()
 {
     for (Token t : tokens)
     {
-        cout << t.line << " " << t.column << " " << t.text << endl;
+        cout << t.column << " " << t.line << " " << t.text << endl;
     }
 }
 
@@ -25,7 +25,7 @@ Lexer::Lexer(string expression)
         {
             colNumber++;
             char currentChar = expression[i];
-            cout << "CURRENT CHAR: " << currentChar << endl;
+            //cout << "CURRENT CHAR: " << currentChar << endl;
             switch (currentChar)
             {
             case 'n':
@@ -87,7 +87,7 @@ Lexer::Lexer(string expression)
                         throw(i);
                     }
                 }
-                cout << " IS DIGIT: " << isdigit(currentChar) << endl;
+                //cout << " IS DIGIT: " << isdigit(currentChar) << endl;
                 if (isdigit(currentChar) || currentChar == '.')
                 {
                     currentString += currentChar;
