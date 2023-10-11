@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <iomanip>
 #include <ctype.h>
 #include "lib/lex.h"
 #include "lib/parser.h"
@@ -10,7 +11,7 @@ void Lexer::print()
 {
     for (Token t : tokens)
     {
-        cout << t.column << " " << t.line << " " << t.text << endl;
+        cout << setw(5) << right << t.line << setw(5) << right << t.column << setw(5) << right << t.text << endl;
     }
 }
 
@@ -29,6 +30,15 @@ Lexer::Lexer(string expression)
             switch (currentChar)
             {
             case '\n':
+                if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
+                {
+                    throw(colNumber);
+                }
+                if (currentString != "")
+                {
+                    tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
+                    currentString = "";
+                }
                 lineNumber++;
                 colNumber = 0;
                 continue;
@@ -45,7 +55,10 @@ Lexer::Lexer(string expression)
                 continue;
             case ')':
             case '(':
-                // cout << "CURRENT STRING: " << currentString << endl;
+            case '+':
+            case '-':
+            case '*':
+            case '/':
                 if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
                 {
                     throw(colNumber);
@@ -55,13 +68,7 @@ Lexer::Lexer(string expression)
                     tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
                     currentString = "";
                 }
-                [[fallthrough]];
-            case '+':
-            case '-':
-            case '*':
-            case '/':
                 currentString = currentChar;
-                // cout << "CURRENT STRING: " << currentString << endl;
                 tokens.push_back(Token(lineNumber, colNumber, currentString));
                 currentString = "";
                 continue;
@@ -105,7 +112,7 @@ int main()
         sExpression += (sPart + "\n");
         getline(cin, sPart);
     }
-    cout << "SEXPRESSIOM: " << sExpression << endl;
+    //cout << "SEXPRESSIOM: " << sExpression << endl;
     Lexer myLexer = Lexer(sExpression);
     myLexer.print();
     // Parser myParser = Parser(myLexer.getTokens());
