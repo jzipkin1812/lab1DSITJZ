@@ -5,8 +5,13 @@
 #include "lib/token.h"
 using namespace std;
 
-void Lexer::print(){
-    
+void Lexer::print()
+{
+}
+
+Lexer::Lexer(string expression)
+{
+    expression = "";
 }
 
 int main()
