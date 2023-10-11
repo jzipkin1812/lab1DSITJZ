@@ -11,7 +11,7 @@ void Lexer::print()
 {
     for (Token t : tokens)
     {
-        cout << setw(5) << right << t.line << setw(5) << right << t.column << setw(5) << right << t.text << endl;
+        cout << setw(4) << right << t.line << setw(5) << right << t.column << setw(3) << right << t.text << endl;
     }
 }
 
@@ -112,7 +112,7 @@ int main()
         sExpression += (sPart + "\n");
         getline(cin, sPart);
     }
-    //cout << "SEXPRESSIOM: " << sExpression << endl;
+    // cout << "SEXPRESSIOM: " << sExpression << endl;
     Lexer myLexer = Lexer(sExpression);
     myLexer.print();
     // Parser myParser = Parser(myLexer.getTokens());
