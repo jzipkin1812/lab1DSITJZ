@@ -11,7 +11,7 @@ void Lexer::print()
 {
     for (Token t : tokens)
     {
-        cout << setw(4) << right << t.line << setw(5) << right << t.column << setw(3) << right << t.text << endl;
+        cout << setw(4) << right << t.line << setw(5) << right << t.column << left << t.text << endl;
     }
 }
 
