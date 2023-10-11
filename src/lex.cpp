@@ -75,7 +75,7 @@ Lexer::Lexer(string expression)
             default:
                 if (currentChar == '.')
                 {
-                    if (currentString == "")
+                    if (currentString == "" || (int)currentString.find('.') != -1)
                     {
                         throw(colNumber);
                     }
