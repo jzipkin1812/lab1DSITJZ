@@ -111,7 +111,7 @@ int main()
     string sPart;
 
     getline(cin, sPart);
-    while (sPart != "" && sPart != " ")
+    while (sPart != "" && sPart != " " && sPart != " \n")
     {
         sExpression += (sPart + "\n");
         getline(cin, sPart);
