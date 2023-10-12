@@ -26,16 +26,10 @@ Lexer::Lexer(string expression)
         {
             colNumber++;
             char currentChar = expression[i];
-            cout << "CURRENT CHAR: " << currentChar << endl;
+            // cout << "CURRENT CHAR: " << currentChar << endl;
             switch (currentChar)
             {
             case '\n':
-                if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
-                {
-                    cout << "CURRENT STRING: " << currentString << endl;
-                    // colNumber--;
-                    throw(colNumber);
-                }
                 if (currentString != "")
                 {
                     tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
@@ -45,11 +39,6 @@ Lexer::Lexer(string expression)
                 colNumber = 0;
                 continue;
             case ' ':
-                if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
-                {
-                    // colNumber--;
-                    throw(colNumber);
-                }
                 if (currentString != "")
                 {
                     tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
@@ -62,11 +51,6 @@ Lexer::Lexer(string expression)
             case '-':
             case '*':
             case '/':
-                if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
-                {
-                    // colNumber--;
-                    throw(colNumber);
-                }
                 if (currentString != "")
                 {
                     tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
@@ -79,6 +63,12 @@ Lexer::Lexer(string expression)
             default:
                 if (currentChar == '.')
                 {
+                    // cout << colNumber << endl;
+                    if ((int)expression.length() == i + 1 || !isdigit(expression[i + 1]))
+                    {
+                        // colNumber--;
+                        throw(colNumber);
+                    }
                     if (currentString == "" || (int)currentString.find('.') != -1)
                     {
                         throw(colNumber);
@@ -116,7 +106,7 @@ int main()
         sExpression += (sPart + "\n");
         getline(cin, sPart);
     }
-    cout << sExpression << endl;
+    // cout << sExpression << endl;
     Lexer myLexer = Lexer(sExpression);
     myLexer.print();
     // Parser myParser = Parser(myLexer.getTokens());
