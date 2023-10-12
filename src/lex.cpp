@@ -33,6 +33,7 @@ Lexer::Lexer(string expression)
                 if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
                 {
                     // cout << "CURRENT STRING: " << currentString << endl;
+                    colNumber--;
                     throw(colNumber);
                 }
                 if (currentString != "")
