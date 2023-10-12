@@ -66,7 +66,7 @@ Lexer::Lexer(string expression)
                     // cout << colNumber << endl;
                     if ((int)expression.length() == i + 1 || !isdigit(expression[i + 1]))
                     {
-                        // colNumber--;
+                        colNumber--;
                         throw(colNumber);
                     }
                     if (currentString == "" || (int)currentString.find('.') != -1)
