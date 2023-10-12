@@ -34,7 +34,7 @@ Lexer::Lexer(string expression)
                 {
                     // cout << "CURRENT STRING: " << currentString << endl;
                     // colNumber--;
-                    throw(colNumber);
+                    throw(colNumber - 1);
                 }
                 if (currentString != "")
                 {
