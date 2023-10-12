@@ -26,13 +26,13 @@ Lexer::Lexer(string expression)
         {
             colNumber++;
             char currentChar = expression[i];
-            // cout << "CURRENT CHAR: " << currentChar << endl;
+            cout << "CURRENT CHAR: " << currentChar << endl;
             switch (currentChar)
             {
             case '\n':
                 if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
                 {
-                    // cout << "CURRENT STRING: " << currentString << endl;
+                    cout << "CURRENT STRING: " << currentString << endl;
                     // colNumber--;
                     throw(colNumber);
                 }
@@ -64,7 +64,7 @@ Lexer::Lexer(string expression)
             case '/':
                 if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
                 {
-                    colNumber--;
+                    // colNumber--;
                     throw(colNumber);
                 }
                 if (currentString != "")
@@ -116,7 +116,7 @@ int main()
         sExpression += (sPart + "\n");
         getline(cin, sPart);
     }
-    // cout << "SEXPRESSIOM: " << sExpression << endl;
+    cout << sExpression << endl;
     Lexer myLexer = Lexer(sExpression);
     myLexer.print();
     // Parser myParser = Parser(myLexer.getTokens());
