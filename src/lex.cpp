@@ -47,7 +47,7 @@ Lexer::Lexer(string expression)
             case ' ':
                 if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
                 {
-                    colNumber--;
+                    // colNumber--;
                     throw(colNumber);
                 }
                 if (currentString != "")
