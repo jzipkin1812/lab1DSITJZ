@@ -34,13 +34,21 @@ int main()
         Token(16, 0, "7"),
         Token(17, 0, ")"),
         Token(18, 0, ")"),
-        Token(19, 0, ")"),
+        Token(18, 0, ")"),
         Token(20, 0, "END")
     };
-    Parser myParser = Parser(sTokens);
+
+    vector<Token> small = {
+        Token(13, 0, "("),
+        Token(14, 0, "-"),
+        Token(15, 0, "1"),
+        Token(16, 0, "2"),
+        Token(16, 0, "3"),
+        Token(17, 0, ")"),
+    };
+    Parser myParser = Parser(small);
     myParser.print();
     //cout << "Expression evaluates to: " << myParser.evaluate();
-
     return (0);
 }
 

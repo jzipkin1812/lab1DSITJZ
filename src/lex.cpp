@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <iomanip>
 #include <ctype.h>
 #include "lib/lex.h"
 #include "lib/parser.h"
@@ -10,7 +11,7 @@ void Lexer::print()
 {
     for (Token t : tokens)
     {
-        cout << t.line << " " << t.column << " " << t.text << endl;
+        cout << setw(4) << right << t.line << setw(5) << right << t.column << "  " << left << t.text << endl;
     }
 }
 
@@ -25,34 +26,19 @@ Lexer::Lexer(string expression)
         {
             colNumber++;
             char currentChar = expression[i];
-            cout << "CURRENT CHAR: " << currentChar << endl;
+            // cout << "CURRENT CHAR: " << currentChar << endl;
             switch (currentChar)
             {
-            case 'n':
-                if (i > 0 && expression[i - 1] == '\\')
+            case '\n':
+                if (currentString != "")
                 {
-                    lineNumber++;
-                    colNumber = 0;
-                    continue;
+                    tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
+                    currentString = "";
                 }
-                else
-                {
-                    throw(i);
-                }
-            case '\\':
-                if (i + 1 < (int)expression.length() && expression[i + 1] == 'n')
-                {
-                    continue;
-                }
-                else
-                {
-                    throw(i);
-                }
+                lineNumber++;
+                colNumber = 0;
+                continue;
             case ' ':
-                if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
-                {
-                    throw(i);
-                }
                 if (currentString != "")
                 {
                     tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
@@ -61,20 +47,15 @@ Lexer::Lexer(string expression)
                 continue;
             case ')':
             case '(':
-                if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
-                {
-                    throw(i);
-                }
+            case '+':
+            case '-':
+            case '*':
+            case '/':
                 if (currentString != "")
                 {
                     tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
                     currentString = "";
                 }
-                [[fallthrough]];
-            case '+':
-            case '-':
-            case '*':
-            case '/':
                 currentString = currentChar;
                 tokens.push_back(Token(lineNumber, colNumber, currentString));
                 currentString = "";
@@ -82,12 +63,18 @@ Lexer::Lexer(string expression)
             default:
                 if (currentChar == '.')
                 {
-                    if (currentString == "")
+                    // cout << colNumber << endl;
+                    if ((int)expression.length() == i + 1 || !isdigit(expression[i + 1]))
                     {
-                        throw(i);
+                        colNumber++;
+                        throw(colNumber);
+                    }
+                    if (currentString == "" || (int)currentString.find('.') != -1)
+                    {
+                        throw(colNumber);
                     }
                 }
-                cout << " IS DIGIT: " << isdigit(currentChar) << endl;
+                // cout << " IS DIGIT: " << isdigit(currentChar) << endl;
                 if (isdigit(currentChar) || currentChar == '.')
                 {
                     currentString += currentChar;
@@ -95,7 +82,7 @@ Lexer::Lexer(string expression)
                 }
                 else
                 {
-                    throw(i);
+                    throw(colNumber);
                 }
             }
         }
@@ -108,3 +95,23 @@ Lexer::Lexer(string expression)
     tokens.push_back(Token(lineNumber, 1, "END"));
 }
 
+int main()
+{
+    string sExpression = "";
+    string sPart;
+
+    getline(cin, sPart);
+    while (sPart != "" && sPart != " " && sPart != " \n")
+    {
+        sExpression += (sPart + "\n");
+        getline(cin, sPart);
+    }
+    // cout << sExpression << endl;
+    Lexer myLexer = Lexer(sExpression);
+    myLexer.print();
+    // Parser myParser = Parser(myLexer.getTokens());
+    // myParser.print();
+    // cout << "Expression evaluates to: " << myParser.evaluate();
+
+    return (0);
+}

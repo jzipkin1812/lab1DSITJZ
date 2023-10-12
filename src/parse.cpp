@@ -7,6 +7,14 @@ using namespace std;
 Parser::Parser(vector<Token> inTokens)
 {
     tokens = inTokens;
+    // cout << "constructor reached" << endl;
+    // Handle the case where the entire expression is just one number with nothing
+    if(inTokens.size() == 1 && inTokens[0].isNumber())
+    {
+        root = new Node{Parser::Node{tokens[0], vector<Node*>(), nullptr}};
+        return;
+    }
+    
     int openParentheses = 1;
     root = new Node{Parser::Node{tokens[1], vector<Node*>(), nullptr}};
     Node * currentPtr = root;
@@ -18,7 +26,7 @@ Parser::Parser(vector<Token> inTokens)
         {
             tIndex++; // The current token should now be an operator
             currentToken = tokens[tIndex];
-            // If the current token is not an operator, then we have encountered an unexpected token.
+            // If the current token is not an operator, then we have encountered an unexpected token
             // This is a parse error.
             if (!(currentToken.isOperator()))
             {
@@ -33,8 +41,9 @@ Parser::Parser(vector<Token> inTokens)
         
         else if(currentToken.text == ")")
         {
-            // Handle unbalanced parentheses 
-            if(openParentheses < 1)
+            // Handle unbalanced parentheses
+            // Also handle operators that have been placed right in front of a closed parentheses
+            if(openParentheses < 1 || tokens[tIndex - 1].isOperator())
             {
                 parseError(currentToken);
             }
@@ -44,6 +53,7 @@ Parser::Parser(vector<Token> inTokens)
             }
             // Go up a level
             currentPtr = currentPtr->parent;
+            
         }
         // This error covers the case where we find an operator on its own. The only way to reach this if statement
         // is if the operator found did not come after an open parenthesis. All S-expressions should have operators
@@ -97,6 +107,7 @@ string Parser::printHelper(Parser::Node * top, bool lastChild)
     }
     else
     {
+        // cout << "print helper reached " << top->info.text << endl;
         finalText += top->info.text;
         if(!lastChild)
         {
@@ -156,6 +167,7 @@ double Parser::evaluateHelper(Node * top)
     }
     else
     {
+        // cout << "evaluate helper reached [" << text << "]" << endl;
         result = stod(text);
     }
     return(result);
