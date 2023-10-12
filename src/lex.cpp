@@ -1,9 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <ctype.h>
-#include "lex.h"
-#include "parser.h"
-#include "token.h"
+#include "lib/lex.h"
+#include "lib/parser.h"
+#include "lib/token.h"
 using namespace std;
 
 void Lexer::print()
