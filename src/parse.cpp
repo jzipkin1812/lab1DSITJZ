@@ -11,13 +11,23 @@ Parser::Parser(vector<Token> inTokens)
     tokens = inTokens;
     // cout << "constructor reached" << endl;
     // Handle the case where the entire expression is just one number with nothing
-    if(inTokens.size() == 1 && inTokens[0].isNumber())
+    if(inTokens.size() == 2 && inTokens[0].isNumber())
     {
         root = new Node{Parser::Node{tokens[0], vector<Node*>(), nullptr}};
         return;
     }
+    //Handle no expression
+    if(inTokens.size() < 2)
+    {
+        return;
+    }
     
     int openParentheses = 1;
+    // Handle error where first token is left parenthesis and second token is number
+    if(!tokens[1].isOperator())
+    {
+        parseError(tokens[1]);
+    }
     root = new Node{Parser::Node{tokens[1], vector<Node*>(), nullptr}};
     Node * currentPtr = root;
     
@@ -85,6 +95,10 @@ Parser::Parser(vector<Token> inTokens)
 
 void Parser::print() // Infix
 {
+    if(!root)
+    {
+        return;
+    }
     string finalOutput = printHelper(root, true);
     cout << finalOutput << endl << evaluate() << endl;
 }

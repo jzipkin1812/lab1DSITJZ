@@ -33,7 +33,7 @@ private:
         // }
     };
 
-    Node *root;
+    Node *root = nullptr;
     string printHelper(Node * top, bool lastChild);
     double evaluateHelper(Node * top);
     void parseError(Token token);
