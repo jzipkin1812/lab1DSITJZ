@@ -166,3 +166,8 @@ void Parser::parseError(Token token)
     cout << "Unexpected token at line "<< token.line << " column " << token.column << ": " << token.text << endl;
     exit(2);
 }
+
+int main()
+{
+    return(0);
+}
