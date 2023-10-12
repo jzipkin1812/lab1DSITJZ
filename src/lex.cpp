@@ -32,8 +32,7 @@ Lexer::Lexer(string expression)
             case '\n':
                 if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
                 {
-                    cout << "CURRENT STRING: " << currentString << endl;
-                    colNumber--;
+                    // cout << "CURRENT STRING: " << currentString << endl;
                     throw(colNumber);
                 }
                 if (currentString != "")
