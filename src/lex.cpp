@@ -32,6 +32,8 @@ Lexer::Lexer(string expression)
             case '\n':
                 if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
                 {
+                    cout << "CURRENT STRING: " << currentString << endl;
+                    colNumber--;
                     throw(colNumber);
                 }
                 if (currentString != "")
@@ -45,6 +47,7 @@ Lexer::Lexer(string expression)
             case ' ':
                 if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
                 {
+                    colNumber--;
                     throw(colNumber);
                 }
                 if (currentString != "")
@@ -61,6 +64,7 @@ Lexer::Lexer(string expression)
             case '/':
                 if (currentString.length() > 0 && currentString[currentString.length() - 1] == '.')
                 {
+                    colNumber--;
                     throw(colNumber);
                 }
                 if (currentString != "")
@@ -107,7 +111,7 @@ int main()
     string sPart;
 
     getline(cin, sPart);
-    while (sPart != "")
+    while (sPart != "" && sPart != " ")
     {
         sExpression += (sPart + "\n");
         getline(cin, sPart);
