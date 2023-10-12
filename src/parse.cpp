@@ -23,8 +23,12 @@ Parser::Parser(vector<Token> inTokens)
     }
     
     int openParentheses = 1;
-    // Handle error where first token is left parenthesis and second token is number
-    if(!tokens[1].isOperator())
+    // Handle error where first token is left parenthesis and second token is number or first token is not left parenthesis
+    if(tokens[0].text != "(")
+    {
+        parseError(tokens[0]);
+    }
+    else if(!tokens[1].isOperator())
     {
         parseError(tokens[1]);
     }
