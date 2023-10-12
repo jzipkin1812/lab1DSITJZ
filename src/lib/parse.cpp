@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
-#include "lib/parser.h"
-#include "lib/token.h"
+#include "parser.h"
+#include "token.h"
 using namespace std;
 
 Parser::Parser(vector<Token> inTokens)
