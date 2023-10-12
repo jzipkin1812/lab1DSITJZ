@@ -2,6 +2,7 @@
 #include <string>
 #include "lib/parser.h"
 #include "lib/token.h"
+#include "lib/lex.h"
 using namespace std;
 
 Parser::Parser(vector<Token> inTokens)
@@ -160,7 +161,7 @@ double Parser::evaluateHelper(Node * top)
             if(divisor == 0)
             {
                 cout << "Runtime error: division by zero." << endl;
-                exit(2);
+                exit(3);
             }
             result /= divisor;
         }
@@ -181,5 +182,17 @@ void Parser::parseError(Token token)
 
 int main()
 {
-    return(0);
+    string sExpression = "";
+    string sPart;
+
+    getline(cin, sPart);
+    while (sPart != "" && sPart != " " && sPart != " \n")
+    {
+        sExpression += (sPart + "\n");
+        getline(cin, sPart);
+    }
+    // cout << sExpression << endl;
+    Lexer myLexer = Lexer(sExpression);
+    Parser myParser = Parser(myLexer.getTokens());
+    myParser.print();
 }

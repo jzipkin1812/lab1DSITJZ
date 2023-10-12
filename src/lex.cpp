@@ -95,23 +95,23 @@ Lexer::Lexer(string expression)
     tokens.push_back(Token(lineNumber, 1, "END"));
 }
 
-int main()
-{
-    string sExpression = "";
-    string sPart;
+// int main()
+// {
+//     string sExpression = "";
+//     string sPart;
 
-    getline(cin, sPart);
-    while (sPart != "" && sPart != " " && sPart != " \n")
-    {
-        sExpression += (sPart + "\n");
-        getline(cin, sPart);
-    }
-    // cout << sExpression << endl;
-    Lexer myLexer = Lexer(sExpression);
-    myLexer.print();
-    // Parser myParser = Parser(myLexer.getTokens());
-    // myParser.print();
-    // cout << "Expression evaluates to: " << myParser.evaluate();
+//     getline(cin, sPart);
+//     while (sPart != "" && sPart != " " && sPart != " \n")
+//     {
+//         sExpression += (sPart + "\n");
+//         getline(cin, sPart);
+//     }
+//     // cout << sExpression << endl;
+//     Lexer myLexer = Lexer(sExpression);
+//     myLexer.print();
+//     // Parser myParser = Parser(myLexer.getTokens());
+//     // myParser.print();
+//     // cout << "Expression evaluates to: " << myParser.evaluate();
 
-    return (0);
-}
+//     return (0);
+// }
