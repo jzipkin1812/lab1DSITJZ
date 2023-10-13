@@ -22,7 +22,7 @@ Lexer::Lexer()
     int lineNumber = 0;
     // int colNumber = 0;
     string currentString = "";
-    while (expression != "" && expression != " " && expression != "\t")
+    while (!cin.eof())
     {
         cout << expression << endl;
         lineNumber++;
