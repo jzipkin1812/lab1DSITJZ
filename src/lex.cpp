@@ -108,7 +108,7 @@ Lexer::Lexer()
             currentString = "";
         }
         getline(cin, expression);
-    } while (!cin.eof() && expression != "");
+    } while (cin.good() && expression != "");
     tokens.push_back(Token(lineNumber + 1, expression.length() + 1, "END"));
 }
 
