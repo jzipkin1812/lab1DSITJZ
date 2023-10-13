@@ -129,8 +129,13 @@ string Parser::printHelper(Parser::Node * top, bool lastChild)
     {
         // cout << "print helper reached " << top->info.text << endl;
         string converted = top->info.text;
-        converted.erase (converted.find_last_not_of('0') + 1, std::string::npos );
-        converted.erase (converted.find_last_not_of('.') + 1, std::string::npos );
+        // Formatting removes trailing 0s
+        if(converted != "0")
+        {
+            converted.erase (converted.find_last_not_of('0') + 1, std::string::npos );
+            converted.erase (converted.find_last_not_of('.') + 1, std::string::npos );
+        }
+        
         finalText += converted;
         
         if(!lastChild)
