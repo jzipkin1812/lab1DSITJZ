@@ -48,7 +48,7 @@ Lexer::Lexer()
                 case ' ':
                     if (currentString != "")
                     {
-                        tokens.push_back(Token(lineNumber, i + 2 - currentString.length(), currentString));
+                        tokens.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
                         currentString = "";
                     }
                     continue;
@@ -60,7 +60,7 @@ Lexer::Lexer()
                 case '/':
                     if (currentString != "")
                     {
-                        tokens.push_back(Token(lineNumber, i + 2 - currentString.length(), currentString));
+                        tokens.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
                         currentString = "";
                     }
                     currentString = currentChar;
