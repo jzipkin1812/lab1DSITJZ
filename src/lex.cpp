@@ -108,6 +108,7 @@ Lexer::Lexer()
         }
         getline(cin, expression);
     }
+    lineNumber++;
     for (int i = 0; i < (int)expression.length(); i++)
     {
         try
@@ -188,7 +189,7 @@ Lexer::Lexer()
         tokens.push_back(Token(lineNumber, expression.length() + 1 - currentString.length(), currentString));
         currentString = "";
     }
-    tokens.push_back(Token(lineNumber + 1, expression.length() + 1, "END"));
+    tokens.push_back(Token(lineNumber, expression.length() + 1, "END"));
 }
 
 int main()
