@@ -24,7 +24,7 @@ Lexer::Lexer()
     string currentString = "";
     while (!cin.eof())
     {
-        cout << expression << endl;
+        // cout << expression << endl;
         lineNumber++;
         for (int i = 0; i < (int)expression.length(); i++)
         {
