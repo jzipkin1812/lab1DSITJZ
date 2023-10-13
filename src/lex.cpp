@@ -46,7 +46,7 @@ Lexer::Lexer()
                 case ' ':
                     if (currentString != "")
                     {
-                        tokens.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
+                        tokens.push_back(Token(lineNumber, i + 2 - currentString.length(), currentString));
                         currentString = "";
                     }
                     continue;
@@ -58,7 +58,7 @@ Lexer::Lexer()
                 case '/':
                     if (currentString != "")
                     {
-                        tokens.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
+                        tokens.push_back(Token(lineNumber, i + 2 - currentString.length(), currentString));
                         currentString = "";
                     }
                     currentString = currentChar;
@@ -100,12 +100,12 @@ Lexer::Lexer()
         }
         if (currentString != "")
         {
-            tokens.push_back(Token(lineNumber, expression.length() - currentString.length(), currentString));
+            tokens.push_back(Token(lineNumber, expression.length() + 1 - currentString.length(), currentString));
             currentString = "";
         }
         getline(cin, expression);
     }
-    tokens.push_back(Token(lineNumber, 1, "END"));
+    tokens.push_back(Token(lineNumber + 1, 1, "END"));
 }
 
 int main()
