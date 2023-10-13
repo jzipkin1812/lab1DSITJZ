@@ -15,33 +15,33 @@ void Lexer::print()
     }
 }
 
-Lexer::Lexer()
+Lexer::Lexer() // time complexity O(n^2), (number of lines) X (number of characters in each line)
 {
-    string expression = "";
+    string expression = ""; // expression is set equal to each new line read by cin
     getline(cin, expression);
     int lineNumber = 0;
     while (!cin.eof() && expression != "")
     {
         lineNumber++;
-        parseString(expression, lineNumber);
+        parseString(expression, lineNumber); // parseString() breaks each line into tokens and pushes them to the tokens vector
         getline(cin, expression);
     }
     lineNumber++;
-    parseString(expression, lineNumber);
+    parseString(expression, lineNumber); // parseString runs one more time after cin.eof() in the case of an eof being located on the same line as an expression
     tokens.push_back(Token(lineNumber, expression.length() + 1, "END"));
 }
 
-void Lexer::parseString(string expression, int lineNumber)
+void Lexer::parseString(string expression, int lineNumber) // time complexity O(n), n=characters in expression
 {
-    string currentString = "";
-    for (int i = 0; i < (int)expression.length(); i++)
+    string currentString = "";                         // currentString gets set to each token and pushed to tokens vector
+    for (int i = 0; i < (int)expression.length(); i++) // (int) cast necessary when comparing int and unsigned int
     {
         try
         {
             char currentChar = expression[i];
             switch (currentChar)
             {
-            case ')':
+            case ')': // intentional fallthrough
             case '(':
             case '+':
             case '-':
@@ -56,7 +56,7 @@ void Lexer::parseString(string expression, int lineNumber)
                 tokens.push_back(Token(lineNumber, i + 1, currentString));
                 currentString = "";
                 continue;
-            default:
+            default: // case of spaces, digits, and '.'
                 if (isspace(currentChar))
                 {
                     if (currentString != "")
@@ -94,7 +94,7 @@ void Lexer::parseString(string expression, int lineNumber)
             exit(1);
         }
     }
-    if (currentString != "")
+    if (currentString != "") // case for when a number is located directly before '\n'
     {
         tokens.push_back(Token(lineNumber, expression.length() + 1 - currentString.length(), currentString));
         currentString = "";
