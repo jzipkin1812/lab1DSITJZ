@@ -22,9 +22,9 @@ Lexer::Lexer()
     int lineNumber = 0;
     // int colNumber = 0;
     string currentString = "";
-    while (expression != "")
+    while (expression != "" && expression != " " && expression != "\t")
     {
-        // cout<<expression<<endl;
+        cout << expression << endl;
         lineNumber++;
         for (int i = 0; i < (int)expression.length(); i++)
         {
