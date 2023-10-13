@@ -26,7 +26,15 @@ Parser::Parser(vector<Token> inTokens)
     // Handle error where first token is left parenthesis and second token is number or first token is not left parenthesis
     if(tokens[0].text != "(")
     {
-        parseError(tokens[1]);
+        if(tokens[0].isNumber())
+        {
+            parseError(tokens[1]);
+        }
+        else
+        {
+            parseError(tokens[0]);
+        }
+        
     }
     else if(!tokens[1].isOperator())
     {
