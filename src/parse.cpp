@@ -230,11 +230,11 @@ int main()
     }
     // cout << sExpression << endl;
     Lexer myLexer = Lexer(sExpression);
-    for(Token t : myLexer.getTokens())
-    {
-        cout << t.text << " ";
-    }
-    cout << endl;
+    // for(Token t : myLexer.getTokens())
+    // {
+    //     cout << t.text << " ";
+    // }
+    // cout << endl;
     Parser myParser = Parser(myLexer.getTokens());
     myParser.print();
 }
