@@ -44,14 +44,6 @@ Lexer::Lexer()
                     lineNumber++;
                     colNumber = 0;
                     continue;*/
-                case '\t':
-                case ' ':
-                    if (currentString != "")
-                    {
-                        tokens.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
-                        currentString = "";
-                    }
-                    continue;
                 case ')':
                 case '(':
                 case '+':
@@ -68,6 +60,15 @@ Lexer::Lexer()
                     currentString = "";
                     continue;
                 default:
+                    if (isspace(currentChar))
+                    {
+                        if (currentString != "")
+                        {
+                            tokens.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
+                            currentString = "";
+                        }
+                        continue;
+                    }
                     if (currentChar == '.')
                     {
                         // cout << colNumber << endl;
@@ -107,7 +108,7 @@ Lexer::Lexer()
         }
         getline(cin, expression);
     }
-    tokens.push_back(Token(lineNumber + 1, 1, "END"));
+    tokens.push_back(Token(lineNumber + 1, expression.length(), "END"));
 }
 
 int main()
