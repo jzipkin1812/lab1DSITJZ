@@ -4,17 +4,18 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "token.h" 
+#include "token.h"
 using namespace std;
-class Lexer 
+class Lexer
 {
-    public:
-        Lexer(); // does all the complicated building slash lexing
-        void print();
-        vector<Token> getTokens() {return(tokens);};
-    private:
-        vector<Token> tokens;
-        
+public:
+    Lexer(); // does all the complicated building slash lexing
+    void print();
+    vector<Token> getTokens() { return (tokens); };
+    void parseString(string expression, int lineNumber);
+
+private:
+    vector<Token> tokens;
 };
 
 #endif
