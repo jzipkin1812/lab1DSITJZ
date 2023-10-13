@@ -3,7 +3,6 @@
 #include "lib/parser.h"
 #include "lib/token.h"
 #include "lib/lex.h"
-#include "lex.cpp"
 using namespace std;
 
 Parser::Parser(vector<Token> inTokens)
@@ -154,6 +153,7 @@ string Parser::printHelper(Parser::Node * top, bool lastChild)
     }
     return(finalText);
 }
+
 
 double Parser::evaluate()
 {
