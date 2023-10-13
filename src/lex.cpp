@@ -108,7 +108,6 @@ Lexer::Lexer()
         }
         getline(cin, expression);
     }
-    lineNumber++;
     for (int i = 0; i < (int)expression.length(); i++)
     {
         try
