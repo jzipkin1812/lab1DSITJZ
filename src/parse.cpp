@@ -3,6 +3,7 @@
 #include "lib/parser.h"
 #include "lib/token.h"
 #include "lib/lex.h"
+#include "lib/lexFunctions.cpp"
 using namespace std;
 
 Parser::Parser(vector<Token> inTokens)
