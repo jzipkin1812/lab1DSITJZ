@@ -128,7 +128,11 @@ string Parser::printHelper(Parser::Node * top, bool lastChild)
     else
     {
         // cout << "print helper reached " << top->info.text << endl;
-        finalText += top->info.text;
+        string converted = top->info.text;
+        converted.erase (converted.find_last_not_of('0') + 1, std::string::npos );
+        converted.erase (converted.find_last_not_of('.') + 1, std::string::npos );
+        finalText += converted;
+        
         if(!lastChild)
         {
             // Space, parent operator, space
@@ -226,6 +230,11 @@ int main()
     }
     // cout << sExpression << endl;
     Lexer myLexer = Lexer(sExpression);
+    for(Token t : myLexer.getTokens())
+    {
+        cout << t.text << " ";
+    }
+    cout << endl;
     Parser myParser = Parser(myLexer.getTokens());
     myParser.print();
 }
