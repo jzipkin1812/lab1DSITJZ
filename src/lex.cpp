@@ -22,7 +22,8 @@ Lexer::Lexer()
     int lineNumber = 0;
     // int colNumber = 0;
     string currentString = "";
-    while (!cin.eof() && expression != "")
+
+    do
     {
         // cout << expression << endl;
         lineNumber++;
@@ -107,7 +108,7 @@ Lexer::Lexer()
             currentString = "";
         }
         getline(cin, expression);
-    }
+    } while (!cin.eof() && expression != "");
     tokens.push_back(Token(lineNumber + 1, expression.length() + 1, "END"));
 }
 
