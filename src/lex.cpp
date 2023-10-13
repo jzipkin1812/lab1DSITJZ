@@ -28,7 +28,6 @@ Lexer::Lexer()
         lineNumber++;
         for (int i = 0; i < (int)expression.length(); i++)
         {
-            cout << expression << endl;
             try
             {
                 // colNumber++;
