@@ -69,6 +69,7 @@ Lexer::Lexer()
                     if (currentChar == '.')
                     {
                         // cout << colNumber << endl;
+                        // cout << currentString << endl;
                         if ((int)expression.length() == i + 1 || !isdigit(expression[i + 1]))
                         {
                             // colNumber++;
@@ -96,6 +97,11 @@ Lexer::Lexer()
                 cout << "Syntax error on line " << lineNumber << " column " << columnNum << "." << endl;
                 exit(1);
             }
+        }
+        if (currentString != "")
+        {
+            tokens.push_back(Token(lineNumber, expression.length() - currentString.length(), currentString));
+            currentString = "";
         }
         getline(cin, expression);
     }
