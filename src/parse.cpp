@@ -199,6 +199,20 @@ void Parser::parseError(Token token)
     exit(2);
 }
 
+Parser::~Parser()
+{
+    clear(root);
+}
+
+void Parser::clear(Node * top)
+{
+    for(Node * child : top->branches)
+        {
+            clear(child);
+        }
+    delete top;
+}
+
 int main()
 {
     string sExpression = "";

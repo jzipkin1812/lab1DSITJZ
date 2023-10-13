@@ -13,6 +13,7 @@ public:
     double evaluate();
     Parser(vector<Token> inTokens);
     void print();
+    ~Parser();
 
 private:
     vector<Token> tokens;
@@ -37,6 +38,8 @@ private:
     string printHelper(Node * top, bool lastChild);
     double evaluateHelper(Node * top);
     void parseError(Token token);
+   
+    void clear(Node * top);
 };
 
 #endif
