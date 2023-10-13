@@ -108,7 +108,7 @@ Lexer::Lexer()
         }
         getline(cin, expression);
     }
-    tokens.push_back(Token(lineNumber + 1, expression.length(), "END"));
+    tokens.push_back(Token(lineNumber + 1, expression.length() + 1, "END"));
 }
 
 int main()
