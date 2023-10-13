@@ -24,6 +24,7 @@ Lexer::Lexer()
     string currentString = "";
     while (expression != "")
     {
+        cout << expression << endl;
         lineNumber++;
         for (int i = 0; i < (int)expression.length(); i++)
         {
@@ -73,7 +74,7 @@ Lexer::Lexer()
                         if ((int)expression.length() == i + 1 || !isdigit(expression[i + 1]))
                         {
                             // colNumber++;
-                            throw(i + 1);
+                            throw(i + 2);
                         }
                         if (currentString == "" || (int)currentString.find('.') != -1)
                         {
