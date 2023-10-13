@@ -28,6 +28,7 @@ Lexer::Lexer()
         lineNumber++;
         for (int i = 0; i < (int)expression.length(); i++)
         {
+            cout << expression << endl;
             try
             {
                 // colNumber++;
@@ -44,6 +45,7 @@ Lexer::Lexer()
                     lineNumber++;
                     colNumber = 0;
                     continue;*/
+                case '\t':
                 case ' ':
                     if (currentString != "")
                     {
