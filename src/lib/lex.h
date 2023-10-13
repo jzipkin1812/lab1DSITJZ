@@ -9,7 +9,7 @@ using namespace std;
 class Lexer 
 {
     public:
-        Lexer(string expression); // does all the complicated building slash lexing
+        Lexer(); // does all the complicated building slash lexing
         void print();
         vector<Token> getTokens() {return(tokens);};
     private:

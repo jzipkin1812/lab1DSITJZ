@@ -232,17 +232,8 @@ void Parser::clear(Node * top)
 
 int main()
 {
-    string sExpression = "";
-    string sPart;
-
-    getline(cin, sPart);
-    while (sPart != "" && sPart != " " && sPart != " \n")
-    {
-        sExpression += (sPart + "\n");
-        getline(cin, sPart);
-    }
     // cout << sExpression << endl;
-    Lexer myLexer = Lexer(sExpression);
+    Lexer myLexer = Lexer();
     // for(Token t : myLexer.getTokens())
     // {
     //     cout << t.text << " ";

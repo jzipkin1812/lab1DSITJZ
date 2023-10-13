@@ -15,21 +15,110 @@ void Lexer::print()
     }
 }
 
-Lexer::Lexer(string expression)
+Lexer::Lexer()
 {
-    int lineNumber = 1;
-    int colNumber = 0;
+    string expression = "";
+    getline(cin, expression);
+    int lineNumber = 0;
+    // int colNumber = 0;
     string currentString = "";
+    while (!cin.eof() && expression != "")
+    {
+        // cout << expression << endl;
+        lineNumber++;
+        for (int i = 0; i < (int)expression.length(); i++)
+        {
+            try
+            {
+                // colNumber++;
+                char currentChar = expression[i];
+                // cout << "CURRENT CHAR: " << currentChar << endl;
+                switch (currentChar)
+                {
+                /*case '\n':
+                    if (currentString != "")
+                    {
+                        tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
+                        currentString = "";
+                    }
+                    lineNumber++;
+                    colNumber = 0;
+                    continue;*/
+                case ')':
+                case '(':
+                case '+':
+                case '-':
+                case '*':
+                case '/':
+                    if (currentString != "")
+                    {
+                        tokens.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
+                        currentString = "";
+                    }
+                    currentString = currentChar;
+                    tokens.push_back(Token(lineNumber, i + 1, currentString));
+                    currentString = "";
+                    continue;
+                default:
+                    if (isspace(currentChar))
+                    {
+                        if (currentString != "")
+                        {
+                            tokens.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
+                            currentString = "";
+                        }
+                        continue;
+                    }
+                    if (currentChar == '.')
+                    {
+                        // cout << colNumber << endl;
+                        // cout << currentString << endl;
+                        if ((int)expression.length() == i + 1 || !isdigit(expression[i + 1]))
+                        {
+                            // colNumber++;
+                            throw(i + 2);
+                        }
+                        if (currentString == "" || (int)currentString.find('.') != -1)
+                        {
+                            throw(i + 1);
+                        }
+                    }
+                    // cout << " IS DIGIT: " << isdigit(currentChar) << endl;
+                    if (isdigit(currentChar) || currentChar == '.')
+                    {
+                        currentString += currentChar;
+                        continue;
+                    }
+                    else
+                    {
+                        throw(i + 1);
+                    }
+                }
+            }
+            catch (int columnNum)
+            {
+                cout << "Syntax error on line " << lineNumber << " column " << columnNum << "." << endl;
+                exit(1);
+            }
+        }
+        if (currentString != "")
+        {
+            tokens.push_back(Token(lineNumber, expression.length() + 1 - currentString.length(), currentString));
+            currentString = "";
+        }
+        getline(cin, expression);
+    }
+    lineNumber++;
     for (int i = 0; i < (int)expression.length(); i++)
     {
         try
         {
-            colNumber++;
+            // colNumber++;
             char currentChar = expression[i];
             // cout << "CURRENT CHAR: " << currentChar << endl;
             switch (currentChar)
             {
-            case '\n':
+            /*case '\n':
                 if (currentString != "")
                 {
                     tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
@@ -37,14 +126,7 @@ Lexer::Lexer(string expression)
                 }
                 lineNumber++;
                 colNumber = 0;
-                continue;
-            case ' ':
-                if (currentString != "")
-                {
-                    tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
-                    currentString = "";
-                }
-                continue;
+                continue;*/
             case ')':
             case '(':
             case '+':
@@ -53,25 +135,35 @@ Lexer::Lexer(string expression)
             case '/':
                 if (currentString != "")
                 {
-                    tokens.push_back(Token(lineNumber, colNumber - currentString.length(), currentString));
+                    tokens.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
                     currentString = "";
                 }
                 currentString = currentChar;
-                tokens.push_back(Token(lineNumber, colNumber, currentString));
+                tokens.push_back(Token(lineNumber, i + 1, currentString));
                 currentString = "";
                 continue;
             default:
+                if (isspace(currentChar))
+                {
+                    if (currentString != "")
+                    {
+                        tokens.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
+                        currentString = "";
+                    }
+                    continue;
+                }
                 if (currentChar == '.')
                 {
                     // cout << colNumber << endl;
+                    // cout << currentString << endl;
                     if ((int)expression.length() == i + 1 || !isdigit(expression[i + 1]))
                     {
-                        colNumber++;
-                        throw(colNumber);
+                        // colNumber++;
+                        throw(i + 2);
                     }
                     if (currentString == "" || (int)currentString.find('.') != -1)
                     {
-                        throw(colNumber);
+                        throw(i + 1);
                     }
                 }
                 // cout << " IS DIGIT: " << isdigit(currentChar) << endl;
@@ -82,7 +174,7 @@ Lexer::Lexer(string expression)
                 }
                 else
                 {
-                    throw(colNumber);
+                    throw(i + 1);
                 }
             }
         }
@@ -92,22 +184,18 @@ Lexer::Lexer(string expression)
             exit(1);
         }
     }
-    tokens.push_back(Token(lineNumber, 1, "END"));
+    if (currentString != "")
+    {
+        tokens.push_back(Token(lineNumber, expression.length() + 1 - currentString.length(), currentString));
+        currentString = "";
+    }
+    tokens.push_back(Token(lineNumber, expression.length() + 1, "END"));
 }
 
 // int main()
 // {
-//     string sExpression = "";
-//     string sPart;
-
-//     getline(cin, sPart);
-//     while (sPart != "" && sPart != " " && sPart != " \n")
-//     {
-//         sExpression += (sPart + "\n");
-//         getline(cin, sPart);
-//     }
 //     // cout << sExpression << endl;
-//     Lexer myLexer = Lexer(sExpression);
+//     Lexer myLexer = Lexer();
 //     myLexer.print();
 //     // Parser myParser = Parser(myLexer.getTokens());
 //     // myParser.print();
