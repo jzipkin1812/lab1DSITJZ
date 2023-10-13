@@ -19,8 +19,7 @@ Parser::Parser(vector<Token> inTokens)
     //Handle no expression
     if(inTokens.size() < 2)
     {
-        cout << "Error: No expression" << endl;
-        exit(2);
+        parseError(tokens[0]);
     }
     
     int openParentheses = 1;
