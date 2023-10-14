@@ -1,5 +1,5 @@
-project: lex.cpp parser.cpp lib/parser.h lib/lex.h lib/token.h
-	g++ -o project -std=c++17 -Wall -Wextra -Werror lex.cpp parser.cpp 
+lex: lex.cpp lib/lexer.cpp parse.cpp lib/parser.h lib/lex.h lib/token.h 
+	g++ -o lex -std=c++17 -Wall -Wextra -Werror lex.cpp lib/lexer.cpp
 
 clean:
 	rm -f project
