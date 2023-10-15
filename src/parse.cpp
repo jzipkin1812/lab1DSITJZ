@@ -7,13 +7,7 @@
 using namespace std;
 int main()
 {
-    // cout << sExpression << endl;
     Lexer myLexer = Lexer();
-    // for(Token t : myLexer.getTokens())
-    // {
-    //     cout << t.text << " ";
-    // }
-    // cout << endl;
     Parser myParser = Parser(myLexer.getTokens());
     myParser.print();
 }
