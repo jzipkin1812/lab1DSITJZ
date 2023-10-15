@@ -50,6 +50,12 @@ Parser::Parser(vector<Token> inTokens)
         Token currentToken = tokens[tIndex];
         if(currentToken.text == "(")
         {
+            // If the current pointer is null, then we have reached a Multiple Expressions error.
+            if(!currentPtr)
+            {
+                parseError(currentToken);
+            }
+            
             tIndex++; // The current token should now be an operator
             currentToken = tokens[tIndex];
             // If the current token is not an operator, then we have encountered an unexpected token
@@ -58,6 +64,7 @@ Parser::Parser(vector<Token> inTokens)
             {
                 parseError(currentToken);
             }
+            
             // Create a new subtree
             Node * operatorNode = new Node{Parser::Node{tokens[tIndex], vector<Node*>(), currentPtr}};
             currentPtr->branches.push_back(operatorNode);
