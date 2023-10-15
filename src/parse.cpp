@@ -1,18 +1,19 @@
 #include <iostream>
 #include <string>
 #include "lib/parser.h"
+#include "lib/token.h"
+#include "lib/lex.h"
+
 using namespace std;
-
-Parser::Parser(vector<Token> tokens)
+int main()
 {
-    tokens = vector<Token>();
-}
-
-void Parser::print(){
-    
-}
-
-double Parser::evaluate()
-{
-    return 0.0;
+    // cout << sExpression << endl;
+    Lexer myLexer = Lexer();
+    // for(Token t : myLexer.getTokens())
+    // {
+    //     cout << t.text << " ";
+    // }
+    // cout << endl;
+    Parser myParser = Parser(myLexer.getTokens());
+    myParser.print();
 }

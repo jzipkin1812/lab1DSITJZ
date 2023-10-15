@@ -11,20 +11,35 @@ class Parser
 {
 public:
     double evaluate();
-    Parser(vector<Token> tokens);
+    Parser(vector<Token> inTokens);
     void print();
+    ~Parser();
 
 private:
+    vector<Token> tokens;
+    
     struct Node
     {
         Token info;
         vector<Node *> branches;
+        Node * parent;
         // useful constructor:
-        Token tk = Token{0, 0, ""};
-        // Node(tk) :  info(tk), branches() {}
+        // Node(Token tk)
+        // {
+        //     info = tk;
+        // }
+        // Node()
+        // {
+        //     info = Token{0, 0, ""};
+        // }
     };
 
-    Node *root;
+    Node *root = nullptr;
+    string printHelper(Node * top, bool lastChild);
+    double evaluateHelper(Node * top);
+    void parseError(Token token);
+   
+    void clear(Node * top);
 };
 
 #endif
