@@ -19,6 +19,7 @@ Parser::Parser(vector<Token> inTokens)
     //Handle no expression
     if(inTokens.size() < 2)
     {
+        tokens[0].line++;
         parseError(tokens[0]);
     }
     
