@@ -23,15 +23,6 @@ private:
         Token info;
         vector<Node *> branches;
         Node * parent;
-        // useful constructor:
-        // Node(Token tk)
-        // {
-        //     info = tk;
-        // }
-        // Node()
-        // {
-        //     info = Token{0, 0, ""};
-        // }
     };
 
     Node *root = nullptr;
