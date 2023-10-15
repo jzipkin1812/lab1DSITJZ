@@ -9,7 +9,6 @@ using namespace std;
 Parser::Parser(vector<Token> inTokens)
 {
     tokens = inTokens;
-    // cout << "constructor reached" << endl;
     // Handle the case where the entire expression is just one number with nothing
     if(inTokens.size() == 2 && inTokens[0].isNumber())
     {
@@ -144,7 +143,6 @@ string Parser::printHelper(Parser::Node * top, bool lastChild)
     }
     else
     {
-        // cout << "print helper reached " << top->info.text << endl;
         string converted = top->info.text;
         // Formatting removes trailing 0s
         if(converted != "0")
@@ -214,7 +212,6 @@ double Parser::evaluateHelper(Node * top)
     }
     else
     {
-        // cout << "evaluate helper reached [" << text << "]" << endl;
         result = stod(text);
     }
     return(result);
