@@ -7,11 +7,8 @@
 #include "lib/token.h"
 using namespace std;
 
-
-
 int main()
 {
-    // cout << sExpression << endl;
     Lexer myLexer = Lexer();
     myLexer.print();
     // Parser myParser = Parser(myLexer.getTokens());
