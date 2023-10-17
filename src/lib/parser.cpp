@@ -6,17 +6,43 @@
 #include "parser.h"
 using namespace std;
 
-Parser::Parser(vector<Token> inTokens)
+Parser::Parser(vector<vector<Token>> inputFromLexer)
 {
-    tokens = inTokens;
+    // cout << inputFromLexer.size() << endl;
+    // for(auto token : inputFromLexer.back())
+    // {
+    //     cout << token.text << " ";
+    // }
+    // cout << endl;
+    for(auto expression : inputFromLexer)
+    {
+        roots.push_back(constructAST(expression));
+    }
+    // Delete any vectors that are nullptr
+    while(roots.back() == nullptr)
+    {
+        roots.pop_back();
+    }
+    
+}
+
+Parser::Node * Parser::constructAST(vector<Token> tokens)
+{
+
+    Node * root = nullptr;
+    // Handle the case where the entire expression is just an end token
+    if(tokens.size() == 1)
+    {
+        return nullptr;
+    }
     // Handle the case where the entire expression is just one number with nothing
-    if(inTokens.size() == 2 && inTokens[0].isNumber())
+    if(tokens.size() == 2 && tokens[0].isNumber())
     {
         root = new Node{Parser::Node{tokens[0], vector<Node*>(), nullptr}};
-        return;
+        return(root);
     }
     //Handle no expression
-    if(inTokens.size() < 2)
+    if(tokens.size() < 2)
     {
         if (tokens[0].line != 1) 
             tokens[0].line++;
@@ -110,17 +136,17 @@ Parser::Parser(vector<Token> inTokens)
         }
 
     }
-
+    return(root);
 }
 
 void Parser::print() // Infix
 {
-    if(!root)
+    for(Node * root : roots)
     {
-        return;
+        string finalOutput = printHelper(root, true);
+        cout << finalOutput << endl << evaluate(root) << endl;
     }
-    string finalOutput = printHelper(root, true);
-    cout << finalOutput << endl << evaluate() << endl;
+    
 }
 
 string Parser::printHelper(Parser::Node * top, bool lastChild)
@@ -162,13 +188,7 @@ string Parser::printHelper(Parser::Node * top, bool lastChild)
     return(finalText);
 }
 
-
-double Parser::evaluate()
-{
-    return(evaluateHelper(root));
-}
-
-double Parser::evaluateHelper(Node * top)
+double Parser::evaluate(Node * top)
 {
     double result = 0;
     string text = top->info.text;
@@ -176,15 +196,15 @@ double Parser::evaluateHelper(Node * top)
     {
         for(Node * child : top->branches)
         {
-            result += evaluateHelper(child);
+            result += evaluate(child);
         }
     }
     else if(text == "-")
     {
-        result = evaluateHelper(top->branches[0]);
+        result = evaluate(top->branches[0]);
         for(unsigned int i = 1; i < top->branches.size(); i++)
         {
-            result -= evaluateHelper(top->branches[i]);
+            result -= evaluate(top->branches[i]);
         }
     }
     else if(text == "*")
@@ -192,16 +212,16 @@ double Parser::evaluateHelper(Node * top)
         result = 1;
         for(Node * child : top->branches)
         {
-            result *= evaluateHelper(child);
+            result *= evaluate(child);
         }
     }
     else if(text == "/")
     {
-        result = evaluateHelper(top->branches[0]);
+        result = evaluate(top->branches[0]);
         for(unsigned int i = 1; i < top->branches.size(); i++)
         {
             // Divide, but check for division by 0 error
-            double divisor = evaluateHelper(top->branches[i]);
+            double divisor = evaluate(top->branches[i]);
             if(divisor == 0)
             {
                 cout << "Runtime error: division by zero." << endl;
@@ -225,7 +245,10 @@ void Parser::parseError(Token token)
 
 Parser::~Parser()
 {
-    clear(root);
+    for(Node * root : roots)
+    {
+        clear(root);
+    }
 }
 
 void Parser::clear(Node * top)

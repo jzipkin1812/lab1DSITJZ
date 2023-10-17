@@ -11,11 +11,11 @@ class Lexer
 public:
     Lexer(); // does all the complicated building slash lexing
     void print();
-    vector<Token> getTokens() { return (tokens); };
+    vector<vector<Token>> getTokens() { return (tokens); };
     void parseString(string expression, int lineNumber);
 
 private:
-    vector<Token> tokens;
+    vector<vector<Token>> tokens;
 };
 
 #endif

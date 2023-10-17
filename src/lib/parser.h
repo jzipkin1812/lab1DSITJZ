@@ -10,13 +10,14 @@ using namespace std;
 class Parser
 {
 public:
-    double evaluate();
-    Parser(vector<Token> inTokens);
+    
+    Parser(vector<vector<Token>> inputFromLexer);
     void print();
     ~Parser();
 
 private:
-    vector<Token> tokens;
+    vector<vector<Token>> tokens;
+
     
     struct Node
     {
@@ -25,12 +26,12 @@ private:
         Node * parent;
     };
 
-    Node *root = nullptr;
+    vector<Node *> roots;
     string printHelper(Node * top, bool lastChild);
-    double evaluateHelper(Node * top);
+    double evaluate(Node * top);
     void parseError(Token token);
-   
     void clear(Node * top);
+    Node * constructAST(vector<Token> tokens);
 };
 
 #endif
