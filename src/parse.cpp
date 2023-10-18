@@ -10,12 +10,15 @@ using namespace std;
 int main()
 {
     Lexer myLexer = Lexer();
-    vector<Token> firstLine = myLexer.getTokens()[0];
-    for(Token t : firstLine)
+    for(vector<Token> line : myLexer.getTokens())
     {
-        cout << t.text << " ";
+        for(Token t : line)
+        {
+            cout << t.text << " ";
+        }
+        cout << endl;
     }
-    cout << endl;
+    
     Parser myParser = Parser(myLexer.getTokens());
     myParser.print();
 }
