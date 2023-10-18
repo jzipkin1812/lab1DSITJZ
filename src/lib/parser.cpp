@@ -146,6 +146,13 @@ void Parser::print() // Infix
         string finalOutput = printHelper(root, true);
         cout << finalOutput << endl << evaluate(root) << endl;
     }
+    // DEBUG: Printing variable values
+    // auto v = variables.begin();
+    // while(v != variables.end())
+    // {
+    //     cout << v->first << " : " << v->second << endl;
+    //     v++;
+    // }
     
 }
 
@@ -191,6 +198,7 @@ string Parser::printHelper(Parser::Node * top, bool lastChild)
 double Parser::evaluate(Node * top)
 {
     double result = 0;
+    Token t = top->info;
     string text = top->info.text;
     if(text == "+")
     {
@@ -230,9 +238,39 @@ double Parser::evaluate(Node * top)
             result /= divisor;
         }
     }
-    else
+    // The assignment operator is right-associative, so it evaluates the last (rightmost) child
+    // of the operator in the AST to figure out what to assign these variables to.
+    else if(text == "=")
+    {
+        // Get the rightmost value recursively
+        result = evaluate(top->branches[top->branches.size() - 1]);
+        // Assign this value to all the variables
+        for(unsigned int i = 0; i < top->branches.size() - 1; i++)
+        {
+            variables[top->branches[i]->info.text] = result;
+        }
+    }
+    else if(t.isNumber())
     {
         result = stod(text);
+    }
+    else if(t.isVariable())
+    {
+        // Test for undefined identifier error
+        if(variables.find(text) == variables.end())
+        {
+            cout << "Runtime error: unknown identifier " << text << endl;
+            exit(3);
+        }
+        else
+        {
+            result = variables[text];
+        }
+    }
+    else
+    {
+        cout << "Encountered a variable " << text << endl;
+        exit(2);
     }
     return(result);
 }   
@@ -254,8 +292,8 @@ Parser::~Parser()
 void Parser::clear(Node * top)
 {
     for(Node * child : top->branches)
-        {
-            clear(child);
-        }
+    {
+        clear(child);
+    }
     delete top;
 }

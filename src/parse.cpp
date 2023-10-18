@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <map>
+#include <vector>
 #include "lib/parser.h"
 #include "lib/token.h"
 #include "lib/lex.h"

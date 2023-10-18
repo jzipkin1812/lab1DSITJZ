@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 #include "token.h"
 using namespace std;
 
@@ -32,6 +33,9 @@ private:
     void parseError(Token token);
     void clear(Node * top);
     Node * constructAST(vector<Token> tokens);
+    // The map maps variables to their values
+    map<string, double> variables;
+
 };
 
 #endif
