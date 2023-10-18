@@ -14,6 +14,7 @@ Parser::Parser(vector<vector<Token>> inputFromLexer)
     //     cout << token.text << " ";
     // }
     // cout << endl;
+    tokens = inputFromLexer;
     for(auto expression : inputFromLexer)
     {
         roots.push_back(constructAST(expression));
@@ -261,10 +262,18 @@ double Parser::evaluate(Node * top)
         for(unsigned int i = 0; i < top->branches.size() - 1; i++)
         {
             Token assignee = top->branches[i]->info;
-            // invalid assignee
-            if(!assignee.isVariable())
+            // invalid assignees are not variables.
+            // The number is simply thrown.
+            if(assignee.isNumber())
             {
                 parseError(assignee);
+            }
+            // The operator is not thrown. Rather, the left parenthesis that preceded it is thrown.
+            else if(assignee.isOperator())
+            {
+                //cout << "tokens[" << assignee.line - 1 << "][" << assignee.column - 2 << "]" << endl;
+                //tokens[assignee.line - 1][assignee.column - 2]
+                parseError(tokens[assignee.line - 1][assignee.column - 2]);
             }
             else
             {
