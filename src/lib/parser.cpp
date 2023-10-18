@@ -99,6 +99,7 @@ Parser::Node * Parser::constructAST(vector<Token> tokens)
         
         else if(currentToken.text == ")")
         {
+            
             // Handle unbalanced parentheses
             // Also handle operators that have been placed right in front of a closed parentheses
             if(openParentheses < 1 || tokens[tIndex - 1].isOperator())
@@ -108,6 +109,11 @@ Parser::Node * Parser::constructAST(vector<Token> tokens)
             else
             {
                 openParentheses--;
+            }
+            // Handle variables that have been assigned to nothing
+            if(tokens[tIndex - 1].isVariable() && tokens[tIndex - 2].text == "=")
+            {
+                parseError(currentToken);
             }
             // Go up a level
             currentPtr = currentPtr->parent;
@@ -143,8 +149,9 @@ void Parser::print() // Infix
 {
     for(Node * root : roots)
     {
-        string finalOutput = printHelper(root, true);
-        cout << finalOutput << endl << evaluate(root) << endl;
+        double finalValue = evaluate(root);
+        string finalInfix = printHelper(root, true);
+        cout << finalInfix << endl << finalValue << endl;
     }
     // DEBUG: Printing variable values
     // auto v = variables.begin();
@@ -243,10 +250,10 @@ double Parser::evaluate(Node * top)
     else if(text == "=")
     {
         // If there's only 1 child of the = node, this is an invalid assignment. There's nothing to assign to.
-        if(top->branches.size() == 1)
-        {
-            parseError(top->branches[0]->info);
-        }
+        // if(top->branches.size() == 1)
+        // {
+        //     parseError(top->branches[0]->info);
+        // }
         // Get the rightmost value recursively
         result = evaluate(top->branches[top->branches.size() - 1]);
         // Assign this value to all the variables
