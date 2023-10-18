@@ -80,7 +80,17 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
                         throw(i + 1);
                     }
                 }
-                if (isdigit(currentChar) || currentChar == '.')
+                if (isdigit(currentChar))
+                {
+
+                    if ((int)currentString.length() > 0 && !(isdigit(currentString[0]) || isalpha(currentString[0]) || currentString[0] == '_'))
+                    {
+                        throw(i + 1);
+                    }
+                    currentString += currentChar;
+                    continue;
+                }
+                if (currentChar == '.')
                 {
                     if ((int)currentString.length() > 0 && !isdigit(currentString[0]))
                     {
