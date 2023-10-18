@@ -29,6 +29,7 @@ Lexer::Lexer() // time complexity O(n^2), (number of lines) X (number of charact
     }
     lineNumber++;
     parseString(expression, lineNumber); // parseString runs one more time after cin.eof() in the case of an eof being located on the same line as an expression
+    tokens.back().push_back(Token(lineNumber, expression.length() + 1, "END"));
 }
 
 void Lexer::parseString(string expression, int lineNumber) // time complexity O(n), n=characters in expression
@@ -115,6 +116,6 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
         currentString = "";
     }
     // Take the entire expression and push it to the 2D vector
-    currentExpression.push_back(Token(lineNumber, expression.length() + 1, "END"));
+    // currentExpression.push_back(Token(lineNumber, expression.length() + 1, "END"));
     tokens.push_back(currentExpression);
 }
