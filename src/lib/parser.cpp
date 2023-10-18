@@ -28,25 +28,18 @@ Parser::Parser(vector<vector<Token>> inputFromLexer)
 
 Parser::Node * Parser::constructAST(vector<Token> tokens)
 {
-
     Node * root = nullptr;
-    // Handle the case where the entire expression is just an end token
-    if(tokens.size() == 1)
+    // Handle the case where the entire expression is just an end token or nothing
+    if(tokens.size() == 0 || (tokens.size() == 1 && tokens[0].isEnd()))
     {
         return nullptr;
     }
-    // Handle the case where the entire expression is just one number with nothing
-    if(tokens.size() == 2 && tokens[0].isNumber())
+    // Handle the case where the entire expression is just one number or just one variable with nothing
+    if((tokens.size() == 1 && (tokens[0].isNumber() || tokens[0].isVariable())) || 
+    (tokens.size() == 2 && (tokens[0].isNumber() || tokens[0].isVariable()) && tokens[1].isEnd()))
     {
         root = new Node{Parser::Node{tokens[0], vector<Node*>(), nullptr}};
         return(root);
-    }
-    //Handle no expression
-    if(tokens.size() < 2)
-    {
-        if (tokens[0].line != 1) 
-            tokens[0].line++;
-        parseError(tokens[0]);
     }
     
     int openParentheses = 1;
