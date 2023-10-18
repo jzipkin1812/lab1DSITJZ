@@ -178,7 +178,7 @@ string Parser::printHelper(Parser::Node * top, bool lastChild)
     {
         string converted = top->info.text;
         // Formatting removes trailing 0s
-        if(converted != "0")
+        if(converted != "0" && converted.find('.') != string::npos)
         {
             converted.erase (converted.find_last_not_of('0') + 1, std::string::npos );
             converted.erase (converted.find_last_not_of('.') + 1, std::string::npos );
@@ -242,12 +242,26 @@ double Parser::evaluate(Node * top)
     // of the operator in the AST to figure out what to assign these variables to.
     else if(text == "=")
     {
+        // If there's only 1 child of the = node, this is an invalid assignment. There's nothing to assign to.
+        if(top->branches.size() == 1)
+        {
+            parseError(top->branches[0]->info);
+        }
         // Get the rightmost value recursively
         result = evaluate(top->branches[top->branches.size() - 1]);
         // Assign this value to all the variables
         for(unsigned int i = 0; i < top->branches.size() - 1; i++)
         {
-            variables[top->branches[i]->info.text] = result;
+            Token assignee = top->branches[i]->info;
+            // invalid assignee
+            if(!assignee.isVariable())
+            {
+                parseError(assignee);
+            }
+            else
+            {
+                variables[top->branches[i]->info.text] = result;
+            }
         }
     }
     else if(t.isNumber())
