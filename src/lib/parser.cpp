@@ -75,6 +75,12 @@ Parser::Node * Parser::constructAST(vector<Token> tokens)
         Token currentToken = tokens[tIndex];
         if(currentToken.text == "(")
         {
+            // If the current pointer points to an assignment operator
+            // we have an Invalid Assignee error.
+            // if(currentPtr->info.text == "=" && !tokens[tIndex + 1].isVariable())
+            // {
+            //     parseError(currentToken);
+            // }
             // If the current pointer is null, then we have reached a Multiple Expressions error.
             if(!currentPtr)
             {
@@ -127,20 +133,17 @@ Parser::Node * Parser::constructAST(vector<Token> tokens)
         {
             parseError(currentToken);
         }
-        else if(currentToken.text == "END")
-        {
-            // Check all parentheses are closed
-            if(openParentheses != 0)
-            {
-                parseError(currentToken);
-            }
-        }
-        // Otherwise its a number
+        // Otherwise its a number or variable
         else
         {
             currentPtr->branches.push_back(new Node{Parser::Node{currentToken, vector<Node*>(), currentPtr}});
         }
 
+    }
+    // Check all parentheses are closed
+    if(openParentheses != 0)
+    {
+        parseError(tokens.back());
     }
     return(root);
 }
@@ -166,6 +169,7 @@ void Parser::print() // Infix
 string Parser::printHelper(Parser::Node * top, bool lastChild)
 {
     string finalText = "";
+    if(!top) return finalText;
     bool last;
     if(top->info.isOperator())
     {
@@ -204,6 +208,10 @@ string Parser::printHelper(Parser::Node * top, bool lastChild)
 
 double Parser::evaluate(Node * top)
 {
+    if(!top)
+    {
+        return 0;
+    }
     double result = 0;
     Token t = top->info;
     string text = top->info.text;
