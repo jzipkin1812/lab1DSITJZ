@@ -73,6 +73,7 @@ Parser::Node * Parser::constructAST(vector<Token> tokens)
     for(unsigned int tIndex = 2; tIndex < tokens.size(); tIndex++)
     {
         Token currentToken = tokens[tIndex];
+
         if(currentToken.text == "(")
         {
             // If the current pointer points to an assignment operator
@@ -133,17 +134,16 @@ Parser::Node * Parser::constructAST(vector<Token> tokens)
         {
             parseError(currentToken);
         }
-        // Otherwise its a number or variable
-        else
+        else if(currentToken.isNumber() || currentToken.isVariable())
         {
             currentPtr->branches.push_back(new Node{Parser::Node{currentToken, vector<Node*>(), currentPtr}});
         }
 
-    }
-    // Check all parentheses are closed
-    if(openParentheses != 0)
-    {
-        parseError(tokens.back());
+        // End of expression
+        if((currentToken.text == "END" || tIndex == tokens.size() - 1) && openParentheses != 0)
+        {
+            parseError(currentToken);
+        }
     }
     return(root);
 }
@@ -320,6 +320,10 @@ Parser::~Parser()
 
 void Parser::clear(Node * top)
 {
+    if(!top)
+    {
+        return;
+    }
     for(Node * child : top->branches)
     {
         clear(child);
