@@ -259,7 +259,7 @@ double Parser::evaluate(Node * top)
         // Get the rightmost value recursively
         result = evaluate(top->branches[top->branches.size() - 1]);
         // Assign this value to all the variables
-        for(unsigned int i = 0; i < top->branches.size() - 1; i++)
+        for(unsigned int i = top->branches.size() - 2; i > 0; i--)
         {
             Token assignee = top->branches[i]->info;
             // invalid assignees are not variables.
@@ -271,9 +271,7 @@ double Parser::evaluate(Node * top)
             // The operator is not thrown. Rather, the left parenthesis that preceded it is thrown.
             else if(assignee.isOperator())
             {
-                //cout << "tokens[" << assignee.line - 1 << "][" << assignee.column - 2 << "]" << endl;
-                //tokens[assignee.line - 1][assignee.column - 2]
-                parseError(tokens[assignee.line - 1][assignee.column - 2]);
+                parseError(assignee);
             }
             else
             {
