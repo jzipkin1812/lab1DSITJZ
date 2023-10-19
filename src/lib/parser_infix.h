@@ -10,7 +10,7 @@ using namespace std;
 class ParserInfix
 {
 public:
-    double evaluate();
+    vector<double> evaluate();
     ParserInfix(vector<vector<Token>> inVectors);
     void print();
     ~ParserInfix();
