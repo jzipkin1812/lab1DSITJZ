@@ -277,7 +277,8 @@ double Parser::evaluate(Node * top)
             // The operator is not thrown. Rather, the left parenthesis that preceded it is thrown.
             else if(assignee.isOperator())
             {
-                parseError(findParenthesisBefore(assignee));
+                parseError(assignee);
+                // parseError(findParenthesisBefore(assignee));
             }
             else
             {
