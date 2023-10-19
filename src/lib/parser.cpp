@@ -272,15 +272,31 @@ double Parser::evaluate(Node * top)
             // invalid assignees are not variables.
             if(!assignee.isVariable())
             {
+                // Note that OPERATORS are not thrown, the parentheses before them are.
                 // if the first child was bad, it is thrown.
                 if(i == 0)
                 {
-                    parseError(assignee);
+                    if(assignee.isOperator())
+                    {
+                        parseError(findParenthesisBefore(assignee));
+                    }
+                    else
+                    {
+                        parseError(assignee);
+                    }
                 }
                 // If any other child was bad, then the last child is thrown.
                 else
                 {
-                    parseError(top->branches[top->branches.size() - 1]->info);
+                    Token lastChild = top->branches[top->branches.size() - 1]->info;
+                    if(lastChild.isOperator())
+                    {
+                        parseError(findParenthesisBefore(lastChild));
+                    }
+                    else
+                    {
+                        parseError(lastChild);
+                    }
                 }
             }
             else
