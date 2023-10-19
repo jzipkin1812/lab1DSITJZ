@@ -270,16 +270,18 @@ double Parser::evaluate(Node * top)
         {
             Token assignee = top->branches[i]->info;
             // invalid assignees are not variables.
-            // The number is simply thrown.
-            if(assignee.isNumber())
+            if(!assignee.isVariable())
             {
-                parseError(assignee);
-            }
-            // The operator is not thrown. Rather, the left parenthesis that preceded it is thrown.
-            else if(assignee.isOperator())
-            {
-                // parseError(assignee);
-                parseError(findParenthesisBefore(assignee));
+                // if the first child was bad, it is thrown.
+                if(i == 0)
+                {
+                    parseError(assignee);
+                }
+                // If any other child was bad, then the last child is thrown.
+                else
+                {
+                    parseError(top->branches[top->branches.size() - 1]->info);
+                }
             }
             else
             {
