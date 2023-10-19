@@ -257,15 +257,8 @@ double Parser::evaluate(Node * top)
     // of the operator in the AST to figure out what to assign these variables to.
     else if(text == "=")
     {
-        // If there's only 1 child of the = node, this is an invalid assignment. There's nothing to assign to.
-        // if(top->branches.size() == 1)
-        // {
-        //     parseError(top->branches[0]->info);
-        // }
-        // Get the rightmost value recursively
-        result = evaluate(top->branches[top->branches.size() - 1]);
-        // Assign this value to all the variables
         // for(int i = top->branches.size() - 2; i >= 0; i--)
+        // First, check for assignee errors.
         for(unsigned int i = 0; i < top->branches.size() - 1; i++)
         {
             Token assignee = top->branches[i]->info;
@@ -299,10 +292,12 @@ double Parser::evaluate(Node * top)
                     }
                 }
             }
-            else
-            {
-                variables[top->branches[i]->info.text] = result;
-            }
+        }
+        // If there were no assignee values, assign all the operands.
+        result = evaluate(top->branches[top->branches.size() - 1]);
+        for(unsigned int i = 0; i < top->branches.size() - 1; i++)
+        {
+            variables[top->branches[i]->info.text] = result;
         }
     }
     else if(t.isNumber())
