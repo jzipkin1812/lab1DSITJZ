@@ -266,7 +266,7 @@ double Parser::evaluate(Node * top)
         result = evaluate(top->branches[top->branches.size() - 1]);
         // Assign this value to all the variables
         // for(int i = top->branches.size() - 2; i >= 0; i--)
-        for(unsigned int i = 0; i < top->branches.size() - 2; i++)
+        for(unsigned int i = 0; i < top->branches.size() - 1; i++)
         {
             Token assignee = top->branches[i]->info;
             // invalid assignees are not variables.
