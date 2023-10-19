@@ -31,11 +31,19 @@ int main()
     vectors.push_back(tokens2);
 */
     vector<Token> tokens3 = {
+        Token(0, 0, "("),
         Token(0, 0, "3"),
-        Token(0, 0, "*"),
-        Token(0, 0, "4"),
         Token(0, 0, "+"),
-        Token(0, 0, "5")
+        Token(0, 0, "6"),
+        Token(0, 0, ")"),
+        Token(0, 0, "*"),
+        Token(0, 0, "("),
+        Token(0, 0, "2"),
+        Token(0, 0, "-"),
+        Token(0, 0, "4"),
+        Token(0, 0, ")"),
+        Token(0, 0, "+"),
+        Token(0, 0, "7"),
     };
     vectors.push_back(tokens3);
 

@@ -77,9 +77,12 @@ ParserInfix::ParserInfix(vector<vector<Token>> inVectors)
         else // The expression is ok
         {
 
+
+            
+
             // just testing something:
-            vector<Token> postfix = addParentheses(infixToPostfix(tokens));
-            for (Token token : postfix) cout << token.text << " ";
+            //vector<Token> postfix = addParentheses(infixToPostfix(tokens));
+            //for (Token token : postfix) cout << token.text << " ";
 
 
 
