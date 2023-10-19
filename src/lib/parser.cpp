@@ -30,6 +30,11 @@ Parser::Parser(vector<vector<Token>> inputFromLexer)
 Parser::Node * Parser::constructAST(vector<Token> tokens)
 {
     Node * root = nullptr;
+    // Handle the case where the entire expression is just a parenthesis
+    if(tokens.size() == 1 && (tokens[0].isOperator() || tokens[0].isParenthesis()))
+    {
+        parseError(tokens[0]);
+    }
     // Handle the case where the entire expression is just an end token or nothing
     if(tokens.size() == 0 || (tokens.size() == 1 && tokens[0].isEnd()))
     {
@@ -42,6 +47,7 @@ Parser::Node * Parser::constructAST(vector<Token> tokens)
         root = new Node{Parser::Node{tokens[0], vector<Node*>(), nullptr}};
         return(root);
     }
+    
     
     int openParentheses = 1;
     // Handle error where first token is left parenthesis and second token is number or first token is not left parenthesis
@@ -271,7 +277,7 @@ double Parser::evaluate(Node * top)
             // The operator is not thrown. Rather, the left parenthesis that preceded it is thrown.
             else if(assignee.isOperator())
             {
-                parseError(assignee);
+                parseError(findParenthesisBefore(assignee));
             }
             else
             {
@@ -329,4 +335,18 @@ void Parser::clear(Node * top)
         clear(child);
     }
     delete top;
+}
+
+Token Parser::findParenthesisBefore(Token o)
+{
+    vector<Token> line = tokens[o.line - 1];
+    for(unsigned int i = 0; i < line.size(); i++)
+    {
+        if(line[i].column == o.column)
+        {
+            return(line[i - 1]);
+        }
+    }
+    // SHOULD NEVER BE REACHED
+    return(o);
 }
