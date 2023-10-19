@@ -259,7 +259,7 @@ double Parser::evaluate(Node * top)
         // Get the rightmost value recursively
         result = evaluate(top->branches[top->branches.size() - 1]);
         // Assign this value to all the variables
-        for(unsigned int i = top->branches.size() - 2; i > 0; i--)
+        for(unsigned int i = top->branches.size() - 2; i >= 0; i--)
         {
             Token assignee = top->branches[i]->info;
             // invalid assignees are not variables.
