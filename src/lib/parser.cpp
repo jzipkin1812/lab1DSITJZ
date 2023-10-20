@@ -339,8 +339,6 @@ double Parser::evaluate(Node * top)
                 top = top->parent;
             }
             cout << printHelper(top, true) << endl;
-            cout << "Runtime error: division by zero." << endl;
-            exit(3);
             cout << "Runtime error: unknown identifier " << text << endl;
             exit(3);
         }
