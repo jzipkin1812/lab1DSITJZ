@@ -29,6 +29,7 @@ private:
     string printHelper(Node * top, bool lastChild);
     double evaluateHelper(Node * top);
     void parseError(Token token);
+    void parseHelper(vector<Token> inVector, int currentToken, int count);
    
     void clear(Node * top);
 };

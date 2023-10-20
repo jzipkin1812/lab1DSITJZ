@@ -53,11 +53,48 @@ vector<Token> addParentheses(vector<Token> tokens) {
     return tokens; //TBD
 }
 
+//does not account for parenthesis yet
+void ParserInfix::parseHelper(vector<Token> inVector, int currentToken, int count)
+{
+    //first, check if currentToken is 0. Then we need to create a new root node and push it
+    if (currentToken == 0)
+    {
+        //assume it is a number (even though it could be an open parenthesis)
+        roots.push_back(new Node{ParserInfix::Node{inVector[0], vector<Node*>(), nullptr}});
+        currentToken++;
+    }
 
+    if (inVector[currentToken].isOperator())
+    {
+        //start with highest precedent so it is at the bottom of the AST and is evaluated last
+        if (inVector[currentToken].text == "*" || inVector[currentToken].text == "/")
+        {
+            currentToken++;
+            Node* temp = roots[count];
+            roots[count] = new Node{ParserInfix::Node{inVector[0], vector<Node*>(), nullptr}};
+            roots[count]->branches.push_back(temp);
+            temp->parent = roots[count];
+        }
+        else if (inVector[currentToken].text == "+" || inVector[currentToken].text == "-")
+        {
+            currentToken++;
+            Node* temp = roots[count];
+            roots[count] = new Node{ParserInfix::Node{inVector[0], vector<Node*>(), nullptr}};
+            roots[count]->branches.push_back(temp);
+            temp->parent = roots[count];
+        }
+        else //case when the operator is "=" (assignment operator)
+        { 
+            
+        }
+    }
+
+}
 
 ParserInfix::ParserInfix(vector<vector<Token>> inVectors) 
 {
     vectors = inVectors;
+    int count = 0; //keep track of index for vector of root nodes to use in parseHelper
     for (vector<Token> tokens : inVectors)
     {
         // The expression is just a number
@@ -69,13 +106,20 @@ ParserInfix::ParserInfix(vector<vector<Token>> inVectors)
         // ERROR - The expression is empty 
         else if(tokens.size() < 1)
         {
-            if(tokens[0].line != 1) 
+            if(tokens[0].line != 1) //does this line make sense? tokens.size()
+            //is less than 1, so how can there be a tokens[0]
                 tokens[0].line++;
+            parseError(tokens[0]);
+        }
+        //ERROR - the expression begins with an operator
+        //atleast I think this is an error - Neil
+        else if(tokens[0].isOperator()){
             parseError(tokens[0]);
         }
 // 3 + 4
         else // The expression is ok
         {
+            parseHelper(tokens, 0, count); //call helper function
 
 
             
@@ -117,7 +161,7 @@ ParserInfix::ParserInfix(vector<vector<Token>> inVectors)
             roots.push_back(root);
             */
         }
-
+    count++;
     }
 }
 
