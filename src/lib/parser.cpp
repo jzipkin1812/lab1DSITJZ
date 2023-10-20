@@ -293,7 +293,7 @@ double Parser::evaluate(Node * top)
                 }
             }
         }
-        // If there were no assignee values, assign all the operands.
+        // If there were no assignee errors, assign all the operands to the value of the rightmost expression.
         result = evaluate(top->branches[top->branches.size() - 1]);
         for(unsigned int i = 0; i < top->branches.size() - 1; i++)
         {
@@ -316,11 +316,6 @@ double Parser::evaluate(Node * top)
         {
             result = variables[text];
         }
-    }
-    else
-    {
-        cout << "Encountered a variable " << text << endl;
-        exit(2);
     }
     return(result);
 }   
