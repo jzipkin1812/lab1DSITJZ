@@ -265,6 +265,12 @@ double Parser::evaluate(Node * top)
             double divisor = evaluate(top->branches[i]);
             if(divisor == 0)
             {
+                // Find the root of the tree and print infix version (the tree should still print in infix form when a runtime error occurs!)
+                while(top->parent)
+                {
+                    top = top->parent;
+                }
+                cout << printHelper(top, true) << endl;
                 cout << "Runtime error: division by zero." << endl;
                 exit(3);
             }
