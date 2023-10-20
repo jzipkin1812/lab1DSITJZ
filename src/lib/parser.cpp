@@ -14,8 +14,26 @@ Parser::Parser(vector<vector<Token>> inputFromLexer)
     //     cout << token.text << " ";
     // }
     // cout << endl;
-    tokens = inputFromLexer;
-    for(auto expression : inputFromLexer)
+    // tokens = inputFromLexer;
+    for(vector<Token> line : inputFromLexer)
+    {
+        for(Token t : line)
+        {
+            singleTokens.push_back(t);
+        }
+    }
+    while(singleTokens.size() > 0)
+    {
+        vector<Token> oneExp = oneExpression();
+        // for(Token t: oneExp)
+        // {
+        //     cout << "[" << t.text << "]";
+        // }
+        // cout << endl;
+        tokens.push_back(oneExp);
+    }
+
+    for(auto expression : tokens)
     {
         roots.push_back(constructAST(expression));
     }
@@ -359,4 +377,39 @@ Token Parser::findParenthesisBefore(Token o)
     }
     // SHOULD NEVER BE REACHED
     return(o);
+}
+
+vector<Token> Parser::oneExpression()
+{
+    int parentheses = 0;
+    vector<Token> result;
+    while(singleTokens.size() > 0)
+    {
+        Token t = singleTokens.front();
+        if(t.text == "(")
+        {
+            parentheses++;
+        }
+        else if(t.text == ")")
+        {
+            parentheses--;
+            // Find the end of the expression via PARENTHESES
+            if(parentheses == 0)
+            {
+                result.push_back(t);
+                singleTokens.erase(singleTokens.begin());
+                return(result);
+            }
+        }
+        // Find the end of the expression via ONE SINGULAR NUMBER OR IDENTIFIER
+        else if((t.isVariable() || t.isNumber()) && parentheses == 0)
+        {
+            result.push_back(t);
+            singleTokens.erase(singleTokens.begin());
+            return(result);
+        }
+        result.push_back(t);
+        singleTokens.erase(singleTokens.begin());
+    }
+    return(result);
 }
