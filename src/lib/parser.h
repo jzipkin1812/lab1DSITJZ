@@ -12,7 +12,7 @@ class Parser
 {
 public:
     
-    Parser(vector<vector<Token>> inputFromLexer);
+    Parser(vector<Token> inputFromLexer);
     void print();
     ~Parser();
 

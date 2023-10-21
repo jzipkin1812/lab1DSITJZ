@@ -6,22 +6,9 @@
 #include "parser.h"
 using namespace std;
 
-Parser::Parser(vector<vector<Token>> inputFromLexer)
+Parser::Parser(vector<Token> inputFromLexer)
 {
-    // cout << inputFromLexer.size() << endl;
-    // for(auto token : inputFromLexer.back())
-    // {
-    //     cout << token.text << " ";
-    // }
-    // cout << endl;
-    // tokens = inputFromLexer;
-    for(vector<Token> line : inputFromLexer)
-    {
-        for(Token t : line)
-        {
-            singleTokens.push_back(t);
-        }
-    }
+    singleTokens = inputFromLexer;
     while(singleTokens.size() > 0)
     {
         vector<Token> oneExp = oneExpression();
