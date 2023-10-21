@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <iomanip>
-#include "token.h" 
+#include "token.h"
 #include "lex.h"
 
 void Lexer::print()
@@ -11,6 +11,7 @@ void Lexer::print()
     {
         cout << setw(4) << right << t.line << setw(5) << right << t.column << "  " << left << t.text << endl;
     }
+
 }
 
 Lexer::Lexer() // time complexity O(n^2), (number of lines) X (number of characters in each line)
@@ -31,7 +32,7 @@ Lexer::Lexer() // time complexity O(n^2), (number of lines) X (number of charact
 
 void Lexer::parseString(string expression, int lineNumber) // time complexity O(n), n=characters in expression
 {
-    string currentString = "";                         // currentString gets set to each token and pushed to tokens vector
+    string currentString = ""; // currentString gets set to each token and pushed to tokens vector
     for (int i = 0; i < (int)expression.length(); i++) // (int) cast necessary when comparing int and unsigned int
     {
         try
@@ -45,6 +46,7 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
             case '-':
             case '*':
             case '/':
+            case '=':
                 if (currentString != "")
                 {
                     tokens.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
@@ -75,8 +77,31 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
                         throw(i + 1);
                     }
                 }
-                if (isdigit(currentChar) || currentChar == '.')
+                if (isdigit(currentChar))
                 {
+
+                    if ((int)currentString.length() > 0 && !(isdigit(currentString[0]) || isalpha(currentString[0]) || currentString[0] == '_'))
+                    {
+                        throw(i + 1);
+                    }
+                    currentString += currentChar;
+                    continue;
+                }
+                if (currentChar == '.')
+                {
+                    if ((int)currentString.length() > 0 && !isdigit(currentString[0]))
+                    {
+                        throw(i + 1);
+                    }
+                    currentString += currentChar;
+                    continue;
+                }
+                else if (isalpha(currentChar) || currentChar == '_')
+                {
+                    if ((int)currentString.length() > 0 && isdigit(currentString[0]))
+                    {
+                        throw(i + 1);
+                    }
                     currentString += currentChar;
                     continue;
                 }
