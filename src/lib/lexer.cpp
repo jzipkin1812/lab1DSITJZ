@@ -117,7 +117,8 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
         catch (int columnNum)
         {
             cout << "Syntax error on line " << lineNumber << " column " << columnNum << "." << endl;
-            exit(1);
+            // Instead of exiting, the function returns nothing, and nothing is appended to the tokens 2D vector.
+            return;
         }
     }
     if (currentString != "") // case for when a number is located directly before '\n'

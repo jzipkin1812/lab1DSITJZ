@@ -278,14 +278,7 @@ double Parser::evaluate(Node *top)
                 {
                     if (assignee.isOperator())
                     {
-                        if (assignee.text == "=")
-                        {
-                            assignee = top->branches[0]->branches[1]->info;
-                        }
-                        else
-                        {
-                            parseError(findParenthesisBefore(assignee));
-                        }
+                        parseError(findParenthesisBefore(assignee));
                     }
                     else
                     {
