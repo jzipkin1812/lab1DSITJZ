@@ -15,6 +15,9 @@ Parser::Parser(vector<vector<Token>> inputFromLexer)
         {
             break;
         }
+        if (expression == nullptr){
+            continue;
+        }
         roots.push_back(constructAST(expression));
     }
     // Delete any vectors that are nullptr
