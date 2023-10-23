@@ -15,14 +15,10 @@ Parser::Parser(vector<vector<Token>> inputFromLexer)
         {
             break;
         }
-        if (expression == nullptr){
-            continue;
-        }
         roots.push_back(constructAST(expression));
     }
     // Delete any vectors that are nullptr
-    // cout << "info: " << roots.back()->info.text << endl;
-    while (roots.back() == nullptr || roots.back()->info.text == "END")
+    while (roots.back() == nullptr)
     {
         roots.pop_back();
     }
@@ -47,6 +43,10 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
     Node *root = nullptr;
     Node *child1 = nullptr;
     Node *child2 = nullptr;
+    if (tokens.size() == 0)
+    {
+        return nullptr;
+    }
     for (unsigned int i = 0; i < tokens.size(); i++)
     {
         // cout << tokens[i].text << endl;
