@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "lib/parser_infix.h"
+#include "lib/parse.h"
 #include "lib/token.h"
 #include "lib/lex.h"
 
@@ -49,7 +49,7 @@ int main()
     vectors.push_back(tokens3);
     */
     Lexer myLexer = Lexer();
-    ParserInfix myParser = ParserInfix(myLexer.getTokens());
+    Parser myParser = Parser(myLexer.getTokens());
     myParser.print();
     // vector<double> results = myParser.evaluate();
     // for (double result : results)

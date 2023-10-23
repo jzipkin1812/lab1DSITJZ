@@ -1,5 +1,5 @@
-#ifndef PARSER_INFIX_H
-#define PARSER_INFIX_H
+#ifndef PARSE_H
+#define PARSE_H
 
 #include <iostream>
 #include <string>
@@ -8,12 +8,12 @@
 #include "token.h"
 using namespace std;
 
-class ParserInfix
+class Parser
 {
 public:
-    ParserInfix(vector<vector<Token>> inputFromLexer);
+    Parser(vector<vector<Token>> inputFromLexer);
     void print();
-    ~ParserInfix();
+    ~Parser();
 
 private:
     vector<vector<Token>> tokens;
