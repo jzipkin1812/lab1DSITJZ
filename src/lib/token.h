@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include <cctype>
 using namespace std;
 
 struct Token
@@ -17,18 +18,27 @@ struct Token
         column = c;
         text = t;
     }
-    
+
     bool isOperator()
     {
-        return(text == "*" || text == "+" || text == "-" || text == "/");
+        return (text == "*" || text == "+" || text == "-" || text == "/" || text == "=");
     }
     bool isParenthesis()
     {
-        return(text == ")" || text == "(");
+        return (text == ")" || text == "(");
+    }
+    bool isEnd()
+    {
+        return (text == "END");
+    }
+    bool isVariable()
+    {
+        char first = text[0];
+        return (!isEnd() && (isalpha(first) || first == '_'));
     }
     bool isNumber()
     {
-        return(!(isOperator() || isParenthesis()));
+        return (!(isOperator() || isParenthesis() || isEnd() || isVariable()));
     }
 };
 

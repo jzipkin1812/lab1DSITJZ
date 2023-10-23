@@ -17,20 +17,20 @@ public:
 
 private:
     vector<Token> tokens;
-    
+
     struct Node
     {
         Token info;
         vector<Node *> branches;
-        Node * parent;
+        Node *parent;
     };
 
     Node *root = nullptr;
-    string printHelper(Node * top, bool lastChild);
-    double evaluateHelper(Node * top);
+    string printHelper(Node *top, bool lastChild);
+    double evaluateHelper(Node *top);
     void parseError(Token token);
-   
-    void clear(Node * top);
+
+    void clear(Node *top);
 };
 
 #endif

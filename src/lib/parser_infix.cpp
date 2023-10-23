@@ -1,249 +1,353 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <stack>
 #include "token.h"
 #include "lex.h"
 #include "parser_infix.h"
 using namespace std;
 
+ParserInfix::ParserInfix(vector<vector<Token>> inputFromLexer)
+{
+    for (auto expression : inputFromLexer)
+    {
+        if (expression.back().text == "END")
+        {
+            break;
+        }
+        roots.push_back(constructAST(expression));
+    }
+    // Delete any vectors that are nullptr
+    //cout << "info: " << roots.back()->info.text << endl;
+    while (roots.back() == nullptr || roots.back()->info.text == "END")
+    {
+        roots.pop_back();
+    }
+}
+
 int getPrecedence(string token)
 {
-    if (token == "=") return(1);
-    else if (token == "+" || token == "-") return(2);
-    else if (token == "*" || token == "/") return(3);
-    else return(4); 
+    if (token == "=")
+        return (1);
+    else if (token == "+" || token == "-")
+        return (2);
+    else if (token == "*" || token == "/")
+        return (3);
+    else
+        return (4);
 }
 
-vector<Token> infixToPostfix(vector<Token> tokens) {
-    vector<Token> output;
-    vector<Token> operators;
-    for (Token token : tokens) {
-        if (getPrecedence(token.text) == 4) {
-            output.push_back(token);
-        } else if (getPrecedence(token.text) == 3 || getPrecedence(token.text) == 2) {
-            while (!operators.empty() && (getPrecedence(operators.back().text) == 3 || getPrecedence(operators.back().text) == 2) &&
-                   getPrecedence(operators.back().text) >= getPrecedence(token.text)) {
-                output.push_back(operators.back());
-                operators.pop_back();
-            }
-            operators.push_back(token);
-        } else if (token.text == "(") {
-            operators.push_back(token);
-        } else if (token.text == ")") {
-            while (!operators.empty() && operators.back().text != "(") {
-                output.push_back(operators.back());
-                operators.pop_back();
-            }
-            if (!operators.empty() && operators.back().text == "(") {
-                operators.pop_back();
-            }
-        } else if (token.text == "=") {
-            operators.push_back(token);
-        }
-    }
-    while (!operators.empty()) {
-        output.push_back(operators.back());
-        operators.pop_back();
-    }
-    return output;
-}
-
-
-vector<Token> addParentheses(vector<Token> tokens) {
-    return tokens; //TBD
-}
-
-//does not account for parenthesis yet
-void ParserInfix::parseHelper(vector<Token> inVector, int currentToken, int count)
+ParserInfix::Node *ParserInfix::constructAST(vector<Token> tokens)
 {
-    //first, check if currentToken is 0. Then we need to create a new root node and push it
-    if (currentToken == 0)
+    stack<Node *> nodeStack;
+    stack<string> stringStack;
+    Node *root = nullptr;
+    Node *child1 = nullptr;
+    Node *child2 = nullptr;
+    for (unsigned int i = 0; i < tokens.size(); i++)
     {
-        //assume it is a number (even though it could be an open parenthesis)
-        roots.push_back(new Node{ParserInfix::Node{inVector[0], vector<Node*>(), nullptr}});
-        currentToken++;
-    }
-
-    if (inVector[currentToken].isOperator())
-    {
-        //start with highest precedent so it is at the bottom of the AST and is evaluated last
-        if (inVector[currentToken].text == "*" || inVector[currentToken].text == "/")
+        // cout << tokens[i].text << endl;
+        if (tokens[i].text == "(")
         {
-            currentToken++;
-            Node* temp = roots[count];
-            roots[count] = new Node{ParserInfix::Node{inVector[0], vector<Node*>(), nullptr}};
-            roots[count]->branches.push_back(temp);
-            temp->parent = roots[count];
+            stringStack.push("(");
         }
-        else if (inVector[currentToken].text == "+" || inVector[currentToken].text == "-")
+        else if (tokens[i].isNumber() || tokens[i].isVariable())
         {
-            currentToken++;
-            Node* temp = roots[count];
-            roots[count] = new Node{ParserInfix::Node{inVector[0], vector<Node*>(), nullptr}};
-            roots[count]->branches.push_back(temp);
-            temp->parent = roots[count];
-        }
-        else //case when the operator is "=" (assignment operator)
-        { 
-            
-        }
-    }
-
-}
-
-ParserInfix::ParserInfix(vector<vector<Token>> inVectors) 
-{
-    vectors = inVectors;
-    int count = 0; //keep track of index for vector of root nodes to use in parseHelper
-    for (vector<Token> tokens : inVectors)
-    {
-        // The expression is just a number
-        if(tokens.size() == 1 && tokens[0].isNumber())
-        {
-            roots.push_back(new Node{ParserInfix::Node{tokens[0], vector<Node*>(), nullptr}});
-        }
-
-        // ERROR - The expression is empty 
-        else if(tokens.size() < 1)
-        {
-            if(tokens[0].line != 1) //does this line make sense? tokens.size()
-            //is less than 1, so how can there be a tokens[0]
-                tokens[0].line++;
-            parseError(tokens[0]);
-        }
-        //ERROR - the expression begins with an operator
-        //atleast I think this is an error - Neil
-        else if(tokens[0].isOperator()){
-            parseError(tokens[0]);
-        }
-// 3 + 4
-        else // The expression is ok
-        {
-            parseHelper(tokens, 0, count); //call helper function
-
-
-            
-
-            // just testing something:
-            //vector<Token> postfix = addParentheses(infixToPostfix(tokens));
-            //for (Token token : postfix) cout << token.text << " ";
-
-
-
-
-/**
-            Node* root = new Node{ParserInfix::Node{tokens[1], vector<Node*>(), nullptr}};
-            root->branches.push_back(new Node{ParserInfix::Node{tokens[0], vector<Node*>(), root}});
-            Node* currNode = root;
-
-            for (unsigned int i = 2 ; i < tokens.size() ; i++) 
+            nodeStack.push(new Node{ParserInfix::Node{tokens[i], vector<Node *>(), nullptr}});
+            if (i == tokens.size() - 1 && !stringStack.empty())
             {
-                Token token = tokens[i];
-                string data = token.text;
-
-                if (getPrecedence(data) > getPrecedence(currNode->info.text))
+                while (!stringStack.empty() && stringStack.top() != "(")
                 {
-                    Node* newNode = new Node{ParserInfix::Node{token, vector<Node*>(), currNode}};
-                    currNode->branches.push_back(newNode);
-                    if (getPrecedence(data) < 4) currNode = newNode;
-                }
-                else if (getPrecedence(data) < getPrecedence(currNode->info.text))
-                {
-                    vector<Node*> branches;
-                    branches.push_back(currNode);
-                    Node* newCurrNode = new Node(ParserInfix::Node{token, branches, nullptr});
-                    currNode->parent = newCurrNode;
-                    if (currNode == root) root = newCurrNode;
-                    currNode = newCurrNode;
-                    
+                    string currentString = stringStack.top();
+                    root = new Node{
+                        ParserInfix::Node{Token{0, 0, currentString}, vector<Node *>(), nullptr}};
+                    stringStack.pop();
+                    child1 = nodeStack.top();
+                    nodeStack.pop();
+                    child2 = nodeStack.top();
+                    nodeStack.pop();
+                    root->branches.push_back(child2);
+                    child2->parent = root;
+                    root->branches.push_back(child1);
+                    child1->parent = root;
+                    nodeStack.push(root);
                 }
             }
-            roots.push_back(root);
-            */
         }
-    count++;
+        else if (tokens[i].text != ")")
+        {
+            while (!stringStack.empty() && stringStack.top() != "(" && getPrecedence(stringStack.top()) >= getPrecedence(tokens[i].text))
+            {
+                string currentString = stringStack.top();
+                root = new Node{
+                    ParserInfix::Node{Token{0, 0, currentString}, vector<Node *>(), nullptr}};
+                stringStack.pop();
+                child1 = nodeStack.top();
+                nodeStack.pop();
+                child2 = nodeStack.top();
+                nodeStack.pop();
+                root->branches.push_back(child2);
+                child2->parent = root;
+                root->branches.push_back(child1);
+                child1->parent = root;
+                nodeStack.push(root);
+            }
+            stringStack.push(tokens[i].text);
+        }
+        else if (tokens[i].text == ")")
+        {
+            while (!stringStack.empty() && stringStack.top() != "(")
+            {
+                string currentString = stringStack.top();
+                root = new Node{
+                    ParserInfix::Node{Token{0, 0, currentString}, vector<Node *>(), nullptr}};
+                stringStack.pop();
+                child1 = nodeStack.top();
+                nodeStack.pop();
+                child2 = nodeStack.top();
+                nodeStack.pop();
+                root->branches.push_back(child2);
+                child2->parent = root;
+                root->branches.push_back(child1);
+                child1->parent = root;
+                // cout << "PUSHING:" << root->info.text << root->branches[0]->info.text << root->branches[1]->info.text << endl;
+                nodeStack.push(root);
+            }
+            if (!stringStack.empty())
+            {
+                stringStack.pop();
+            }
+        }
     }
+    Node *finalRoot = nodeStack.top();
+    // cout << finalRoot->info.text << endl;
+    return finalRoot;
 }
 
-
-
-
-
-vector<double> ParserInfix::evaluate()
+void ParserInfix::print() // Infix
 {
-    vector<double> results;
-    for (Node* root : roots)
-        results.push_back(evaluateHelper(root));
-    return(results);
+    for (Node *root : roots)
+    {
+        double finalValue = evaluate(root);
+        // cout << root->info.text << endl;
+        string finalInfix = printHelper(root, true);
+        cout << finalInfix << endl;
+        cout << finalValue << endl;
+        // << finalValue << endl;
+    }
+    // DEBUG: Printing variable values
+    // auto v = variables.begin();
+    // while(v != variables.end())
+    // {
+    //     cout << v->first << " : " << v->second << endl;
+    //     v++;
+    // }
 }
 
-double ParserInfix::evaluateHelper(Node * top)
+string ParserInfix::printHelper(ParserInfix::Node *top, bool lastChild)
 {
+    string finalText = "";
+    if (!top)
+        return finalText;
+    bool last;
+    if (top->info.isOperator())
+    {
+        finalText += "(";
+        for (unsigned int i = 0; i < top->branches.size(); i++)
+        {
+            last = (i == top->branches.size() - 1);
+            finalText += printHelper(top->branches[i], last);
+        }
+        finalText += ")";
+        if (!lastChild)
+        {
+            finalText += " " + top->parent->info.text + " ";
+        }
+    }
+    else
+    {
+        string converted = top->info.text;
+        // Formatting removes trailing 0s
+        if (converted != "0" && converted.find('.') != string::npos)
+        {
+            converted.erase(converted.find_last_not_of('0') + 1, std::string::npos);
+            converted.erase(converted.find_last_not_of('.') + 1, std::string::npos);
+        }
+
+        finalText += converted;
+
+        if (!lastChild)
+        {
+            // Space, parent operator, space
+            finalText += " " + top->parent->info.text + " ";
+        }
+    }
+    return (finalText);
+}
+
+double ParserInfix::evaluate(Node *top)
+{
+    if (!top)
+    {
+        return 0;
+    }
     double result = 0;
+    Token t = top->info;
     string text = top->info.text;
-    if(text == "+")
+    if (text == "+")
     {
-        for(Node * child : top->branches)
+        for (Node *child : top->branches)
         {
-            result += evaluateHelper(child);
+            result += evaluate(child);
         }
     }
-    else if(text == "-")
+    else if (text == "-")
     {
-        result = evaluateHelper(top->branches[0]);
-        for(unsigned int i = 1; i < top->branches.size(); i++)
+        result = evaluate(top->branches[0]);
+        for (unsigned int i = 1; i < top->branches.size(); i++)
         {
-            result -= evaluateHelper(top->branches[i]);
+            result -= evaluate(top->branches[i]);
         }
     }
-    else if(text == "*")
+    else if (text == "*")
     {
         result = 1;
-        for(Node * child : top->branches)
+        for (Node *child : top->branches)
         {
-            result *= evaluateHelper(child);
+            result *= evaluate(child);
         }
     }
-    else if(text == "/")
+    else if (text == "/")
     {
-        result = evaluateHelper(top->branches[0]);
-        for(unsigned int i = 1; i < top->branches.size(); i++)
+        result = evaluate(top->branches[0]);
+        for (unsigned int i = 1; i < top->branches.size(); i++)
         {
             // Divide, but check for division by 0 error
-            double divisor = evaluateHelper(top->branches[i]);
-            if(divisor == 0)
+            double divisor = evaluate(top->branches[i]);
+            if (divisor == 0)
             {
+                // Find the root of the tree and print infix version (the tree should still print in infix form when a runtime error occurs!)
+                while (top->parent)
+                {
+                    top = top->parent;
+                }
+                cout << printHelper(top, true) << endl;
                 cout << "Runtime error: division by zero." << endl;
                 exit(3);
             }
             result /= divisor;
         }
     }
-    else
+    // The assignment operator is right-associative, so it evaluates the last (rightmost) child
+    // of the operator in the AST to figure out what to assign these variables to.
+    else if (text == "=")
+    {
+        // for(int i = top->branches.size() - 2; i >= 0; i--)
+        // First, check for assignee errors.
+        for (unsigned int i = 0; i < top->branches.size() - 1; i++)
+        {
+            Token assignee = top->branches[i]->info;
+            // invalid assignees are not variables.
+            if (!assignee.isVariable())
+            {
+                // Note that OPERATORS are not thrown, the parentheses before them are.
+                // if the first child was bad, it is thrown.
+                if (i == 0)
+                {
+                    if (assignee.isOperator())
+                    {
+                        parseError(findParenthesisBefore(assignee));
+                    }
+                    else
+                    {
+                        parseError(assignee);
+                    }
+                }
+                // If any other child was bad, then the last child is thrown.
+                else
+                {
+                    Token lastChild = top->branches[top->branches.size() - 1]->info;
+                    if (lastChild.isOperator())
+                    {
+                        parseError(findParenthesisBefore(lastChild));
+                    }
+                    else
+                    {
+                        parseError(lastChild);
+                    }
+                }
+            }
+        }
+        // If there were no assignee errors, assign all the operands to the value of the rightmost expression.
+        result = evaluate(top->branches[top->branches.size() - 1]);
+        for (unsigned int i = 0; i < top->branches.size() - 1; i++)
+        {
+            variables[top->branches[i]->info.text] = result;
+        }
+    }
+    else if (t.isNumber())
     {
         result = stod(text);
     }
-    return(result);
-}   
-
-
-ParserInfix::~ParserInfix()
-{
-    for (Node* root : roots)
-        clear(root);
-}
-
-void ParserInfix::clear(Node* top)
-{
-    for(Node * child : top->branches)
+    else if (t.isVariable())
+    {
+        // Test for undefined identifier error
+        if (variables.find(text) == variables.end())
         {
-            clear(child);
+            // Find the root of the tree and print infix version (the tree should still print in infix form when a runtime error occurs!)
+            while (top->parent)
+            {
+                top = top->parent;
+            }
+            cout << printHelper(top, true) << endl;
+            cout << "Runtime error: unknown identifier " << text << endl;
+            exit(3);
         }
-    delete top;
+        else
+        {
+            result = variables[text];
+        }
+    }
+    return (result);
 }
 
 void ParserInfix::parseError(Token token)
 {
-    cout << "Unexpected token at line "<< token.line << " column " << token.column << ": " << token.text << endl;
+    cout << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << endl;
     exit(2);
+}
+
+ParserInfix::~ParserInfix()
+{
+    for (Node *root : roots)
+    {
+        clear(root);
+    }
+}
+
+void ParserInfix::clear(Node *top)
+{
+    if (!top)
+    {
+        return;
+    }
+    for (Node *child : top->branches)
+    {
+        clear(child);
+    }
+    delete top;
+}
+
+Token ParserInfix::findParenthesisBefore(Token o)
+{
+    vector<Token> line = tokens[o.line - 1];
+    for (unsigned int i = 0; i < line.size(); i++)
+    {
+        if (line[i].column == o.column)
+        {
+            return (line[i - 1]);
+        }
+    }
+    // SHOULD NEVER BE REACHED
+    return (o);
 }
