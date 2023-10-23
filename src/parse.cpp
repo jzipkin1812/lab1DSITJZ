@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include "lib/parser.h"
+#include "lib/parse.h"
 #include "lib/token.h"
 #include "lib/lex.h"
 
