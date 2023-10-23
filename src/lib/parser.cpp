@@ -59,8 +59,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
             nodeStack.push(new Node{Parser::Node{tokens[i], vector<Node *>(), nullptr}});
             if (i == tokens.size() - 1 && !stringStack.empty())
             {
-                while (!stringStack.empty() 
-                    && stringStack.top() != "(")
+                while (!stringStack.empty() && stringStack.top() != "(")
                 {
                     string currentString = stringStack.top();
                     root = new Node{
@@ -80,9 +79,8 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
         }
         else if (tokens[i].text != ")")
         {
-            while (!stringStack.empty() && 
-                    stringStack.top() != "(" 
-                    && getPrecedence(stringStack.top()) >= getPrecedence(tokens[i].text))
+            while (!stringStack.empty() &&
+                   stringStack.top() != "(" && getPrecedence(stringStack.top()) >= getPrecedence(tokens[i].text))
             {
                 string currentString = stringStack.top();
                 root = new Node{
@@ -122,6 +120,23 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
             if (!stringStack.empty())
             {
                 stringStack.pop();
+                while (!stringStack.empty() && stringStack.top() != "(")
+                {
+                    string currentString = stringStack.top();
+                    root = new Node{
+                        Parser::Node{Token{0, 0, currentString}, vector<Node *>(), nullptr}};
+                    stringStack.pop();
+                    child1 = nodeStack.top();
+                    nodeStack.pop();
+                    child2 = nodeStack.top();
+                    nodeStack.pop();
+                    root->branches.push_back(child2);
+                    child2->parent = root;
+                    root->branches.push_back(child1);
+                    child1->parent = root;
+                    // cout << "PUSHING:" << root->info.text << root->branches[0]->info.text << root->branches[1]->info.text << endl;
+                    nodeStack.push(root);
+                }
             }
         }
     }
