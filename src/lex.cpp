@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <ctype.h>
 #include "lib/lex.h"
-#include "lib/parser.h"
+#include "lib/parse.h"
 #include "lib/token.h"
 using namespace std;
 
