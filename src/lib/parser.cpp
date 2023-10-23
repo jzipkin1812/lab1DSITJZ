@@ -59,7 +59,8 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
             nodeStack.push(new Node{Parser::Node{tokens[i], vector<Node *>(), nullptr}});
             if (i == tokens.size() - 1 && !stringStack.empty())
             {
-                while (!stringStack.empty() && stringStack.top() != "(")
+                while (!stringStack.empty() 
+                    && stringStack.top() != "(")
                 {
                     string currentString = stringStack.top();
                     root = new Node{
@@ -79,7 +80,9 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
         }
         else if (tokens[i].text != ")")
         {
-            while (!stringStack.empty() && stringStack.top() != "(" && getPrecedence(stringStack.top()) >= getPrecedence(tokens[i].text))
+            while (!stringStack.empty() && 
+                    stringStack.top() != "(" 
+                    && getPrecedence(stringStack.top()) >= getPrecedence(tokens[i].text))
             {
                 string currentString = stringStack.top();
                 root = new Node{

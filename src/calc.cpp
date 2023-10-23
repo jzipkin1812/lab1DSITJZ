@@ -49,7 +49,16 @@ int main()
     vectors.push_back(tokens3);
     */
     Lexer myLexer = Lexer();
+    for(auto line : myLexer.getTokens())
+    {
+        for(Token t : line)
+        {
+            cout << " " << t.text << " ";
+        }
+        cout << endl;
+    }
     Parser myParser = Parser(myLexer.getTokens());
+
     myParser.print();
     // vector<double> results = myParser.evaluate();
     // for (double result : results)
