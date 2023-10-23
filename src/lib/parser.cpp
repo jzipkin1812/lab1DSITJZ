@@ -215,6 +215,7 @@ double Parser::evaluate(Node *top)
     double result = 0;
     Token t = top->info;
     string text = top->info.text;
+    // cout << "evaluating " << text << endl;
     if (text == "+")
     {
         for (Node *child : top->branches)
@@ -277,7 +278,14 @@ double Parser::evaluate(Node *top)
                 {
                     if (assignee.isOperator())
                     {
-                        parseError(findParenthesisBefore(assignee));
+                        if (assignee.text == "=")
+                        {
+                            assignee = top->branches[0]->branches[1]->info;
+                        }
+                        else
+                        {
+                            parseError(findParenthesisBefore(assignee));
+                        }
                     }
                     else
                     {
