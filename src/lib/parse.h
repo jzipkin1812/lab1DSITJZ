@@ -35,6 +35,7 @@ private:
     void clear(Node *top);
     Node *constructAST(vector<Token> tokens);
     Token findParenthesisBefore(Token o);
+    // bool checkAssigneeErrors(Node *finalRoot);
     // The map maps variables to their values
     map<string, double> variables;
     map<string, double> provisional;

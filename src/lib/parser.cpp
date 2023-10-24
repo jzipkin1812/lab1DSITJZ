@@ -160,9 +160,18 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
         }
     }
     Node *finalRoot = nodeStack.top();
+    // if (checkAssigneeErrors(finalRoot))
+    // {
+    //     return nullptr;
+    // }
     // cout << finalRoot->info.text << endl;
     return finalRoot;
 }
+
+// bool Parser::checkAssigneeErrors(Node * top)
+// {
+//     return false;
+// }
 
 void Parser::print() // Infix
 {
@@ -399,10 +408,19 @@ bool Parser::checkError(vector<Token> expression)
                 return (true);
             }
         }
+        // The left of every equals sign should only be an identifier.
+        if(t.text == "=")
+        {
+            if(!(expression[i - 1].isVariable()))
+            {
+                parseError(t);
+                return(true);
+            }
+        }
         // Parentheses should be balanced.
         // There should never be an empty set of two closed parentheses.
         // After an open parentheses, we must see a number or an identifier.
-        if (t.text == "(")
+        else if (t.text == "(")
         {
             parentheses++;
             if (i == lastIndex)
@@ -420,7 +438,7 @@ bool Parser::checkError(vector<Token> expression)
         }
         // Parentheses should be balanced.
         // Before a closed parentheses, we must see a number or an identifier.
-        if (t.text == ")")
+        else if (t.text == ")")
         {
 
             parentheses--;
@@ -440,7 +458,7 @@ bool Parser::checkError(vector<Token> expression)
         // Numbers and identifiers should have operators or parentheses to either side.
         // The parentheses on either side must only be open (when to the left) or closed (to the right).
         //
-        if (t.isNumber() || t.isVariable())
+        else if (t.isNumber() || t.isVariable())
         {
             // Check left
             if (i != 0 && !(expression[i - 1].text == "(" || expression[i - 1].isOperator()))
