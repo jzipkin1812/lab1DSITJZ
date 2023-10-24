@@ -121,7 +121,9 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
             if (!stringStack.empty())
             {
                 stringStack.pop();
-                while (!stringStack.empty() && stringStack.top() != "(" && ((tokens[i].text != "=" && getPrecedence(stringStack.top()) >= getPrecedence(tokens[i].text)) || (tokens[i].text == "=" && getPrecedence(stringStack.top()) > getPrecedence(tokens[i].text))))
+                while (!stringStack.empty() && stringStack.top() != "("
+                       //&& ((tokens[i].text != "=" && getPrecedence(stringStack.top()) >= getPrecedence(tokens[i].text)) || (tokens[i].text == "=" && getPrecedence(stringStack.top()) > getPrecedence(tokens[i].text)))
+                )
                 {
                     string currentString = stringStack.top();
                     root = new Node{
