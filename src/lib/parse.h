@@ -30,6 +30,7 @@ private:
     vector<Node *> roots;
     string printHelper(Node *top, bool lastChild);
     double evaluate(Node *top);
+    bool checkError(vector<Token> expression);
     void parseError(Token token);
     void clear(Node *top);
     Node *constructAST(vector<Token> tokens);
