@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <stack>
+#include <cmath>
+#include <limits>
 #include "token.h"
 #include "lex.h"
 #include "parse.h"
@@ -18,9 +20,9 @@ Parser::Parser(vector<vector<Token>> inputFromLexer)
         roots.push_back(constructAST(expression));
     }
     // Delete any vectors that are nullptr
-    for(unsigned int i = 0; i < roots.size(); i++)
+    for (unsigned int i = 0; i < roots.size(); i++)
     {
-        if(roots[i] == nullptr || roots.size() == 1)
+        if (roots[i] == nullptr || roots.size() == 1)
         {
             roots.erase(roots.begin() + i);
             i--;
@@ -45,13 +47,13 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
     // CHECK FOR ALL UNEXPECTED TOKEN ERRORS (except for invalid assignees, which are caught in evaluate!)
     // The following function will print the error message on its own.
     // It returns true if there's an error detected.
-    if(checkError(tokens) == true)
+    if (checkError(tokens) == true)
     {
         return nullptr;
     }
     // Remove the end token, which is no longer needed after checkError().
     tokens.pop_back();
-    
+
     stack<Node *> nodeStack;
     stack<string> stringStack;
     Node *root = nullptr;
@@ -167,6 +169,10 @@ void Parser::print() // Infix
     for (Node *root : roots)
     {
         double finalValue = evaluate(root);
+        if (isnan(finalValue))
+        {
+            continue;
+        }
         string finalInfix = printHelper(root, true);
         cout << finalInfix << endl;
         cout << finalValue << endl;
@@ -290,6 +296,7 @@ double Parser::evaluate(Node *top)
                     else
                     {
                         parseError(assignee);
+                        return (std::numeric_limits<double>::quiet_NaN());
                     }
                 }
                 // If any other child was bad, then the last child is thrown.
@@ -340,117 +347,115 @@ double Parser::evaluate(Node *top)
     return (result);
 }
 
-
 bool Parser::checkError(vector<Token> expression)
 {
     int lastIndex = expression.size() - 2;
     Token theEnd = expression.back();
-    if(!theEnd.isEnd())
+    if (!theEnd.isEnd())
     {
         cout << "ERROR: END TOKEN NOT PUSHED BACK TO EXPRESSION" << endl;
         cout << expression.back().text << endl;
         exit(4);
     }
     int parentheses = 0;
-    for(int i = 0; i <= lastIndex; i++)
+    for (int i = 0; i <= lastIndex; i++)
     {
         Token t = expression[i];
-        
+
         // Operators should have two operands between them.
         // The left operand can be a RIGHT parenthesis or a number or an identifier.
         // The right operand can be a LEFT parenthesis or a number or an identifier.
         // If the operand ocurrs at the beginning or ending of the vector, that's also bad.
-        if(t.isOperator())
+        if (t.isOperator())
         {
-            if(i == 0 ||
-            !(expression[i - 1].isNumber() || expression[i - 1].isVariable() || expression[i - 1].text == ")"))
+            if (i == 0 ||
+                !(expression[i - 1].isNumber() || expression[i - 1].isVariable() || expression[i - 1].text == ")"))
             {
                 parseError(t);
-                return(true);
+                return (true);
             }
             else if (i == lastIndex)
             {
                 parseError(theEnd);
-                return(true);
+                return (true);
             }
             else if (!(expression[i + 1].isNumber() || expression[i + 1].isVariable() || expression[i + 1].text == "("))
             {
                 // cout << "INVALID_OPERATOR" << endl;
                 parseError(expression[i + 1]);
-                return(true);
+                return (true);
             }
         }
         // Parentheses should be balanced.
         // There should never be an empty set of two closed parentheses.
         // After an open parentheses, we must see a number or an identifier.
-        if(t.text == "(")
+        if (t.text == "(")
         {
             parentheses++;
-            if(i == lastIndex)
+            if (i == lastIndex)
             {
                 // cout << "INVALID_LEFT" << endl;
                 parseError(theEnd);
-                return(true);
+                return (true);
             }
             if (!(expression[i + 1].isNumber() || expression[i + 1].isVariable()) || expression[i + 1].text == ")")
             {
                 // cout << "INVALID_LEFT" << endl;
                 parseError(expression[i + 1]);
-                return(true);
-            }   
+                return (true);
+            }
         }
         // Parentheses should be balanced.
         // Before a closed parentheses, we must see a number or an identifier.
-        if(t.text == ")")
+        if (t.text == ")")
         {
-            
+
             parentheses--;
-            if(parentheses < 0) // This also covers the case where i == 0.
+            if (parentheses < 0) // This also covers the case where i == 0.
             {
                 // cout << "INVALID_RIGHT" << endl;
                 parseError(t);
-                return(true);
+                return (true);
             }
             if (!(expression[i - 1].isNumber() || expression[i - 1].isVariable()))
             {
                 // cout << "INVALID_RIGHT" << endl;
                 parseError(expression[i - 1]);
-                return(true);
-            }   
+                return (true);
+            }
         }
         // Numbers and identifiers should have operators or parentheses to either side.
         // The parentheses on either side must only be open (when to the left) or closed (to the right).
-        // 
-        if(t.isNumber() || t.isVariable())
+        //
+        if (t.isNumber() || t.isVariable())
         {
             // Check left
-            if(i != 0 && !(expression[i - 1].text == "(" || expression[i - 1].isOperator()))
+            if (i != 0 && !(expression[i - 1].text == "(" || expression[i - 1].isOperator()))
             {
                 // cout << "INVALID_NUM" << endl;
                 parseError(t);
-                return(true);
+                return (true);
             }
             // Check right
             else if (i != lastIndex && !(expression[i + 1].text == ")" || expression[i + 1].isOperator()))
             {
                 // cout << "INVALID_NUM" << endl;
                 parseError(expression[i + 1]);
-                return(true);
+                return (true);
             }
         }
     }
     // At the very end of the expression, all the parentheses should be balanced.
-    if(parentheses == 0)
+    if (parentheses == 0)
     {
-        return(false);
+        return (false);
     }
     else
     {
         // cout << "UNBALANCED" << endl;
         parseError(theEnd);
-        return(true);
+        return (true);
     }
-
 }
 
 void Parser::parseError(Token token)
