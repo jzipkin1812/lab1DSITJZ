@@ -18,9 +18,13 @@ Parser::Parser(vector<vector<Token>> inputFromLexer)
         roots.push_back(constructAST(expression));
     }
     // Delete any vectors that are nullptr
-    while (roots.back() == nullptr)
+    for(unsigned int i = 0; i < roots.size(); i++)
     {
-        roots.pop_back();
+        if(roots[i] == nullptr)
+        {
+            roots.erase(roots.begin() + i);
+            i--;
+        }
     }
 }
 
@@ -341,7 +345,7 @@ bool Parser::checkError(vector<Token> expression)
     Token theEnd = Token(1, expression[lastIndex].column + 1, "END");
     expression.push_back(theEnd);
     int parentheses = 0;
-    for(int i = 0; i <= lastIndex ; i++)
+    for(int i = 0; i <= lastIndex; i++)
     {
         Token t = expression[i];
         
