@@ -268,7 +268,7 @@ double Parser::evaluate(Node *top)
                 }
                 cout << printHelper(top, true) << endl;
                 cout << "Runtime error: division by zero." << endl;
-                exit(3);
+                return (std::numeric_limits<double>::quiet_NaN());
             }
             result /= divisor;
         }
@@ -339,7 +339,7 @@ double Parser::evaluate(Node *top)
             }
             cout << printHelper(top, true) << endl;
             cout << "Runtime error: unknown identifier " << text << endl;
-            exit(3);
+            return (std::numeric_limits<double>::quiet_NaN());
         }
         else
         {
