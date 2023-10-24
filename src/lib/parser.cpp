@@ -183,6 +183,7 @@ void Parser::print() // Infix
             variables[s.first] = provisional[s.first];
         }
         string finalInfix = printHelper(root, true);
+        cout << root->info.text << endl;
         cout << finalInfix << endl;
         cout << finalValue << endl;
     }
