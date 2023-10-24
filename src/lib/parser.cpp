@@ -208,7 +208,6 @@ double Parser::evaluate(Node *top)
     double result = 0;
     Token t = top->info;
     string text = top->info.text;
-    cout << "evaluating " << text << endl;
     if (text == "+")
     {
         for (Node *child : top->branches)
