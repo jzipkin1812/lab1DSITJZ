@@ -268,6 +268,10 @@ double Parser::evaluate(Node *top)
                 }
                 cout << printHelper(top, true) << endl;
                 cout << "Runtime error: division by zero." << endl;
+                for (auto s : variables)
+                {
+                    variables[s.first] = oldvars[s.first];
+                }
                 return (std::numeric_limits<double>::quiet_NaN());
             }
             result /= divisor;
@@ -320,6 +324,7 @@ double Parser::evaluate(Node *top)
         result = evaluate(top->branches[top->branches.size() - 1]);
         for (unsigned int i = 0; i < top->branches.size() - 1; i++)
         {
+            oldvars[top->branches[i]->info.text] = variables[top->branches[i]->info.text];
             variables[top->branches[i]->info.text] = result;
         }
     }
@@ -339,6 +344,10 @@ double Parser::evaluate(Node *top)
             }
             cout << printHelper(top, true) << endl;
             cout << "Runtime error: unknown identifier " << text << endl;
+            for (auto s : variables)
+            {
+                variables[s.first] = oldvars[s.first];
+            }
             return (std::numeric_limits<double>::quiet_NaN());
         }
         else

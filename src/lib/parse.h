@@ -37,6 +37,7 @@ private:
     Token findParenthesisBefore(Token o);
     // The map maps variables to their values
     map<string, double> variables;
+    map<string, double> oldvars;
 };
 
 #endif
