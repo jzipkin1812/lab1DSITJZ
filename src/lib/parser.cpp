@@ -89,6 +89,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
                     child2->parent = root;
                     root->branches.push_back(child1);
                     child1->parent = root;
+                    //cout<<root->info.text<<endl;
                     nodeStack.push(root);
                 }
             }
@@ -137,6 +138,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
             if (!stringStack.empty())
             {
                 stringStack.pop();
+                if(i==tokens.size()-1){
                 while (!stringStack.empty() && stringStack.top() != "("
                        //&& ((tokens[i].text != "=" && getPrecedence(stringStack.top()) >= getPrecedence(tokens[i].text)) || (tokens[i].text == "=" && getPrecedence(stringStack.top()) > getPrecedence(tokens[i].text)))
                 )
@@ -155,23 +157,14 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
                     child1->parent = root;
                     // cout << "PUSHING:" << root->info.text << root->branches[0]->info.text << root->branches[1]->info.text << endl;
                     nodeStack.push(root);
-                }
+                }}
             }
         }
     }
     Node *finalRoot = nodeStack.top();
-    // if (checkAssigneeErrors(finalRoot))
-    // {
-    //     return nullptr;
-    // }
-    // cout << finalRoot->info.text << endl;
     return finalRoot;
 }
 
-// bool Parser::checkAssigneeErrors(Node * top)
-// {
-//     return false;
-// }
 
 void Parser::print() // Infix
 {
@@ -295,48 +288,7 @@ double Parser::evaluate(Node *top)
     // of the operator in the AST to figure out what to assign these variables to.
     else if (text == "=")
     {
-        // for(int i = top->branches.size() - 2; i >= 0; i--)
-        // First, check for assignee errors.
-        for (unsigned int i = 0; i < top->branches.size() - 1; i++)
-        {
-            Token assignee = top->branches[i]->info;
-            // invalid assignees are not variables.
-            if (!assignee.isVariable())
-            {
-                // Note that OPERATORS are not thrown, the parentheses before them are.
-                // if the first child was bad, it is thrown.
-                if (i == 0)
-                {
-                    if (assignee.isOperator())
-                    {
-                        // parseError(findParenthesisBefore(assignee));
-                        parseError(top->info);
-                    }
-                    else
-                    {
-                        // parseError(assignee);
-                        parseError(top->info);
-                        return (std::numeric_limits<double>::quiet_NaN());
-                    }
-                }
-                // If any other child was bad, then the last child is thrown.
-                else
-                {
-                    Token lastChild = top->branches[top->branches.size() - 1]->info;
-                    if (lastChild.isOperator())
-                    {
-                        parseError(findParenthesisBefore(lastChild));
-                        return (std::numeric_limits<double>::quiet_NaN());
-                    }
-                    else
-                    {
-                        parseError(lastChild);
-                        return (std::numeric_limits<double>::quiet_NaN());
-                    }
-                }
-            }
-        }
-        // If there were no assignee errors, assign all the operands to the value of the rightmost expression.
+        // There are no assignee errors at this point (they were caught in checkError), assign all the operands to the value of the rightmost expression.
         result = evaluate(top->branches[top->branches.size() - 1]);
         for (unsigned int i = 0; i < top->branches.size() - 1; i++)
         {
