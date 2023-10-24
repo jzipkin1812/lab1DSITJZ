@@ -11,16 +11,16 @@ Parser::Parser(vector<vector<Token>> inputFromLexer)
 {
     for (auto expression : inputFromLexer)
     {
-        if (expression.back().text == "END")
-        {
-            break;
-        }
+        // if (expression.back().text == "END")
+        // {
+        //     break;
+        // }
         roots.push_back(constructAST(expression));
     }
     // Delete any vectors that are nullptr
     for(unsigned int i = 0; i < roots.size(); i++)
     {
-        if(roots[i] == nullptr)
+        if(roots[i] == nullptr || roots.size() == 1)
         {
             roots.erase(roots.begin() + i);
             i--;
@@ -49,12 +49,15 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
     {
         return nullptr;
     }
+    // Remove the end token, which is no longer needed after checkError().
+    tokens.pop_back();
+    
     stack<Node *> nodeStack;
     stack<string> stringStack;
     Node *root = nullptr;
     Node *child1 = nullptr;
     Node *child2 = nullptr;
-    if (tokens.size() == 0)
+    if (tokens.size() <= 1)
     {
         return nullptr;
     }
@@ -340,10 +343,14 @@ double Parser::evaluate(Node *top)
 
 bool Parser::checkError(vector<Token> expression)
 {
-    int lastIndex = expression.size() - 1;
-    // THE COLUMN NUMBER OF THIS IS NOT CORRECT PLS CHANGE
-    Token theEnd = Token(1, expression[lastIndex].column + 1, "END");
-    expression.push_back(theEnd);
+    int lastIndex = expression.size() - 2;
+    Token theEnd = expression.back();
+    if(!theEnd.isEnd())
+    {
+        cout << "ERROR: END TOKEN NOT PUSHED BACK TO EXPRESSION" << endl;
+        cout << expression.back().text << endl;
+        exit(4);
+    }
     int parentheses = 0;
     for(int i = 0; i <= lastIndex; i++)
     {
@@ -361,8 +368,12 @@ bool Parser::checkError(vector<Token> expression)
                 parseError(t);
                 return(true);
             }
-            else if (i == lastIndex ||  
-            !(expression[i + 1].isNumber() || expression[i + 1].isVariable() || expression[i + 1].text == "("))
+            else if (i == lastIndex)
+            {
+                parseError(theEnd);
+                return(true);
+            }
+            else if (!(expression[i + 1].isNumber() || expression[i + 1].isVariable() || expression[i + 1].text == "("))
             {
                 // cout << "INVALID_OPERATOR" << endl;
                 parseError(expression[i + 1]);

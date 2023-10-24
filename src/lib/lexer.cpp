@@ -16,8 +16,9 @@ void Lexer::print()
     }
 }
 
-Lexer::Lexer() // time complexity O(n^2), (number of lines) X (number of characters in each line)
+Lexer::Lexer(bool addEnd) // time complexity O(n^2), (number of lines) X (number of characters in each line)
 {
+    pushEnds = addEnd;
     string expression = ""; // expression is set equal to each new line read by cin
     getline(cin, expression);
     int lineNumber = 0;
@@ -126,6 +127,10 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
         currentString = "";
     }
     // Take the entire expression and push it to the 2D vector
-    // currentExpression.push_back(Token(lineNumber, expression.length() + 1, "END"));
+    // For the new parser, we want ENDs everywhere
+    if(pushEnds)
+    {
+        currentExpression.push_back(Token(lineNumber, expression.length() + 1, "END"));
+    } 
     tokens.push_back(currentExpression);
 }

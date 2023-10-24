@@ -48,7 +48,7 @@ int main()
         Token(0, 0, "7")};
     vectors.push_back(tokens3);
     */
-    Lexer myLexer = Lexer();
+    Lexer myLexer = Lexer(true);
     //  for(auto line : myLexer.getTokens())
     // {
     //     for(Token t : line)
