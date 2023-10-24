@@ -125,7 +125,7 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
             }
             else
             {
-                cout << "Syntax error on line " << lineNum << " column " << columnNum << "." << endl;
+                cout << "Syntax error on line " << lineNumber << " column " << columnNum << "." << endl;
                 exit(1);
             }
         }
