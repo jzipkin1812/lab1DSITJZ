@@ -117,13 +117,15 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
         }
         catch (int columnNum)
         {
-            cout << "Syntax error on line " << 1 << " column " << columnNum << "." << endl;
+            
             if(pushEnds)
             {
+                cout << "Syntax error on line " << 1 << " column " << columnNum << "." << endl;
                 return;
             }
             else
             {
+                cout << "Syntax error on line " << lineNum << " column " << columnNum << "." << endl;
                 exit(1);
             }
         }
