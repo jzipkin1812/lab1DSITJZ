@@ -168,10 +168,19 @@ void Parser::print() // Infix
 {
     for (Node *root : roots)
     {
+        for (auto s : variables)
+        {
+            provisional[s.first] = variables[s.first];
+        }
         double finalValue = evaluate(root);
         if (isnan(finalValue))
         {
             continue;
+        }
+
+        for (auto s : provisional)
+        {
+            variables[s.first] = provisional[s.first];
         }
         string finalInfix = printHelper(root, true);
         cout << finalInfix << endl;
@@ -268,10 +277,6 @@ double Parser::evaluate(Node *top)
                 }
                 cout << printHelper(top, true) << endl;
                 cout << "Runtime error: division by zero." << endl;
-                for (auto s : variables)
-                {
-                    variables[s.first] = oldvars[s.first];
-                }
                 return (std::numeric_limits<double>::quiet_NaN());
             }
             result /= divisor;
@@ -312,10 +317,12 @@ double Parser::evaluate(Node *top)
                     if (lastChild.isOperator())
                     {
                         parseError(findParenthesisBefore(lastChild));
+                        return (std::numeric_limits<double>::quiet_NaN());
                     }
                     else
                     {
                         parseError(lastChild);
+                        return (std::numeric_limits<double>::quiet_NaN());
                     }
                 }
             }
@@ -324,8 +331,7 @@ double Parser::evaluate(Node *top)
         result = evaluate(top->branches[top->branches.size() - 1]);
         for (unsigned int i = 0; i < top->branches.size() - 1; i++)
         {
-            oldvars[top->branches[i]->info.text] = variables[top->branches[i]->info.text];
-            variables[top->branches[i]->info.text] = result;
+            provisional[top->branches[i]->info.text] = result;
         }
     }
     else if (t.isNumber())
@@ -335,7 +341,7 @@ double Parser::evaluate(Node *top)
     else if (t.isVariable())
     {
         // Test for undefined identifier error
-        if (variables.find(text) == variables.end())
+        if (provisional.find(text) == provisional.end())
         {
             // Find the root of the tree and print infix version (the tree should still print in infix form when a runtime error occurs!)
             while (top->parent)
@@ -344,15 +350,11 @@ double Parser::evaluate(Node *top)
             }
             cout << printHelper(top, true) << endl;
             cout << "Runtime error: unknown identifier " << text << endl;
-            for (auto s : variables)
-            {
-                variables[s.first] = oldvars[s.first];
-            }
             return (std::numeric_limits<double>::quiet_NaN());
         }
         else
         {
-            result = variables[text];
+            result = provisional[text];
         }
     }
     return (result);
