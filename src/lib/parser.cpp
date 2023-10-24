@@ -47,6 +47,8 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
     // CHECK FOR ALL UNEXPECTED TOKEN ERRORS (except for invalid assignees, which are caught in evaluate!)
     // The following function will print the error message on its own.
     // It returns true if there's an error detected.
+    for (Token token : tokens) cout << token.text << " ";
+    cout << endl;
     if (checkError(tokens) == true)
     {
         return nullptr;
@@ -183,7 +185,6 @@ void Parser::print() // Infix
             variables[s.first] = provisional[s.first];
         }
         string finalInfix = printHelper(root, true);
-        cout << root->info.text << endl;
         cout << finalInfix << endl;
         cout << finalValue << endl;
     }
