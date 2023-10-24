@@ -409,7 +409,7 @@ bool Parser::checkError(vector<Token> expression)
                 parseError(theEnd);
                 return (true);
             }
-            if (!(expression[i + 1].isNumber() || expression[i + 1].isVariable()) || expression[i + 1].text == ")")
+            if (!(expression[i + 1].isNumber() || expression[i + 1].isVariable() || expression[i + 1].text == "(") || expression[i + 1].text == ")")
             {
                 // cout << "INVALID_LEFT" << endl;
                 parseError(expression[i + 1]);
@@ -428,7 +428,7 @@ bool Parser::checkError(vector<Token> expression)
                 parseError(t);
                 return (true);
             }
-            if (!(expression[i - 1].isNumber() || expression[i - 1].isVariable()))
+            if (!(expression[i - 1].isNumber() || expression[i - 1].isVariable() || expression[i - 1].text == ")"))
             {
                 // cout << "INVALID_RIGHT" << endl;
                 parseError(expression[i - 1]);
