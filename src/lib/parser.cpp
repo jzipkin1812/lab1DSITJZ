@@ -80,7 +80,9 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
         else if (tokens[i].text != ")")
         {
             while (!stringStack.empty() &&
-                   stringStack.top() != "(" && getPrecedence(stringStack.top()) >= getPrecedence(tokens[i].text))
+                   stringStack.top() != "(" &&
+                ((tokens[i].text != "=" && getPrecedence(stringStack.top()) >= getPrecedence(tokens[i].text))
+                ||(tokens[i].text == "=" && getPrecedence(stringStack.top()) > getPrecedence(tokens[i].text))))
             {
                 string currentString = stringStack.top();
                 root = new Node{
@@ -150,19 +152,10 @@ void Parser::print() // Infix
     for (Node *root : roots)
     {
         double finalValue = evaluate(root);
-        // cout << root->info.text << endl;
         string finalInfix = printHelper(root, true);
         cout << finalInfix << endl;
         cout << finalValue << endl;
-        // << finalValue << endl;
     }
-    // DEBUG: Printing variable values
-    // auto v = variables.begin();
-    // while(v != variables.end())
-    // {
-    //     cout << v->first << " : " << v->second << endl;
-    //     v++;
-    // }
 }
 
 string Parser::printHelper(Parser::Node *top, bool lastChild)
@@ -215,7 +208,7 @@ double Parser::evaluate(Node *top)
     double result = 0;
     Token t = top->info;
     string text = top->info.text;
-    // cout << "evaluating " << text << endl;
+    cout << "evaluating " << text << endl;
     if (text == "+")
     {
         for (Node *child : top->branches)
@@ -269,6 +262,7 @@ double Parser::evaluate(Node *top)
         for (unsigned int i = 0; i < top->branches.size() - 1; i++)
         {
             Token assignee = top->branches[i]->info;
+            cout << assignee.text << endl;
             // invalid assignees are not variables.
             if (!assignee.isVariable())
             {
@@ -276,21 +270,7 @@ double Parser::evaluate(Node *top)
                 // if the first child was bad, it is thrown.
                 if (i == 0)
                 {
-                    if (assignee.isOperator())
-                    {
-                        if (assignee.text == "=")
-                        {
-                            assignee = top->branches[0]->branches[1]->info;
-                        }
-                        else
-                        {
-                            parseError(findParenthesisBefore(assignee));
-                        }
-                    }
-                    else
-                    {
-                        parseError(assignee);
-                    }
+                    parseError(assignee);
                 }
                 // If any other child was bad, then the last child is thrown.
                 else
