@@ -57,7 +57,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
     Node *root = nullptr;
     Node *child1 = nullptr;
     Node *child2 = nullptr;
-    if (tokens.size() <= 1)
+    if (tokens.size() == 0 || (tokens.size() == 1 && tokens[0].isEnd()))
     {
         return nullptr;
     }
