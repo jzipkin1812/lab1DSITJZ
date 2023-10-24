@@ -4,7 +4,8 @@
         "array": "cpp",
         "string_view": "cpp",
         "initializer_list": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "new": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

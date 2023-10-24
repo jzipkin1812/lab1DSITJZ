@@ -37,6 +37,7 @@ private:
     Token findParenthesisBefore(Token o);
     // The map maps variables to their values
     map<string, double> variables;
+    // This map is used to set the variables before checking for runtime errors. If there are no runtime errors by the end of evaluation, provisional is transfered to variables.
     map<string, double> provisional;
 };
 

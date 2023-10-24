@@ -8,6 +8,6 @@ using namespace std;
 int main()
 {
     Lexer myLexer = Lexer();
-    OldParser myParser = OldParser(myLexer.getTokens());
+    OldParser myParser = OldParser(myLexer.getTokens()); //oldParser is original S-expression parser from Checkpoint 1
     myParser.print();
 }

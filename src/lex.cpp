@@ -11,9 +11,5 @@ int main()
 {
     Lexer myLexer = Lexer();
     myLexer.print();
-    // Parser myParser = Parser(myLexer.getTokens());
-    // myParser.print();
-    // cout << "Expression evaluates to: " << myParser.evaluate();
-
     return (0);
 }
