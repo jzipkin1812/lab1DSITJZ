@@ -337,22 +337,31 @@ double Parser::evaluate(Node *top)
 bool Parser::checkError(vector<Token> expression)
 {
     int lastIndex = expression.size() - 1;
+    // THE COLUMN NUMBER OF THIS IS NOT CORRECT PLS CHANGE
+    Token theEnd = Token(1, expression[lastIndex].column + 1, "END");
+    expression.push_back(theEnd);
     int parentheses = 0;
     for(int i = 0; i <= lastIndex ; i++)
     {
         Token t = expression[i];
+        
         // Operators should have two operands between them.
         // The left operand can be a RIGHT parenthesis or a number or an identifier.
         // The right operand can be a LEFT parenthesis or a number or an identifier.
         // If the operand ocurrs at the beginning or ending of the vector, that's also bad.
         if(t.isOperator())
         {
-            if(i == 0 || i == lastIndex || 
-            !(expression[i - 1].isNumber() || expression[i - 1].isVariable() || expression[i - 1].text == ")") ||
+            if(i == 0 ||
+            !(expression[i - 1].isNumber() || expression[i - 1].isVariable() || expression[i - 1].text == ")"))
+            {
+                parseError(t);
+                return(true);
+            }
+            else if (i == lastIndex ||  
             !(expression[i + 1].isNumber() || expression[i + 1].isVariable() || expression[i + 1].text == "("))
             {
                 // cout << "INVALID_OPERATOR" << endl;
-                parseError(t);
+                parseError(expression[i + 1]);
                 return(true);
             }
         }
@@ -365,7 +374,7 @@ bool Parser::checkError(vector<Token> expression)
             if(i == lastIndex)
             {
                 // cout << "INVALID_LEFT" << endl;
-                parseError(t);
+                parseError(theEnd);
                 return(true);
             }
             if (!(expression[i + 1].isNumber() || expression[i + 1].isVariable()) || expression[i + 1].text == ")")
@@ -418,13 +427,12 @@ bool Parser::checkError(vector<Token> expression)
     // At the very end of the expression, all the parentheses should be balanced.
     if(parentheses == 0)
     {
-        
         return(false);
     }
     else
     {
         // cout << "UNBALANCED" << endl;
-        parseError(expression[lastIndex]);
+        parseError(theEnd);
         return(true);
     }
 
@@ -432,6 +440,7 @@ bool Parser::checkError(vector<Token> expression)
 
 void Parser::parseError(Token token)
 {
+    token.line = 1;
     cout << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << endl;
 }
 
