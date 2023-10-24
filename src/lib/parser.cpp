@@ -79,7 +79,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
                 {
                     string currentString = stringStack.top();
                     root = new Node{
-                        Parser::Node{Token{0, 0, currentString}, vector<Node *>(), nullptr}};
+                        Parser::Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
                     stringStack.pop();
                     child1 = nodeStack.top();
                     nodeStack.pop();
@@ -101,7 +101,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
             {
                 string currentString = stringStack.top();
                 root = new Node{
-                    Parser::Node{Token{0, 0, currentString}, vector<Node *>(), nullptr}};
+                    Parser::Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
                 stringStack.pop();
                 child1 = nodeStack.top();
                 nodeStack.pop();
@@ -121,7 +121,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
             {
                 string currentString = stringStack.top();
                 root = new Node{
-                    Parser::Node{Token{0, 0, currentString}, vector<Node *>(), nullptr}};
+                    Parser::Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
                 stringStack.pop();
                 child1 = nodeStack.top();
                 nodeStack.pop();
@@ -143,7 +143,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
                 {
                     string currentString = stringStack.top();
                     root = new Node{
-                        Parser::Node{Token{0, 0, currentString}, vector<Node *>(), nullptr}};
+                        Parser::Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
                     stringStack.pop();
                     child1 = nodeStack.top();
                     nodeStack.pop();
@@ -291,11 +291,13 @@ double Parser::evaluate(Node *top)
                 {
                     if (assignee.isOperator())
                     {
-                        parseError(findParenthesisBefore(assignee));
+                        // parseError(findParenthesisBefore(assignee));
+                        parseError(top->info);
                     }
                     else
                     {
-                        parseError(assignee);
+                        // parseError(assignee);
+                        parseError(top->info);
                         return (std::numeric_limits<double>::quiet_NaN());
                     }
                 }
