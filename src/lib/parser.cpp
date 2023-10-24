@@ -270,7 +270,14 @@ double Parser::evaluate(Node *top)
                 // if the first child was bad, it is thrown.
                 if (i == 0)
                 {
-                    parseError(assignee);
+                    if (assignee.isOperator())
+                    {
+                        parseError(findParenthesisBefore(assignee));
+                    }
+                    else
+                    {
+                        parseError(assignee);
+                    }
                 }
                 // If any other child was bad, then the last child is thrown.
                 else
