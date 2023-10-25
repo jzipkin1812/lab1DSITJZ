@@ -62,13 +62,14 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
                 currentString = "";
                 continue;
             case '<':
+            case '>':
                 if (currentString != "")
                 {
                     currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
                     currentString = "";
                 }
-                currentString = expression[i+1] == '=' ? "<=" : "<";
-                if (currentString == "<=") i++;
+                currentString = expression[i+1] == '=' ? string(1, currentChar) + "=" : string(1, currentChar);
+                if (currentString.length() == 2) i++;
                 currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
                 currentString = "";
                 continue;

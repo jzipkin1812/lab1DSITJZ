@@ -167,7 +167,7 @@ void Parser::print() // Infix
         {
             provisional[s.first] = variables[s.first];
         }
-        double finalValue = evaluate(root);
+        double finalValue = evaluate<double>(root);
         if (isnan(finalValue))
         {
             continue;
@@ -224,37 +224,42 @@ string Parser::printHelper(Parser::Node *top, bool lastChild)
     return (finalText);
 }
 
-double Parser::evaluate(Node *top)
+template <typename T>
+T Parser::evaluate(Node *top)
 {
     if (!top)
     {
         return 0;
     }
-    double result = 0;
+    T result;
     Token t = top->info;
     string text = top->info.text;
     if (text == "+")
     {
         for (Node *child : top->branches)
         {
-            result += evaluate(child);
+            result += static_cast<T>(evaluate<T>(child));
         }
     }
     else if (text == "-")
     {
-        result = evaluate(top->branches[0]);
+        result = static_cast<T>(evaluate<T>(top->branches[0]));
         for (unsigned int i = 1; i < top->branches.size(); i++)
         {
-            result -= evaluate(top->branches[i]);
+            result -= static_cast<T>(evaluate<T>(top->branches[i]));
         }
+    }
+    else if (text == "<")
+    {
+        result = static_cast<T>(top->branches[0] < top->branches[1]);
     }
     else if (text == "%")
     {
-        result = evaluate(top->branches[0]);
+        result = static_cast<T>(evaluate<T>(top->branches[0]));
         for (unsigned int i = 1 ; i < top->branches.size() ; i++)
         {
             // Do modulus, but check for division by 0
-            double d2 = evaluate(top->branches[i]);
+            double d2 = evaluate<T>(top->branches[i]);
             if (d2 == 0)
             {
                 while (top->parent) top = top -> parent;
@@ -271,16 +276,16 @@ double Parser::evaluate(Node *top)
         result = 1;
         for (Node *child : top->branches)
         {
-            result *= evaluate(child);
+            result *= static_cast<T>(evaluate<T>(child));
         }
     }
     else if (text == "/")
     {
-        result = evaluate(top->branches[0]);
+        result = static_cast<T>(evaluate<T>(top->branches[0]));
         for (unsigned int i = 1; i < top->branches.size(); i++)
         {
             // Divide, but check for division by 0 error
-            double divisor = evaluate(top->branches[i]);
+            double divisor = evaluate<T>(top->branches[i]);
             if (divisor == 0)
             {
                 // Find the root of the tree and print infix version (the tree should still print in infix form when a runtime error occurs!)
@@ -295,12 +300,12 @@ double Parser::evaluate(Node *top)
             result /= divisor;
         }
     }
-    // The assignment operator is right-associative, so it evaluates the last (rightmost) child
+    // The assignment operator is right-associative, so it evaluate<T>s the last (rightmost) child
     // of the operator in the AST to figure out what to assign these variables to.
     else if (text == "=")
     {
         // There are no assignee errors at this point (they were caught in checkError), assign all the operands to the value of the rightmost expression.
-        result = evaluate(top->branches[top->branches.size() - 1]);
+        result = static_cast<T>(evaluate<T>(top->branches[top->branches.size() - 1]));
         for (unsigned int i = 0; i < top->branches.size() - 1; i++)
         {
             provisional[top->branches[i]->info.text] = result;
@@ -308,7 +313,7 @@ double Parser::evaluate(Node *top)
     }
     else if (t.isNumber())
     {
-        result = stod(text);
+        result = static_cast<T>(stod(text));
     }
     else if (t.isVariable())
     {
@@ -356,16 +361,19 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
             if (i == 0 ||
                 !(expression[i - 1].isNumber() || expression[i - 1].isVariable() || expression[i - 1].text == ")"))
             {
+                cout << "1111" << endl;
                 parseError(t);
                 return (true);
             }
             else if (i == lastIndex)
             {
+                cout << "2222" << endl;
                 parseError(theEnd);
                 return (true);
             }
             else if (!(expression[i + 1].isNumber() || expression[i + 1].isVariable() || expression[i + 1].text == "("))
             {
+                cout << "3333" << endl;
                 parseError(expression[i + 1]);
                 return (true);
             }
