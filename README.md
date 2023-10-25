@@ -2,7 +2,7 @@
 Lab 1: Calculator with Neil Roy, Dalia Sebat, Ilai Tamari, Javin Zipkin
 
 This program uses a lexer and a parser to evaluate algebraic S-expressions from standard input and will catch
-syntax rrors and invalid expressions.
+syntax errors and invalid expressions.
 
 src/lex.cpp: Main function that tests the lexer.
 src/parse.cpp: Main function that tests the lexer and the S-expression parser together.

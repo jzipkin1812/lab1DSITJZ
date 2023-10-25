@@ -9,4 +9,3 @@ leak: calc calc.cpp lib/parser.cpp
 	valgrind --leak-check=full ./calc
 clean:
 	rm -f project
-	rm calc
