@@ -51,7 +51,6 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
             case '*':
             case '/':
             case '=':
-            case '=':
                 if (currentString != "")
                 {
                     currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
