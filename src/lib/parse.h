@@ -17,8 +17,6 @@ public:
 
 private:
     vector<vector<Token>> tokens;
-    // vector<Token> singleTokens;
-    // vector<Token> oneExpression();
 
     struct Node
     {
