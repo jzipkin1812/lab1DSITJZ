@@ -21,7 +21,11 @@ struct Token
 
     bool isOperator()
     {
-        return (text == "*" || text == "+" || text == "-" || text == "/" || text == "=");
+        return (text == "*" || text == "+" || text == "-" || text == "/" || text == "=" || text == "%");
+    }
+    bool isOrderComparison()
+    {
+        return (text == "<" || text == "<=" || text == ">" || text == "<=");
     }
     bool isParenthesis()
     {

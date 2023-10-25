@@ -30,12 +30,14 @@ int getPrecedence(string token) // Helper function for constructAST
 {
     if (token == "=")
         return (1);
-    else if (token == "+" || token == "-")
+    else if (token == "<" || token == "<=" || token == ">" || token == ">=")
         return (2);
-    else if (token == "*" || token == "/")
+    else if (token == "+" || token == "-" || token == "%")
         return (3);
-    else
+    else if (token == "*" || token == "/")
         return (4);
+    else
+        return (5);
 }
 
 Parser::Node *Parser::constructAST(vector<Token> tokens)
@@ -246,6 +248,24 @@ double Parser::evaluate(Node *top)
             result -= evaluate(top->branches[i]);
         }
     }
+    else if (text == "%")
+    {
+        result = evaluate(top->branches[0]);
+        for (unsigned int i = 1 ; i < top->branches.size() ; i++)
+        {
+            // Do modulus, but check for division by 0
+            double d2 = evaluate(top->branches[i]);
+            if (d2 == 0)
+            {
+                while (top->parent) top = top -> parent;
+                cout << printHelper(top, true) << endl;
+                cout << "Runtime error: division by zero." << endl;
+                return (std::numeric_limits<double>::quiet_NaN());
+            }
+            //result = result % d2;
+            result = result - d2 * std::floor(result / d2);
+        }
+    }
     else if (text == "*")
     {
         result = 1;
@@ -331,7 +351,7 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
         // The left operand can be a RIGHT parenthesis or a number or an identifier.
         // The right operand can be a LEFT parenthesis or a number or an identifier.
         // If the operand ocurrs at the beginning or ending of the vector, that's also bad.
-        if (t.isOperator())
+        if (t.isOperator() || t.isOrderComparison())
         {
             if (i == 0 ||
                 !(expression[i - 1].isNumber() || expression[i - 1].isVariable() || expression[i - 1].text == ")"))

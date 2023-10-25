@@ -50,6 +50,7 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
             case '-':
             case '*':
             case '/':
+            case '%':
             case '=':
                 if (currentString != "")
                 {
@@ -58,6 +59,17 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
                 }
                 currentString = currentChar;
                 currentExpression.push_back(Token(lineNumber, i + 1, currentString));
+                currentString = "";
+                continue;
+            case '<':
+                if (currentString != "")
+                {
+                    currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
+                    currentString = "";
+                }
+                currentString = expression[i+1] == '=' ? "<=" : "<";
+                if (currentString == "<=") i++;
+                currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
                 currentString = "";
                 continue;
             default: // case of spaces, digits, and '.'
