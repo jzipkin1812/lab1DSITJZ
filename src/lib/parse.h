@@ -27,17 +27,18 @@ private:
 
     vector<Node *> roots;
     string printHelper(Node *top, bool lastChild);
-    template <typename T>
-    T evaluate(Node *top);
+    typedValue evaluate(Node *top);
     bool checkError(vector<Token> expression);
     void parseError(Token token);
     void clear(Node *top);
     Node *constructAST(vector<Token> tokens);
     Token findParenthesisBefore(Token o);
     // The map maps variables to their values
-    map<string, double> variables;
+    map<string, typedValue> variables;
     // This map is used to set the variables before checking for runtime errors. If there are no runtime errors by the end of evaluation, provisional is transfered to variables.
-    map<string, double> provisional;
+    map<string, typedValue> provisional;
 };
+
+
 
 #endif

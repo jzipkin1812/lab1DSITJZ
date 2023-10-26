@@ -3,8 +3,8 @@ lex: lex.cpp lib/lexer.cpp parse.cpp lib/parser.h lib/lex.h lib/token.h
 
 calc: calc.cpp lib/parse.h lib/token.h lib/lexer.cpp lib/parser.cpp
 	g++ -o calc -std=c++17 -Wall -Wextra -Werror calc.cpp lib/parser.cpp lib/lexer.cpp
-test: test.cpp lib/parse.h lib/token.h lib/lexer.cpp lib/parser.cpp
-	g++ -o test -std=c++17 -Wall -Wextra -Werror test.cpp lib/parser.cpp lib/lexer.cpp
+format: format.cpp lib/parse.h lib/token.h lib/lexer.cpp lib/parser.cpp
+	g++ -o format -std=c++17 -Wall -Wextra -Werror format.cpp lib/parser.cpp lib/lexer.cpp
 parse: parse.cpp lib/oldParser.h lib/token.h lib/oldParser.cpp
 	g++ -o parse -std=c++17 -Wall -Wextra -Werror parse.cpp lib/oldParser.cpp lib/lexer.cpp 
 leak: calc calc.cpp lib/parser.cpp

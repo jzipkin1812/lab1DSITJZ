@@ -30,7 +30,7 @@ int getPrecedence(string token) // Helper function for constructAST
 {
     if (token == "=")
         return (1);
-    else if (token == "<" || token == "<=" || token == ">" || token == ">=")
+    else if (token == "<" || token == "<=" || token == ">" || token == ">=" || token == "==" || token == "!=")
         return (2);
     else if (token == "+" || token == "-" || token == "%")
         return (3);
@@ -67,7 +67,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
         {
             stringStack.push("(");
         }
-        else if (tokens[i].isNumber() || tokens[i].isVariable()) // numbers and variables are treated the same at a base level
+        else if (tokens[i].isOperand()) // numbers and variables are treated the same at a base level
         {
             nodeStack.push(new Node{Parser::Node{tokens[i], vector<Node *>(), nullptr}});
             if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
@@ -167,11 +167,8 @@ void Parser::print() // Infix
         {
             provisional[s.first] = variables[s.first];
         }
-        double finalValue = evaluate<double>(root);
-        if (isnan(finalValue))
-        {
-            continue;
-        }
+
+        typedValue finalValue = evaluate(root);
 
         for (auto s : provisional)
         {
@@ -224,68 +221,67 @@ string Parser::printHelper(Parser::Node *top, bool lastChild)
     return (finalText);
 }
 
-template <typename T>
-T Parser::evaluate(Node *top)
+typedValue Parser::evaluate(Node *top)
 {
+    typedValue result;
+    result.type = DOUBLE;
+    result.data.doubleValue = 0;
+
     if (!top)
     {
-        return 0;
+        return result;
     }
-    T result;
     Token t = top->info;
     string text = top->info.text;
     if (text == "+")
     {
         for (Node *child : top->branches)
         {
-            result += static_cast<T>(evaluate<T>(child));
+            result.data.doubleValue += (evaluate(child)).data.doubleValue;
         }
     }
     else if (text == "-")
     {
-        result = static_cast<T>(evaluate<T>(top->branches[0]));
+        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
         for (unsigned int i = 1; i < top->branches.size(); i++)
         {
-            result -= static_cast<T>(evaluate<T>(top->branches[i]));
+            result.data.doubleValue -= evaluate(top->branches[i]).data.doubleValue;
         }
-    }
-    else if (text == "<")
-    {
-        result = static_cast<T>(top->branches[0] < top->branches[1]);
     }
     else if (text == "%")
     {
-        result = static_cast<T>(evaluate<T>(top->branches[0]));
+        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
         for (unsigned int i = 1 ; i < top->branches.size() ; i++)
         {
             // Do modulus, but check for division by 0
-            double d2 = evaluate<T>(top->branches[i]);
+            double d2 = evaluate(top->branches[i]).data.doubleValue;
             if (d2 == 0)
             {
                 while (top->parent) top = top -> parent;
                 cout << printHelper(top, true) << endl;
                 cout << "Runtime error: division by zero." << endl;
-                return (std::numeric_limits<double>::quiet_NaN());
+                result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
+                return (result);
             }
             //result = result % d2;
-            result = result - d2 * std::floor(result / d2);
+            result.data.doubleValue = result.data.doubleValue - d2 * std::floor(result.data.doubleValue / d2);
         }
     }
     else if (text == "*")
     {
-        result = 1;
+        result.data.doubleValue = 1;
         for (Node *child : top->branches)
         {
-            result *= static_cast<T>(evaluate<T>(child));
+            result.data.doubleValue *= evaluate(child).data.doubleValue;
         }
     }
     else if (text == "/")
     {
-        result = static_cast<T>(evaluate<T>(top->branches[0]));
+        result = evaluate(top->branches[0]);
         for (unsigned int i = 1; i < top->branches.size(); i++)
         {
             // Divide, but check for division by 0 error
-            double divisor = evaluate<T>(top->branches[i]);
+            double divisor = evaluate(top->branches[i]).data.doubleValue;
             if (divisor == 0)
             {
                 // Find the root of the tree and print infix version (the tree should still print in infix form when a runtime error occurs!)
@@ -295,25 +291,25 @@ T Parser::evaluate(Node *top)
                 }
                 cout << printHelper(top, true) << endl;
                 cout << "Runtime error: division by zero." << endl;
-                return (std::numeric_limits<double>::quiet_NaN());
+                result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
+                return (result);
             }
-            result /= divisor;
+            result.data.doubleValue /= divisor;
         }
     }
-    // The assignment operator is right-associative, so it evaluate<T>s the last (rightmost) child
+    // The assignment operator is right-associative, so it evaluates the last (rightmost) child
     // of the operator in the AST to figure out what to assign these variables to.
+    // doASSIGNMENT
     else if (text == "=")
     {
         // There are no assignee errors at this point (they were caught in checkError), assign all the operands to the value of the rightmost expression.
-        result = static_cast<T>(evaluate<T>(top->branches[top->branches.size() - 1]));
-        for (unsigned int i = 0; i < top->branches.size() - 1; i++)
-        {
-            provisional[top->branches[i]->info.text] = result;
-        }
+        result = evaluate(top->branches[1]);
+        string key = top->branches[0]->info.text;
+        provisional[key] = result;
     }
     else if (t.isNumber())
     {
-        result = static_cast<T>(stod(text));
+        result = (top->info.getValue());
     }
     else if (t.isVariable())
     {
@@ -327,12 +323,59 @@ T Parser::evaluate(Node *top)
             }
             cout << printHelper(top, true) << endl;
             cout << "Runtime error: unknown identifier " << text << endl;
-            return (std::numeric_limits<double>::quiet_NaN());
+            result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
+            return (result);
         }
         else
         {
             result = provisional[text];
         }
+    }
+    else if(t.isBoolean())
+    {
+        result.type = BOOLEAN;
+        result.data.booleanValue = t.getValue().data.booleanValue;
+    }
+    // ALL LOGIC OPERATORS
+    else if (text == "<")
+    {
+        result.type = BOOLEAN;
+        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue < evaluate(top->branches[1]).data.doubleValue);
+    }
+    else if (text == ">")
+    {
+        result.type = BOOLEAN;
+        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue > evaluate(top->branches[1]).data.doubleValue);
+    }
+    else if (text == ">=")
+    {
+        result.type = BOOLEAN;
+        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue >= evaluate(top->branches[1]).data.doubleValue);
+    }
+    else if (text == "<=")
+    {
+        result.type = BOOLEAN;
+        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue <= evaluate(top->branches[1]).data.doubleValue);
+    }
+    else if (text == "==")
+    {
+        result.type = BOOLEAN;
+        result.data.booleanValue = (evaluate(top->branches[0]) == evaluate(top->branches[1]));
+    }
+    else if (text == "|")
+    {
+        result.type = BOOLEAN;
+        result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue || evaluate(top->branches[1]).data.booleanValue);
+    }
+    else if (text == "&")
+    {
+        result.type = BOOLEAN;
+        result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue && evaluate(top->branches[1]).data.booleanValue);
+    }
+    else if (text == "^")
+    {
+        result.type = BOOLEAN;
+        result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue != evaluate(top->branches[1]).data.booleanValue);
     }
     return (result);
 }
@@ -359,21 +402,21 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
         if (t.isOperator() || t.isOrderComparison())
         {
             if (i == 0 ||
-                !(expression[i - 1].isNumber() || expression[i - 1].isVariable() || expression[i - 1].text == ")"))
+                !(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
             {
-                cout << "1111" << endl;
+                cout << "INVALID OPERATOR: CASE 1" << endl;
                 parseError(t);
                 return (true);
             }
             else if (i == lastIndex)
             {
-                cout << "2222" << endl;
+                cout << "INVALID OPERATOR: CASE 2" << endl;
                 parseError(theEnd);
                 return (true);
             }
-            else if (!(expression[i + 1].isNumber() || expression[i + 1].isVariable() || expression[i + 1].text == "("))
+            else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "("))
             {
-                cout << "3333" << endl;
+                cout << "INVALID OPERATOR: CASE 3" << endl;
                 parseError(expression[i + 1]);
                 return (true);
             }
@@ -398,7 +441,7 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
                 parseError(theEnd);
                 return (true);
             }
-            if (!(expression[i + 1].isNumber() || expression[i + 1].isVariable() || expression[i + 1].text == "(") || expression[i + 1].text == ")")
+            if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(") || expression[i + 1].text == ")")
             {
                 parseError(expression[i + 1]);
                 return (true);
@@ -415,7 +458,7 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
                 parseError(t);
                 return (true);
             }
-            if (!(expression[i - 1].isNumber() || expression[i - 1].isVariable() || expression[i - 1].text == ")"))
+            if (!(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
             {
                 parseError(expression[i - 1]);
                 return (true);
@@ -423,7 +466,7 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
         }
         // Numbers and identifiers should have operators or parentheses to either side.
         // The parentheses on either side must only be open (when to the left) or closed (to the right).
-        else if (t.isNumber() || t.isVariable())
+        else if (t.isOperand())
         {
             // Check left
             if (i != 0 && !(expression[i - 1].text == "(" || expression[i - 1].isOperator()))

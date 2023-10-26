@@ -50,8 +50,11 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
             case '-':
             case '*':
             case '/':
+            case '^':
+            case '|':
+            case '&':
             case '%':
-            case '=':
+            
                 if (currentString != "")
                 {
                     currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
@@ -61,6 +64,7 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
                 currentExpression.push_back(Token(lineNumber, i + 1, currentString));
                 currentString = "";
                 continue;
+            case '=':
             case '<':
             case '>':
                 if (currentString != "")
@@ -70,6 +74,20 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
                 }
                 currentString = expression[i+1] == '=' ? string(1, currentChar) + "=" : string(1, currentChar);
                 if (currentString.length() == 2) i++;
+                currentExpression.push_back(Token(lineNumber, i + 2 - currentString.length(), currentString));
+                currentString = "";
+                continue;
+            case '!':
+                if (currentString != "")
+                {
+                    currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
+                    currentString = "";
+                }
+                if (expression[i+1] == '=') currentString = "!=";
+                else
+                {
+                    throw(i);
+                }
                 currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
                 currentString = "";
                 continue;
