@@ -10,7 +10,8 @@ using namespace std;
 enum TypeTag 
 {
     DOUBLE,
-    BOOLEAN
+    BOOLEAN,
+    ERROR
 };
 
 
@@ -50,6 +51,14 @@ struct typedValue
             result = (other.data.doubleValue == data.doubleValue);
         }
         return(result);
+    }
+
+    void setType(TypeTag newType)
+    {
+        if(type != ERROR)
+        {
+            type = newType;
+        }
     }
 };
 

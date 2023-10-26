@@ -169,12 +169,19 @@ void Parser::print() // Infix
         }
 
         typedValue finalValue = evaluate(root);
+        string finalInfix = printHelper(root, true);
+
+        if(finalValue.type == ERROR)
+        {
+            cout << finalInfix << endl;
+            cout << "Runtime error: invalid operand type." << endl;
+            return;
+        }
 
         for (auto s : provisional)
         {
             variables[s.first] = provisional[s.first];
         }
-        string finalInfix = printHelper(root, true);
         cout << finalInfix << endl;
         cout << finalValue << endl;
     }
@@ -224,16 +231,22 @@ string Parser::printHelper(Parser::Node *top, bool lastChild)
 typedValue Parser::evaluate(Node *top)
 {
     typedValue result;
-    result.type = DOUBLE;
+    result.setType(DOUBLE);
     result.data.doubleValue = 0;
-
     if (!top)
     {
         return result;
     }
     Token t = top->info;
     string text = top->info.text;
-    if (text == "+")
+    // MISMATCH
+    if(t.isOperator() && !(t.text == "==" || t.text == "!=") 
+    && (evaluate(top->branches[0]).type) != evaluate(top->branches[1]).type)
+    {
+        result.type = ERROR;
+        return(result);
+    }
+    else if (text == "+")
     {
         for (Node *child : top->branches)
         {
@@ -333,48 +346,48 @@ typedValue Parser::evaluate(Node *top)
     }
     else if(t.isBoolean())
     {
-        result.type = BOOLEAN;
+        result.setType(BOOLEAN);
         result.data.booleanValue = t.getValue().data.booleanValue;
     }
     // ALL LOGIC OPERATORS
     else if (text == "<")
     {
-        result.type = BOOLEAN;
+        result.setType(BOOLEAN);
         result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue < evaluate(top->branches[1]).data.doubleValue);
     }
     else if (text == ">")
     {
-        result.type = BOOLEAN;
+        result.setType(BOOLEAN);
         result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue > evaluate(top->branches[1]).data.doubleValue);
     }
     else if (text == ">=")
     {
-        result.type = BOOLEAN;
+        result.setType(BOOLEAN);
         result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue >= evaluate(top->branches[1]).data.doubleValue);
     }
     else if (text == "<=")
     {
-        result.type = BOOLEAN;
+        result.setType(BOOLEAN);
         result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue <= evaluate(top->branches[1]).data.doubleValue);
     }
     else if (text == "==")
     {
-        result.type = BOOLEAN;
+        result.setType(BOOLEAN);
         result.data.booleanValue = (evaluate(top->branches[0]) == evaluate(top->branches[1]));
     }
     else if (text == "|")
     {
-        result.type = BOOLEAN;
+        result.setType(BOOLEAN);
         result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue || evaluate(top->branches[1]).data.booleanValue);
     }
     else if (text == "&")
     {
-        result.type = BOOLEAN;
+        result.setType(BOOLEAN);
         result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue && evaluate(top->branches[1]).data.booleanValue);
     }
     else if (text == "^")
     {
-        result.type = BOOLEAN;
+        result.setType(BOOLEAN);
         result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue != evaluate(top->branches[1]).data.booleanValue);
     }
     return (result);
@@ -404,19 +417,19 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
             if (i == 0 ||
                 !(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
             {
-                cout << "INVALID OPERATOR: CASE 1" << endl;
+                // cout << "INVALID OPERATOR: CASE 1" << endl;
                 parseError(t);
                 return (true);
             }
             else if (i == lastIndex)
             {
-                cout << "INVALID OPERATOR: CASE 2" << endl;
+                // cout << "INVALID OPERATOR: CASE 2" << endl;
                 parseError(theEnd);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "("))
             {
-                cout << "INVALID OPERATOR: CASE 3" << endl;
+                // cout << "INVALID OPERATOR: CASE 3" << endl;
                 parseError(expression[i + 1]);
                 return (true);
             }
