@@ -240,10 +240,10 @@ typedValue Parser::evaluate(Node *top)
     Token t = top->info;
     string text = top->info.text;
     // MISMATCH: DIFFERENT OPERANDS
-    if( (t.isOperator() && (!(t.text == "==" || t.text == "!=") 
+    if((t.text != "=") && ((t.isOperator() && (!(t.text == "==" || t.text == "!=") 
     && (evaluate(top->branches[0]).type) != evaluate(top->branches[1]).type))
     || (t.takesBoolsOnly() && ((evaluate(top->branches[0]).type) == DOUBLE || evaluate(top->branches[1]).type == DOUBLE))
-    || (t.takesDoublesOnly() && ((evaluate(top->branches[0]).type) == BOOLEAN || evaluate(top->branches[1]).type == BOOLEAN)) )
+    || (t.takesDoublesOnly() && ((evaluate(top->branches[0]).type) == BOOLEAN || evaluate(top->branches[1]).type == BOOLEAN))) )
     {
         result.type = ERROR;
         return(result);
