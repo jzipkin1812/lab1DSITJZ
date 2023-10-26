@@ -85,6 +85,15 @@ class Token
             return (text == "*" || text == "+" || text == "-" || text == "/" || text == "=" || text == "%" ||
             text == "<" || text == "!=" || text == "<=" || text == ">" || text == "<=" || text == "|" || text == "&" || text == "^" || text == "==");
         }
+        bool takesDoublesOnly()
+        {
+            return (text == "*" || text == "+" || text == "-" || text == "/" || text == "=" || text == "%" ||
+            text == "<" || text == "<=" || text == ">" || text == "<=");
+        }
+        bool takesBoolsOnly()
+        {
+            return(text == "|" || text == "&" || text == "^");
+        }
         bool isOrderComparison()
         {
             return (text == "<" || text == "<=" || text == ">" || text == "<=");
