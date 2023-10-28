@@ -83,12 +83,14 @@ struct typedValue
         return(type == TYPEERROR || type == DIVZEROERROR || type == IDERROR);
     }
 
-    void outputError()
+    string outputError()
     {
-        if(!isError()) return;
-        else if (type == TYPEERROR) cout << "Runtime error: invalid operand type." << endl;
-        else if (type == DIVZEROERROR) cout << "Runtime error: division by zero." << endl;
-        else if (type == IDERROR) cout << "Runtime error: unknown identifier " << unknownIDText << endl;
+        string finalOutput = "";
+        if(!isError()) return finalOutput;
+        else if (type == TYPEERROR) finalOutput = "Runtime error: invalid operand type.\n";
+        else if (type == DIVZEROERROR) finalOutput = "Runtime error: division by zero.\n";
+        else if (type == IDERROR) finalOutput = "Runtime error: unknown identifier " +  unknownIDText + "\n";
+        return(finalOutput);
     }
 };
 

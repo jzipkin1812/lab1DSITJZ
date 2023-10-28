@@ -4,23 +4,27 @@
 #include <stack>
 #include <cmath>
 #include <limits>
+#include <sstream>
 #include "token.h"
+#include "node.h"
+#include "block.h"
 #include "lex.h"
 #include "parse.h"
 using namespace std;
 
 Parser::Parser(vector<vector<Token>> inputFromLexer)
 {
-    for (auto expression : inputFromLexer)
+    for (unsigned int line = 0; line < inputFromLexer.size(); line++)
     {
-        roots.push_back(constructAST(expression));
+        outputPerExpression.push_back(stringstream());
+        blocks.push_back(Block(constructAST(inputFromLexer[line], line)));
     }
     // Delete any vectors that are nullptr
-    for (unsigned int i = 0; i < roots.size(); i++)
+    for (unsigned int i = 0; i < blocks.size(); i++)
     {
-        if (roots[i] == nullptr || roots.size() == 1)
+        if (blocks[i].root == nullptr || blocks.size() == 1)
         {
-            roots.erase(roots.begin() + i);
+            blocks.erase(blocks.begin() + i);
             i--;
         }
     }
@@ -48,12 +52,12 @@ int getPrecedence(string token) // Helper function for constructAST
         return (9);
 }
 
-Parser::Node *Parser::constructAST(vector<Token> tokens)
+Node *Parser::constructAST(vector<Token> tokens, int line)
 {
     // CHECK FOR ALL UNEXPECTED TOKEN ERRORS
     // The following function will print the error message on its own.
     // It returns true if there's an error detected.
-    if (checkError(tokens) == true)
+    if (checkError(tokens, line) == true)
     {
         return nullptr;
     }
@@ -77,14 +81,14 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
         }
         else if (tokens[i].isOperand()) // numbers and variables are treated the same at a base level
         {
-            nodeStack.push(new Node{Parser::Node{tokens[i], vector<Node *>(), nullptr}});
+            nodeStack.push(new Node{Node{tokens[i], vector<Node *>(), nullptr}});
             if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
             {
                 while (!stringStack.empty() && stringStack.top() != "(")
                 {
                     string currentString = stringStack.top();
                     root = new Node{
-                        Parser::Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
+                        Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
                     stringStack.pop();
                     child1 = nodeStack.top();
                     nodeStack.pop();
@@ -106,7 +110,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
             { // cases are treated differently based on if there is an = sign involved due to the right associativity of the = operator
                 string currentString = stringStack.top();
                 root = new Node{
-                    Parser::Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
+                    Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
                 stringStack.pop();
                 child1 = nodeStack.top();
                 nodeStack.pop();
@@ -126,7 +130,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
             {
                 string currentString = stringStack.top();
                 root = new Node{
-                    Parser::Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
+                    Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
                 stringStack.pop();
                 child1 = nodeStack.top();
                 nodeStack.pop();
@@ -147,7 +151,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
                     {
                         string currentString = stringStack.top();
                         root = new Node{
-                            Parser::Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
+                            Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
                         stringStack.pop();
                         child1 = nodeStack.top();
                         nodeStack.pop();
@@ -169,21 +173,22 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
 
 void Parser::print() // Infix
 {
-    for (Node *root : roots)
+    for (unsigned int i = 0; i < blocks.size(); i++)
     {
+        Block oneBlock = blocks[i];
         for (auto s : variables)
         {
             provisional[s.first] = variables[s.first];
         }
 
-        typedValue finalValue = evaluate(root);
-        // cout << finalValue.type << endl;
-        string finalInfix = printHelper(root, true);
+        typedValue finalValue = evaluate(oneBlock.root);
+        // cout << finalValue.type << "\n";
+        string finalInfix = printHelper(oneBlock.root, true);
 
         if(finalValue.isError())
         {
-            cout << finalInfix << endl;
-            finalValue.outputError();
+            outputPerExpression[i] << finalInfix << "\n";
+            outputPerExpression[i] << finalValue.outputError();
             continue;
         }
         else
@@ -192,13 +197,17 @@ void Parser::print() // Infix
             {
                 variables[s.first] = provisional[s.first];
             }
-            cout << finalInfix << endl;
-            cout << finalValue << endl;
+            outputPerExpression[i] << finalInfix << "\n";
+            outputPerExpression[i] << finalValue << "\n";
         }
+    }
+    for(unsigned int i = 0; i < outputPerExpression.size(); i++)
+    {
+        cout << outputPerExpression[i].str();
     }
 }
 
-string Parser::printHelper(Parser::Node *top, bool lastChild)
+string Parser::printHelper(Node *top, bool lastChild)
 {
     string finalText = "";
     if (!top)
@@ -255,7 +264,7 @@ typedValue Parser::evaluate(Node *top)
         typedValue result2 = evaluate(top->branches[1]);
         TypeTag type1 = evaluate(top->branches[0]).type;
         TypeTag type2 = evaluate(top->branches[1]).type;
-        // cout << t.text << " " << type1 << " " << type2 << endl;
+        // cout << t.text << " " << type1 << " " << type2 << "\n";
         if (!(result1.isError() || result2.isError()) && (
             type1 != type2
         || (t.takesBoolsOnly() && (type1 == DOUBLE || type2 == DOUBLE))
@@ -270,17 +279,17 @@ typedValue Parser::evaluate(Node *top)
     {
         typedValue result1 = evaluate(top->branches[0]);
         typedValue result2 = evaluate(top->branches[1]);
-        // cout << result1.type << ", " << result2.type << endl;
+        // cout << result1.type << ", " << result2.type << "\n";
         if(t.text != "=") result.setType(result1.type);
         result.setType(result2.type);
         if(result1.type == IDERROR) 
         {
-            // cout << "IDERROR FOUND " << endl;
+            // cout << "IDERROR FOUND " << "\n";
             result.unknownIDText = result1.unknownIDText;
         }
         if(result2.type == IDERROR)
         {
-            // cout << "IDERROR FOUND " << endl;
+            // cout << "IDERROR FOUND " << "\n";
             result.unknownIDText = result2.unknownIDText;
         } 
     }
@@ -423,14 +432,14 @@ typedValue Parser::evaluate(Node *top)
     return (result);
 }
 
-bool Parser::checkError(vector<Token> expression) // runs before we try evaluating
+bool Parser::checkError(vector<Token> expression, int line) // runs before we try evaluating
 {
     int lastIndex = expression.size() - 2;
     Token theEnd = expression.back();
     if (!theEnd.isEnd()) // make sure formatting of END is correct
     {
-        cout << "ERROR: END TOKEN NOT PUSHED BACK TO EXPRESSION" << endl;
-        cout << expression.back().text << endl;
+        cout << "ERROR: END TOKEN NOT PUSHED BACK TO EXPRESSION" << "\n";
+        cout << expression.back().text << "\n";
         exit(4);
     }
     if (expression[lastIndex].isEnd()) // Covers weird case where we get 2 end tokens in 1 expression.
@@ -453,20 +462,20 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
             if (i == 0 ||
                 !(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
             {
-                // cout << "INVALID OPERATOR: CASE 1" << endl;
-                parseError(t);
+                // cout << "INVALID OPERATOR: CASE 1" << "\n";
+                parseError(t, line);
                 return (true);
             }
             else if (i == lastIndex)
             {
-                // cout << "INVALID OPERATOR: CASE 2" << endl;
-                parseError(theEnd);
+                // cout << "INVALID OPERATOR: CASE 2" << "\n";
+                parseError(theEnd, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "("))
             {
-                // cout << "INVALID OPERATOR: CASE 3" << endl;
-                parseError(expression[i + 1]);
+                // cout << "INVALID OPERATOR: CASE 3" << "\n";
+                parseError(expression[i + 1], line);
                 return (true);
             }
         }
@@ -475,7 +484,7 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
         {
             if (!(expression[i - 1].isVariable()))
             {
-                parseError(t);
+                parseError(t, line);
                 return (true);
             }
         }
@@ -487,12 +496,12 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
             parentheses++;
             if (i == lastIndex)
             {
-                parseError(theEnd);
+                parseError(theEnd, line);
                 return (true);
             }
             if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(") || expression[i + 1].text == ")")
             {
-                parseError(expression[i + 1]);
+                parseError(expression[i + 1], line);
                 return (true);
             }
         }
@@ -504,12 +513,12 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
             parentheses--;
             if (parentheses < 0) // This also covers the case where i == 0.
             {
-                parseError(t);
+                parseError(t, line);
                 return (true);
             }
             if (!(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
             {
-                parseError(expression[i - 1]);
+                parseError(expression[i - 1], line);
                 return (true);
             }
         }
@@ -520,13 +529,13 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
             // Check left
             if (i != 0 && !(expression[i - 1].text == "(" || expression[i - 1].isOperator()))
             {
-                parseError(t);
+                parseError(t, line);
                 return (true);
             }
             // Check right
             else if (i != lastIndex && !(expression[i + 1].text == ")" || expression[i + 1].isOperator()))
             {
-                parseError(expression[i + 1]);
+                parseError(expression[i + 1], line);
                 return (true);
             }
         }
@@ -538,22 +547,22 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
     }
     else
     {
-        parseError(theEnd);
+        parseError(theEnd, line);
         return (true);
     }
 }
 
-void Parser::parseError(Token token)
+void Parser::parseError(Token token, int line)
 {
     token.line = 1;
-    cout << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << endl;
+    outputPerExpression[line] << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n";
 }
 
 Parser::~Parser()
 {
-    for (Node *root : roots)
+    for (Block block : blocks)
     {
-        clear(root);
+        clear(block.root);
     }
 }
 
