@@ -433,6 +433,12 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
         cout << expression.back().text << endl;
         exit(4);
     }
+    if (expression[lastIndex].isEnd()) // Covers weird case where we get 2 end tokens in 1 expression.
+    {
+        expression.pop_back();
+        lastIndex--;
+        Token theEnd = expression.back();
+    }
     int parentheses = 0;
     for (int i = 0; i <= lastIndex; i++)
     {
