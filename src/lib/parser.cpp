@@ -400,6 +400,11 @@ typedValue Parser::evaluate(Node *top)
         result.setType(BOOLEAN);
         result.data.booleanValue = (evaluate(top->branches[0]) == evaluate(top->branches[1]));
     }
+    else if (text == "!=")
+    {
+        result.setType(BOOLEAN);
+        result.data.booleanValue = (evaluate(top->branches[0]) != evaluate(top->branches[1]));
+    }
     else if (text == "|")
     {
         result.setType(BOOLEAN);

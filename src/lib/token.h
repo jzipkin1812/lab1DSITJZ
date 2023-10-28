@@ -55,6 +55,21 @@ struct typedValue
         return(result);
     }
 
+    inline bool operator!=(const typedValue& other) const
+    {
+        bool result = (other.type != type);
+        if(result) return true;
+        if (type == BOOLEAN)
+        {
+            result = (other.data.booleanValue != data.booleanValue);
+        }
+        else if (type == DOUBLE)
+        {
+            result = (other.data.doubleValue != data.doubleValue);
+        }
+        return(result);
+    }
+
     void setType(TypeTag newType)
     {
         if(!isError())
