@@ -30,14 +30,22 @@ int getPrecedence(string token) // Helper function for constructAST
 {
     if (token == "=")
         return (1);
-    else if (token == "<" || token == "<=" || token == ">" || token == ">=" || token == "==" || token == "!=")
+    else if (token == "|")
         return (2);
-    else if (token == "+" || token == "-" || token == "%")
+    else if (token == "^")
         return (3);
-    else if (token == "*" || token == "/")
+    else if (token == "&")
         return (4);
-    else
+    else if (token == "==" || token == "!=")
         return (5);
+    else if (token == "<" || token == "<=" || token == ">" || token == ">=")
+        return (6);
+    else if (token == "+" || token == "-")
+        return (7);
+    else if (token == "*" || token == "/"  || token == "%")
+        return (8);
+    else
+        return (9);
 }
 
 Parser::Node *Parser::constructAST(vector<Token> tokens)
@@ -169,21 +177,24 @@ void Parser::print() // Infix
         }
 
         typedValue finalValue = evaluate(root);
+        // cout << finalValue.type << endl;
         string finalInfix = printHelper(root, true);
 
-        if(finalValue.type == ERROR)
+        if(finalValue.isError())
         {
             cout << finalInfix << endl;
-            cout << "Runtime error: invalid operand type." << endl;
+            finalValue.outputError();
             continue;
         }
-
-        for (auto s : provisional)
+        else
         {
-            variables[s.first] = provisional[s.first];
+            for (auto s : provisional)
+            {
+                variables[s.first] = provisional[s.first];
+            }
+            cout << finalInfix << endl;
+            cout << finalValue << endl;
         }
-        cout << finalInfix << endl;
-        cout << finalValue << endl;
     }
 }
 
@@ -230,38 +241,60 @@ string Parser::printHelper(Parser::Node *top, bool lastChild)
 
 typedValue Parser::evaluate(Node *top)
 {
-    typedValue result;
-    result.setType(DOUBLE);
-    result.data.doubleValue = 0;
+    typedValue result = typedValue{DOUBLE, 0, ""};
     if (!top)
     {
         return result;
     }
     Token t = top->info;
     string text = top->info.text;
-    // MISMATCH: DIFFERENT OPERANDS
-    if((t.text != "=") && ((t.isOperator() && (!(t.text == "==" || t.text == "!=") 
-    && (evaluate(top->branches[0]).type) != evaluate(top->branches[1]).type))
-    || (t.takesBoolsOnly() && ((evaluate(top->branches[0]).type) == DOUBLE || evaluate(top->branches[1]).type == DOUBLE))
-    || (t.takesDoublesOnly() && ((evaluate(top->branches[0]).type) == BOOLEAN || evaluate(top->branches[1]).type == BOOLEAN))) )
+    // TYPE MISMATCH ERROR
+    if(t.isOperator() && !(t.text == "="))
     {
-        result.type = ERROR;
-        return(result);
-    }
-    else if (text == "+")
-    {
-        for (Node *child : top->branches)
+        typedValue result1 = evaluate(top->branches[0]);
+        typedValue result2 = evaluate(top->branches[1]);
+        TypeTag type1 = evaluate(top->branches[0]).type;
+        TypeTag type2 = evaluate(top->branches[1]).type;
+        // cout << t.text << " " << type1 << " " << type2 << endl;
+        if (!(result1.isError() || result2.isError()) && (
+            type1 != type2
+        || (t.takesBoolsOnly() && (type1 == DOUBLE || type2 == DOUBLE))
+        || (t.takesDoublesOnly() && (type1 == BOOLEAN || type2 == BOOLEAN))))
         {
-            result.data.doubleValue += (evaluate(child)).data.doubleValue;
+            result.type = TYPEERROR;
+            return(result);
         }
+    }
+    // DIVISION BY ZERO ERROR AND UNKNOWN IDENTIFIER ERROR
+    if(t.isOperator())
+    {
+        typedValue result1 = evaluate(top->branches[0]);
+        typedValue result2 = evaluate(top->branches[1]);
+        // cout << result1.type << ", " << result2.type << endl;
+        if(t.text != "=") result.setType(result1.type);
+        result.setType(result2.type);
+        if(result1.type == IDERROR) 
+        {
+            // cout << "IDERROR FOUND " << endl;
+            result.unknownIDText = result1.unknownIDText;
+        }
+        if(result2.type == IDERROR)
+        {
+            // cout << "IDERROR FOUND " << endl;
+            result.unknownIDText = result2.unknownIDText;
+        } 
+    }
+    
+    
+    if (text == "+")
+    {
+        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
+        result.data.doubleValue += evaluate(top->branches[1]).data.doubleValue;
     }
     else if (text == "-")
     {
         result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
-        for (unsigned int i = 1; i < top->branches.size(); i++)
-        {
-            result.data.doubleValue -= evaluate(top->branches[i]).data.doubleValue;
-        }
+        result.data.doubleValue -= evaluate(top->branches[1]).data.doubleValue;
     }
     else if (text == "%")
     {
@@ -273,8 +306,7 @@ typedValue Parser::evaluate(Node *top)
             if (d2 == 0)
             {
                 while (top->parent) top = top -> parent;
-                cout << printHelper(top, true) << endl;
-                cout << "Runtime error: division by zero." << endl;
+                result.type = DIVZEROERROR;
                 result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
                 return (result);
             }
@@ -284,11 +316,8 @@ typedValue Parser::evaluate(Node *top)
     }
     else if (text == "*")
     {
-        result.data.doubleValue = 1;
-        for (Node *child : top->branches)
-        {
-            result.data.doubleValue *= evaluate(child).data.doubleValue;
-        }
+        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
+        result.data.doubleValue *= evaluate(top->branches[1]).data.doubleValue;
     }
     else if (text == "/")
     {
@@ -304,8 +333,7 @@ typedValue Parser::evaluate(Node *top)
                 {
                     top = top->parent;
                 }
-                cout << printHelper(top, true) << endl;
-                cout << "Runtime error: division by zero." << endl;
+                result.type = DIVZEROERROR;
                 result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
                 return (result);
             }
@@ -331,13 +359,8 @@ typedValue Parser::evaluate(Node *top)
         // Test for undefined identifier error
         if (provisional.find(text) == provisional.end())
         {
-            // Find the root of the tree and print infix version (the tree should still print in infix form when a runtime error occurs!)
-            while (top->parent)
-            {
-                top = top->parent;
-            }
-            cout << printHelper(top, true) << endl;
-            cout << "Runtime error: unknown identifier " << text << endl;
+            result.type = IDERROR;
+            result.unknownIDText = text;
             result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
             return (result);
         }

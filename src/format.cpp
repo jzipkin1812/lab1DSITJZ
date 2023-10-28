@@ -10,7 +10,7 @@ using namespace std;
 int main()
 {
     Lexer myLexer = Lexer(true);
-    myLexer.print();
+    // myLexer.print();
     // Parser myParser = Parser(myLexer.getTokens());
     // myParser.print(); // calls evaluate() internally.
     //vector<Token> tokens = myLexer.getTokens()[0];

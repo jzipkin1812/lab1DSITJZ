@@ -9,11 +9,12 @@ using namespace std;
 
 enum TypeTag 
 {
-    DOUBLE,
-    BOOLEAN,
-    ERROR
+    DOUBLE, // 0
+    BOOLEAN, // 1
+    TYPEERROR, // 2
+    DIVZEROERROR, // 3
+    IDERROR // 4
 };
-
 
 struct typedValue
 {
@@ -24,6 +25,7 @@ struct typedValue
         bool booleanValue;
     };
     d data;
+    string unknownIDText;
 
     friend ostream& operator<<(ostream& o, const typedValue& tValue)
     {    
@@ -55,10 +57,23 @@ struct typedValue
 
     void setType(TypeTag newType)
     {
-        if(type != ERROR)
+        if(!isError())
         {
             type = newType;
         }
+    }
+
+    bool isError()
+    {
+        return(type == TYPEERROR || type == DIVZEROERROR || type == IDERROR);
+    }
+
+    void outputError()
+    {
+        if(!isError()) return;
+        else if (type == TYPEERROR) cout << "Runtime error: invalid operand type." << endl;
+        else if (type == DIVZEROERROR) cout << "Runtime error: division by zero." << endl;
+        else if (type == IDERROR) cout << "Runtime error: unknown identifier " << unknownIDText << endl;
     }
 };
 
@@ -83,7 +98,7 @@ class Token
         bool isOperator()
         {
             return (text == "*" || text == "+" || text == "-" || text == "/" || text == "=" || text == "%" ||
-            text == "<" || text == "!=" || text == "<=" || text == ">" || text == "<=" || text == "|" || text == "&" || text == "^" || text == "==");
+            text == "<" || text == "!=" || text == ">=" || text == "<=" || text == ">" || text == "|" || text == "&" || text == "^" || text == "==");
         }
         bool takesDoublesOnly()
         {
