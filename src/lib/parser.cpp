@@ -453,7 +453,12 @@ bool Parser::checkError(vector<Token> expression, int line) // runs before we tr
     for (int i = 0; i <= lastIndex; i++)
     {
         Token t = expression[i];
-
+        // Statements are not yet supported.
+        if(t.isStatement())
+        {
+            parseError(t, line);
+            return(true);
+        }
         // Operators should have two operands between them.
         // The left operand can be a RIGHT parenthesis or a number or an identifier.
         // The right operand can be a LEFT parenthesis or a number or an identifier.

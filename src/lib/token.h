@@ -145,7 +145,7 @@ class Token
         }
         bool isNumber()
         {
-            return (!(isBoolean() || isOperator() || isParenthesis() || isEnd() || isVariable()));
+            return (!(isBoolean() || isOperator() || isParenthesis() || isEnd() || isVariable() || isStatement()));
         }
         bool isBoolean()
         {
@@ -154,6 +154,10 @@ class Token
         bool isOperand()
         {
             return(isBoolean() || isNumber() || isVariable());
+        }
+        bool isStatement()
+        {
+            return(text == "while" || text == "if" || text == "else" || text == "print");
         }
         
         typedValue getValue()
