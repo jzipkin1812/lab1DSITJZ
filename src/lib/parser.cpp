@@ -20,14 +20,14 @@ Parser::Parser(vector<vector<Token>> inputFromLexer)
         blocks.push_back(Block(constructAST(inputFromLexer[line], line)));
     }
     // Delete any vectors that are nullptr
-    for (unsigned int i = 0; i < blocks.size(); i++)
-    {
-        if (blocks[i].root == nullptr || blocks.size() == 1)
-        {
-            blocks.erase(blocks.begin() + i);
-            i--;
-        }
-    }
+    // for (unsigned int i = 0; i < blocks.size(); i++)
+    // {
+    //     if (blocks[i].root == nullptr || blocks.size() == 1)
+    //     {
+    //         blocks.erase(blocks.begin() + i);
+    //         i--;
+    //     }
+    // }
 }
 
 int getPrecedence(string token) // Helper function for constructAST
@@ -176,6 +176,10 @@ void Parser::print() // Infix
     for (unsigned int i = 0; i < blocks.size(); i++)
     {
         Block oneBlock = blocks[i];
+        if(oneBlock.root == nullptr)
+        {
+            continue;
+        }
         for (auto s : variables)
         {
             provisional[s.first] = variables[s.first];
@@ -184,12 +188,10 @@ void Parser::print() // Infix
         typedValue finalValue = evaluate(oneBlock.root);
         // cout << finalValue.type << "\n";
         string finalInfix = printHelper(oneBlock.root, true);
-
+        outputPerExpression[i] << finalInfix << "\n";
         if(finalValue.isError())
         {
-            outputPerExpression[i] << finalInfix << "\n";
             outputPerExpression[i] << finalValue.outputError();
-            continue;
         }
         else
         {
@@ -197,7 +199,6 @@ void Parser::print() // Infix
             {
                 variables[s.first] = provisional[s.first];
             }
-            outputPerExpression[i] << finalInfix << "\n";
             outputPerExpression[i] << finalValue << "\n";
         }
     }
