@@ -24,13 +24,19 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             blocks.push_back(Block(constructAST(inputFromLexer[line], line)));
         }
     }
+
     // A more complex process of "blocking" occurs when statements are present.
     else
     {
+        vector<Token> &lastLine = inputFromLexer[inputFromLexer.size() - 1];
+        if((lastLine.size() >= 2) && lastLine[lastLine.size() - 2].isEnd())
+        {
+            lastLine.erase(lastLine.end() - 1);
+        }
         // The "target" points to the block vector that we should currently be stuffing things into.
         // It starts as the parser's block vector, but if we encounter while/if/else statements,
         // we'll have to change it so that future blocks are added to what is nested within.
-        Block * parent = nullptr;
+        Block * targetParent = nullptr;
         vector<Block> * target = &(blocks);
         vector<Token> line;
         Token beginning(0, 0, "");
@@ -38,16 +44,17 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
         {
             line = inputFromLexer[i];
             beginning = line[0];
+            // cout << "Beginning of line " << i << " : " << beginning.text << endl;
             // cout << "--------LINE STARTING WITH " << beginning.text << endl;
             // Find the correct block vector to push things into. If parent is nullptr, that means we're not nested in anything and it should just be blocks.
-            if(!parent)
+            if(!targetParent)
             {
                 target = &(blocks);
             }
             else
             {
                 // cout << "Changing target to nestedStatements of target, which currently has size " << parent->nestedStatements.size() << endl;
-                target = &(parent->nestedStatements);
+                target = &(targetParent->nestedStatements);
             }
 
             // CASE 0: An end token.
@@ -70,7 +77,7 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             else if(beginning.text == "print")
             {
                 line.erase(line.begin());
-                (*target).push_back(Block("print", constructAST(line, i), parent));
+                (*target).push_back(Block("print", constructAST(line, i), targetParent));
                 // cout << "After pushing the print, target's size is " << (*target).size() << endl;
             }
             // CASE 3: An if statement.
@@ -78,21 +85,50 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             // Change "target" to this if statement's nestedStatements vector so that statements on future lines are added to it.
             else if(beginning.text == "if")
             {
+                // cout << "Found if statement on line " << i << endl;
                 line.erase(line.begin()); // The if
                 line.erase(line.end() - 2); // The brace
-                (*target).push_back(Block("if", constructAST(line, i), parent));
+                (*target).push_back(Block("if", constructAST(line, i), targetParent));
                 // The parent pointer is now the current statement we're about to be nested inside of.
                 // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
-                parent = &((*target).back());
+                targetParent = &((*target).back());
+            }
+            else if(beginning.text == "else")
+            {
+                Block * oldIf = &((*target).back());
+                Block * newElse = new Block("else", nullptr, oldIf);
+                // cout << "Else statement on line " << i << " has if parent with condition " << printHelper(oldIf->condition, true) << endl;
+                (*target).back().elseStatement = newElse;
+                targetParent = newElse;
+                // Redo the loop for an 'else if'
+                if(line[1].text == "if")
+                {
+                    inputFromLexer[i].erase(inputFromLexer[i].begin());
+                    i--;
+                    continue;
+                }
+            }
+            // While case is the same as if
+            else if(beginning.text == "while")
+            {
+                line.erase(line.begin()); // The while
+                line.erase(line.end() - 2); // The brace
+                (*target).push_back(Block("while", constructAST(line, i), targetParent));
+                // The parent pointer is now the current statement we're about to be nested inside of.
+                // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
+                targetParent = &((*target).back());
             }
 
             // CASE BRACKET: A closed bracket.
             // Target should be redirected back up the control flow tree.
             else if(beginning.text == "}")
             {
-                // cout << "Closed brace shit ..." << endl;
-                parent = parent->parent;
-                // Don't push anything upon reaching a closed brace.
+                if(targetParent && (*targetParent).statementType == "else")
+                {
+                    targetParent = targetParent->parent;
+                }
+                targetParent = targetParent->parent;
+                // cout << "The closing brace on line " << i << "sets the parent to a statement with condition " << printHelper(targetParent->condition, true) << endl;
                 continue;
             }
         }
@@ -690,7 +726,35 @@ void Parser::executeHelper(Block b)
     }
     else if(b.statementType == "if")
     {
-        if(evaluate(b.condition).data.booleanValue)
+        typedValue conditionResult = evaluate(b.condition);
+        if(conditionResult.type != BOOLEAN)
+        {
+            cout << "Runtime error: condition is not a bool." << endl;
+            exit(3);
+        }
+        bool branchTaken = conditionResult.data.booleanValue;
+        if(branchTaken)
+        {
+            for(Block nested : b.nestedStatements)
+            {
+                executeHelper(nested);
+            }
+        }
+        else if (b.elseStatement)
+        {
+            executeHelper(*(b.elseStatement));
+        }
+    }
+    else if(b.statementType == "else")
+    {
+        for(Block nested : b.nestedStatements)
+        {
+            executeHelper(nested);
+        }
+    }
+    else if(b.statementType == "while")
+    {
+        while(evaluate(b.condition).data.booleanValue)
         {
             for(Block nested : b.nestedStatements)
             {
@@ -735,13 +799,27 @@ void Parser::formatHelper(Block b, unsigned int indents)
     {
         cout << "print " << printHelper(b.root, true);
     }
-    else if(type == "if")
+    else if(type == "if" || type == "while" || type == "else")
     {
-        cout << "if " << printHelper(b.condition, true) << " {" << endl;
+        if(b.condition)
+        {   
+            cout << b.statementType << " " << printHelper(b.condition, true) << " {" << endl;
+        }
+        else
+        {
+            cout << b.statementType << " {" << endl;
+        }
+        
         for(Block nestedBlock : b.nestedStatements)
         {
             formatHelper(nestedBlock, indents + 1);
+            cout << endl;
         }
-        cout << endl << whitespace << "}";
+        cout << whitespace << "}";
+        if(b.elseStatement)
+        {
+            cout << endl;
+            formatHelper(*(b.elseStatement), indents);
+        }
     }
 }
