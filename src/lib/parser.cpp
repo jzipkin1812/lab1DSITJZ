@@ -123,6 +123,8 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             // Target should be redirected back up the control flow tree.
             else if(beginning.text == "}")
             {
+                // If the most recent statement we encountered was an else statement, we have to go up 
+                // 2 times, once to go into the else's parent "if", another time to go into the "if"'s parent.
                 if(targetParent && (*targetParent).statementType == "else")
                 {
                     targetParent = targetParent->parent;
@@ -769,6 +771,12 @@ void Parser::executeHelper(Block b)
     }
     else if(b.statementType == "while")
     {
+        typedValue conditionResult = evaluate(b.condition);
+        if(conditionResult.type != BOOLEAN)
+        {
+            cout << "Runtime error: condition is not a bool." << endl;
+            exit(3);
+        }
         while(evaluate(b.condition).data.booleanValue)
         {
             for(Block nested : b.nestedStatements)
