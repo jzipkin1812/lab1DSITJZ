@@ -10,9 +10,9 @@ enum TypeTag
 {
     DOUBLE, // 0
     BOOLEAN, // 1
-    TYPEERROR, // 2
-    DIVZEROERROR, // 3
-    IDERROR // 4
+    TYPEERROR, // Operator took the wrong type. E.g. true + false or 3 > true
+    DIVZEROERROR, // Divide by zero. 3 / 0
+    IDERROR // Unknown identifier. e.g. b + 3 but b was never declared.
 };
 
 struct typedValue

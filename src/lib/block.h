@@ -8,6 +8,29 @@
 #include <string>
 #include <iostream>
 using namespace std;
+
+// Types of blocks
+// EXPRESSION:
+// statementType = "expression"
+// root = constructAST(all the tokens in the expression)
+// everything else is a nullptr or empty
+
+// WHILE:
+// IF:
+// statementType = "if" or "while"
+// condition = constructAST(all the tokens in the condition of the if)
+// nestedStatements = all the blocks inside the brackets
+// root = nullptr
+
+// PRINT
+// statementType = "print"
+// root = constructAST(what we want to print)
+// everything else null or empty
+
+// ELSE:
+// Belongs to the if statement via * elseStatement pointer
+
+// print "helli"
 class Block
 {
     public:
