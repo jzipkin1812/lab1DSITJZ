@@ -130,11 +130,7 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                     targetParent = targetParent->parent;
                 }
                 targetParent = targetParent->parent;
-                if(targetParent && (*targetParent).statementType == "else")
-                {
-                    targetParent = targetParent->parent;
-                    targetParent = targetParent->parent;
-                }
+                
                 // cout << "The closing brace on line " << i << "sets the parent to a statement with condition " << printHelper(targetParent->condition, true) << endl;
                 continue;
             }
