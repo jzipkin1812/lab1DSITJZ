@@ -32,7 +32,8 @@ private:
     stringstream finalOutput;
     bool checkError(vector<Token> expression, int line = 0);
     void parseError(Token token, int line = 0);
-    void clear(Node *top);
+    void clearNode(Node *top);
+    void clearBlock(Block b);
     Node *constructAST(vector<Token> tokens, int line = 0);
     void executeHelper(Block b);
     void formatHelper(Block b, unsigned int indents = 0);

@@ -693,11 +693,11 @@ Parser::~Parser()
 {
     for (Block block : blocks)
     {
-        clear(block.root);
+        clearBlock(block);
     }
 }
 
-void Parser::clear(Node *top)
+void Parser::clearNode(Node *top)
 {
     if (!top)
     {
@@ -705,9 +705,24 @@ void Parser::clear(Node *top)
     }
     for (Node *child : top->branches)
     {
-        clear(child);
+        clearNode(child);
     }
     delete top;
+}
+
+void Parser::clearBlock(Block b)
+{
+    clearNode(b.condition);
+    clearNode(b.root);
+    if(b.elseStatement)
+    {
+        clearBlock(*(b.elseStatement));
+        delete b.elseStatement;
+    }
+    for(Block g : b.nestedStatements)
+    {
+        clearBlock(g);
+    }
 }
 
 void Parser::execute()
