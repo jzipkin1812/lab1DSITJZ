@@ -4,6 +4,8 @@
 #include "lib/parse.h"
 #include "lib/token.h"
 #include "lib/lex.h"
+#include "lib/typedValue.h"
+
 
 using namespace std;
 

@@ -16,9 +16,10 @@ void Lexer::print()
     }
 }
 
-Lexer::Lexer(bool addEnd) // time complexity O(n^2), (number of lines) X (number of characters in each line)
+Lexer::Lexer(bool addEnd, bool exitImmediately) // time complexity O(n^2), (number of lines) X (number of characters in each line)
 {
     pushEnds = addEnd;
+    exitOnError = exitImmediately;
     string expression = ""; // expression is set equal to each new line read by cin
     getline(cin, expression);
     int lineNumber = 0;
@@ -158,13 +159,13 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
             if (pushEnds)
             {
                 cout << "Syntax error on line " << 1 << " column " << columnNum << "." << endl;
-                return;
             }
             else
             {
                 cout << "Syntax error on line " << lineNumber << " column " << columnNum << "." << endl;
-                exit(1);
             }
+            if(exitOnError) exit(1);
+            else return;
         }
     }
     if (currentString != "") // case for when a number is located directly before '\n'

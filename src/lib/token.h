@@ -4,95 +4,8 @@
 #include <string>
 #include <iostream>
 #include <cctype>
+#include "typedValue.h"
 using namespace std;
-
-
-enum TypeTag 
-{
-    DOUBLE, // 0
-    BOOLEAN, // 1
-    TYPEERROR, // 2
-    DIVZEROERROR, // 3
-    IDERROR // 4
-};
-
-struct typedValue
-{
-    TypeTag type;
-    union d
-    {
-        double doubleValue;
-        bool booleanValue;
-    };
-    d data;
-    string unknownIDText;
-
-    friend ostream& operator<<(ostream& o, const typedValue& tValue)
-    {    
-        if(tValue.type == BOOLEAN)
-        {
-            o << boolalpha << tValue.data.booleanValue;
-        }
-        else
-        {
-            o << tValue.data.doubleValue;
-        }
-        return o;
-    };
-
-    inline bool operator==(const typedValue& other) const
-    {
-        bool result = (other.type == type);
-        if(!result) return false;
-        if (type == BOOLEAN)
-        {
-            result = (other.data.booleanValue == data.booleanValue);
-        }
-        else if (type == DOUBLE)
-        {
-            result = (other.data.doubleValue == data.doubleValue);
-        }
-        return(result);
-    }
-
-    inline bool operator!=(const typedValue& other) const
-    {
-        bool result = (other.type != type);
-        if(result) return true;
-        if (type == BOOLEAN)
-        {
-            result = (other.data.booleanValue != data.booleanValue);
-        }
-        else if (type == DOUBLE)
-        {
-            result = (other.data.doubleValue != data.doubleValue);
-        }
-        return(result);
-    }
-
-    void setType(TypeTag newType)
-    {
-        if(!isError())
-        {
-            type = newType;
-        }
-    }
-
-    bool isError()
-    {
-        return(type == TYPEERROR || type == DIVZEROERROR || type == IDERROR);
-    }
-
-    string outputError()
-    {
-        string finalOutput = "";
-        if(!isError()) return finalOutput;
-        else if (type == TYPEERROR) finalOutput = "Runtime error: invalid operand type.\n";
-        else if (type == DIVZEROERROR) finalOutput = "Runtime error: division by zero.\n";
-        else if (type == IDERROR) finalOutput = "Runtime error: unknown identifier " +  unknownIDText + "\n";
-        return(finalOutput);
-    }
-};
 
 class Token
 {
@@ -141,11 +54,11 @@ class Token
         bool isVariable()
         {
             char first = text[0];
-            return (!isEnd() && !isBoolean() && (isalpha(first) || first == '_'));
+            return (!(isEnd() || isStatement() || isBoolean()) && (isalpha(first) || first == '_'));
         }
         bool isNumber()
         {
-            return (!(isBoolean() || isOperator() || isParenthesis() || isEnd() || isVariable() || isStatement()));
+            return (!(isBoolean() || isOperator() || isBrace() || isParenthesis() || isEnd() || isVariable() || isStatement()));
         }
         bool isBoolean()
         {
@@ -158,6 +71,10 @@ class Token
         bool isStatement()
         {
             return(text == "while" || text == "if" || text == "else" || text == "print");
+        }
+        bool isBrace()
+        {
+            return(text == "{" || text == "}");
         }
         
         typedValue getValue()

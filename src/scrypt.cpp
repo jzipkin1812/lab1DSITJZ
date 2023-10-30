@@ -12,6 +12,6 @@ int main()
     Lexer myLexer = Lexer(true, true);
     // myLexer.print();
     Parser myParser = Parser(myLexer.getTokens(), true);
-    myParser.format(); // DOES NOT CALL EVALUATE(). Prints the program raw (with parentheses.)
+    myParser.execute(); // Calls evaluate. Only prints when prompted.
     return 0;
 }

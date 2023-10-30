@@ -12,13 +12,93 @@
 #include "parse.h"
 using namespace std;
 
-Parser::Parser(vector<vector<Token>> inputFromLexer)
+Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
 {
-    for (unsigned int line = 0; line < inputFromLexer.size(); line++)
+    exitImmediately = allowStatements = statements;
+    // Simple process of 1 expression per line used when statements are not present.
+    if(!statements)
     {
-        outputPerExpression.push_back(stringstream());
-        blocks.push_back(Block(constructAST(inputFromLexer[line], line)));
+        for (unsigned int line = 0; line < inputFromLexer.size(); line++)
+        {
+            outputPerExpression.push_back(stringstream());
+            blocks.push_back(Block(constructAST(inputFromLexer[line], line)));
+        }
     }
+    // A more complex process of "blocking" occurs when statements are present.
+    else
+    {
+        // The "target" points to the block vector that we should currently be stuffing things into.
+        // It starts as the parser's block vector, but if we encounter while/if/else statements,
+        // we'll have to change it so that future blocks are added to what is nested within.
+        Block * parent = nullptr;
+        vector<Block> * target = &(blocks);
+        vector<Token> line;
+        Token beginning(0, 0, "");
+        for(unsigned int i = 0; i < inputFromLexer.size(); i++)
+        {
+            line = inputFromLexer[i];
+            beginning = line[0];
+            // cout << "--------LINE STARTING WITH " << beginning.text << endl;
+            // Find the correct block vector to push things into. If parent is nullptr, that means we're not nested in anything and it should just be blocks.
+            if(!parent)
+            {
+                target = &(blocks);
+            }
+            else
+            {
+                // cout << "Changing target to nestedStatements of target, which currently has size " << parent->nestedStatements.size() << endl;
+                target = &(parent->nestedStatements);
+            }
+
+            // CASE 0: An end token.
+            // Skip it.
+            if(beginning.isEnd())
+            {
+                continue;
+            }
+            // CASE 1: An expression.
+            // Construct an AST and push it to target.
+            else if(!(beginning.isStatement() || beginning.isBrace()))
+            {   
+                // cout << "Beginning AST starting with: " << beginning.text << endl;
+                (*target).push_back(Block(constructAST(line, i)));
+                // cout << "Created an AST" << endl;
+            }
+            // CASE 2: A print statement.
+            // Pop the print token. Construct an AST. Push a new block to target with this AST and type "print".
+            // We don't need to track the parents of print statements. They don't nest.
+            else if(beginning.text == "print")
+            {
+                line.erase(line.begin());
+                (*target).push_back(Block("print", constructAST(line, i), parent));
+                // cout << "After pushing the print, target's size is " << (*target).size() << endl;
+            }
+            // CASE 3: An if statement.
+            // Pop the if token. Pop the brace. Construct an AST for the condition. 
+            // Change "target" to this if statement's nestedStatements vector so that statements on future lines are added to it.
+            else if(beginning.text == "if")
+            {
+                line.erase(line.begin()); // The if
+                line.erase(line.end() - 2); // The brace
+                (*target).push_back(Block("if", constructAST(line, i), parent));
+                // The parent pointer is now the current statement we're about to be nested inside of.
+                // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
+                parent = &((*target).back());
+            }
+
+            // CASE BRACKET: A closed bracket.
+            // Target should be redirected back up the control flow tree.
+            else if(beginning.text == "}")
+            {
+                // cout << "Closed brace shit ..." << endl;
+                parent = parent->parent;
+                // Don't push anything upon reaching a closed brace.
+                continue;
+            }
+        }
+        // cout << "There are " << blocks.size() << " top-level blocks" << endl;
+    }
+    
     // Delete any vectors that are nullptr
     // for (unsigned int i = 0; i < blocks.size(); i++)
     // {
@@ -453,8 +533,8 @@ bool Parser::checkError(vector<Token> expression, int line) // runs before we tr
     for (int i = 0; i <= lastIndex; i++)
     {
         Token t = expression[i];
-        // Statements are not yet supported.
-        if(t.isStatement())
+        // Statements are not supported if allowStatements is false. In this case they're errors.
+        if(t.isStatement() && !(allowStatements))
         {
             parseError(t, line);
             return(true);
@@ -560,8 +640,17 @@ bool Parser::checkError(vector<Token> expression, int line) // runs before we tr
 
 void Parser::parseError(Token token, int line)
 {
-    token.line = 1;
-    outputPerExpression[line] << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n";
+    if(exitImmediately)
+    {   
+        cout << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n"; 
+        exit(2);
+    }
+    else
+    {
+        token.line = 1;
+        outputPerExpression[line] << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n";
+    }
+    return;
 }
 
 Parser::~Parser()
@@ -585,16 +674,74 @@ void Parser::clear(Node *top)
     delete top;
 }
 
-Token Parser::findParenthesisBefore(Token o)
+void Parser::execute()
 {
-    vector<Token> line = tokens[o.line - 1];
-    for (unsigned int i = 0; i < line.size(); i++)
+    for(Block b : blocks)
     {
-        if (line[i].column == o.column)
+        executeHelper(b);
+    }
+}
+
+void Parser::executeHelper(Block b)
+{
+    if(b.statementType == "print")
+    {
+        cout << evaluate(b.root) << endl;
+    }
+    else if(b.statementType == "if")
+    {
+        if(evaluate(b.condition).data.booleanValue)
         {
-            return (line[i - 1]);
+            for(Block nested : b.nestedStatements)
+            {
+                executeHelper(nested);
+            }
         }
     }
-    // SHOULD NEVER BE REACHED
-    return (o);
+    else
+    {
+        evaluate(b.root);
+    }
+    
+}
+
+void Parser::format()
+{
+    Block currentBlock;
+    for(unsigned int i = 0; i < blocks.size(); i++)
+    {
+        currentBlock = blocks[i];
+        formatHelper(currentBlock);
+        cout << endl;
+    }
+}
+
+void Parser::formatHelper(Block b, unsigned int indents)
+{
+    string type = b.statementType;
+    // First, all the indents
+    string whitespace = "";
+    for(unsigned int i = 0; i < indents; i++)
+    {
+        whitespace += "    ";
+    }
+    cout << whitespace;
+    // Then the content of the statements
+    if(type == "expression")
+    {
+        cout << printHelper(b.root, true);
+    }
+    else if(type == "print")
+    {
+        cout << "print " << printHelper(b.root, true);
+    }
+    else if(type == "if")
+    {
+        cout << "if " << printHelper(b.condition, true) << " {" << endl;
+        for(Block nestedBlock : b.nestedStatements)
+        {
+            formatHelper(nestedBlock, indents + 1);
+        }
+        cout << endl << whitespace << "}";
+    }
 }
