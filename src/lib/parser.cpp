@@ -816,6 +816,7 @@ void Parser::executeHelper(Block b)
     else if(b.statementType == "while")
     {
         typedValue conditionResult = evaluate(b.condition);
+        //cout << "Condition type = " << conditionResult.type << endl;
         if(conditionResult.type != BOOLEAN)
         {
             cout << "Runtime error: condition is not a bool." << endl;
@@ -826,6 +827,13 @@ void Parser::executeHelper(Block b)
             for(Block nested : b.nestedStatements)
             {
                 executeHelper(nested);
+            }
+            conditionResult = evaluate(b.condition);
+            //cout << "Condition type = " << conditionResult.type << endl;
+            if(conditionResult.type != BOOLEAN)
+            {
+                cout << "Runtime error: condition is not a bool." << endl;
+                exit(3);
             }
         }
     }

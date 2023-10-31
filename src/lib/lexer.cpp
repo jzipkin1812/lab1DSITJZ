@@ -29,7 +29,7 @@ Lexer::Lexer(bool addEnd, bool exitImmediately) // time complexity O(n^2), (numb
         lineNumber++;
         if (expression == "") count++;
         else count = 0;
-        cout << "Input: " << expression << endl;
+        //cout << "Input: " << expression << endl;
         parseString(expression, lineNumber); // parseString() breaks each line into tokens and pushes them to the tokens vector
         getline(cin, expression);
     }
