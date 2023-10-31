@@ -37,6 +37,9 @@ private:
     Node *constructAST(vector<Token> tokens, int line = 0);
     void executeHelper(Block b);
     void formatHelper(Block b, unsigned int indents = 0);
+    bool containsClose(vector<Token> line);
+    bool containsOpen(vector<Token> line);
+    unsigned int nextClose(vector<vector<Token>> program, unsigned int lineNum);
     vector<stringstream> outputPerExpression;
     // The map maps variables to their values
     map<string, typedValue> variables;

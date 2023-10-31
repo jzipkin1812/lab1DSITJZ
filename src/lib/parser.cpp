@@ -95,14 +95,39 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             }
             else if(beginning.text == "else")
             {
-                Block * oldIf = &((*target).back());
-                Block * newElse = new Block("else", nullptr, oldIf);
+                // Block * oldIf = &((*target).back());
+                Block * newElse = new Block("else", nullptr, targetParent);
                 // cout << "Else statement on line " << i << " has if parent with condition " << printHelper(oldIf->condition, true) << endl;
-                (*target).back().elseStatement = newElse;
+                targetParent->elseStatement = newElse;
                 targetParent = newElse;
+                // Detect whether this is the last else in the chain
+                vector<Token> oneBracket = {Token(0, 0, "}")};
+                unsigned int nextClosedIndex = nextClose(inputFromLexer, i);
+                bool lastElseChain = (nextClosedIndex == inputFromLexer.size() - 1) || (inputFromLexer[nextClosedIndex + 1][0].text != "else");
+                // cout << "Else at line " << i << " is the last one? " << lastElseChain << endl;
+                // Add another bracket at the proper location if it's the last one
+                if(lastElseChain)
+                {
+                    inputFromLexer.insert(inputFromLexer.begin() + nextClosedIndex, oneBracket);
+                    // cout << "Inserted bracket at line " << nextClosedIndex << endl;
+                } 
                 // Redo the loop for an 'else if'
                 if(line[1].text == "if")
                 {
+                    if(lastElseChain)
+                    {
+                        inputFromLexer.insert(inputFromLexer.begin() + nextClosedIndex, oneBracket);
+                        // cout << "Inserted bracket at line " << nextClosedIndex << endl;
+                    } 
+                    // Unless there's ANOTHER else afterwards we need another bracket for the if else
+                    // if(!anotherElseAfterward)
+                    // {
+                    //     cout << "There's not another else statement after line " << nextClosedIndex << endl;
+                    //     nextClosedIndex = nextClose(inputFromLexer, i);
+                    //     inputFromLexer.insert(inputFromLexer.begin() + nextClosedIndex, oneBracket);
+                    //     cout << "Inserted bracket at line " << nextClosedIndex << endl;
+                    // }
+                    // Redo code
                     inputFromLexer[i].erase(inputFromLexer[i].begin());
                     i--;
                     continue;
@@ -123,12 +148,16 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             // Target should be redirected back up the control flow tree.
             else if(beginning.text == "}")
             {
+                if(targetParent && (*targetParent).statementType == "if" && inputFromLexer[i + 1][0].text == "else")
+                {
+                    continue;
+                }
                 // If the most recent statement we encountered was an else statement, we have to go up 
                 // 2 times, once to go into the else's parent "if", another time to go into the "if"'s parent.
-                if(targetParent && (*targetParent).statementType == "else")
-                {
-                    targetParent = targetParent->parent;
-                }
+                // if(targetParent && (*targetParent).statementType == "else")
+                // {
+                //     targetParent = targetParent->parent;
+                // }
                 targetParent = targetParent->parent;
                 
                 // cout << "The closing brace on line " << i << "sets the parent to a statement with condition " << printHelper(targetParent->condition, true) << endl;
@@ -846,4 +875,44 @@ void Parser::formatHelper(Block b, unsigned int indents)
             formatHelper(*(b.elseStatement), indents);
         }
     }
+}
+
+unsigned int Parser::nextClose(vector<vector<Token>> program, unsigned int lineNum)
+{
+    int brackets = 0;
+    for(; lineNum < program.size(); lineNum++)
+    {
+        vector<Token> line = program[lineNum];
+        if(containsOpen(line))
+        {
+            brackets++;
+        }
+        if(containsClose(line))
+        {
+            brackets--;
+            if(brackets == 0)
+            {
+                return(lineNum);
+            }
+        }
+    }
+    return(0);
+}
+
+bool Parser::containsOpen(vector<Token> line)
+{
+    for(Token t : line)
+    {
+        if(t.text == "{") return true;
+    }
+    return (false);
+}
+
+bool Parser::containsClose(vector<Token> line)
+{
+    for(Token t : line)
+    {
+        if(t.text == "}") return true;
+    }
+    return (false);
 }
