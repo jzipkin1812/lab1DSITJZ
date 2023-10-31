@@ -23,7 +23,7 @@ Lexer::Lexer(bool addEnd, bool exitImmediately) // time complexity O(n^2), (numb
     string expression = ""; // expression is set equal to each new line read by cin
     getline(cin, expression);
     int lineNumber = 0;
-    while (!cin.eof() )// && expression != "")
+    while (!cin.eof()) //&& expression != "")
     {
         lineNumber++;
         parseString(expression, lineNumber); // parseString() breaks each line into tokens and pushes them to the tokens vector
