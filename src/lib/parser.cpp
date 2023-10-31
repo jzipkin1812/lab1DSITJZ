@@ -4,46 +4,60 @@
 #include <stack>
 #include <cmath>
 #include <limits>
+#include <sstream>
 #include "token.h"
+#include "node.h"
+#include "block.h"
 #include "lex.h"
 #include "parse.h"
 using namespace std;
 
 Parser::Parser(vector<vector<Token>> inputFromLexer)
 {
-    for (auto expression : inputFromLexer)
+    for (unsigned int line = 0; line < inputFromLexer.size(); line++)
     {
-        roots.push_back(constructAST(expression));
+        outputPerExpression.push_back(stringstream());
+        blocks.push_back(Block(constructAST(inputFromLexer[line], line)));
     }
     // Delete any vectors that are nullptr
-    for (unsigned int i = 0; i < roots.size(); i++)
-    {
-        if (roots[i] == nullptr || roots.size() == 1)
-        {
-            roots.erase(roots.begin() + i);
-            i--;
-        }
-    }
+    // for (unsigned int i = 0; i < blocks.size(); i++)
+    // {
+    //     if (blocks[i].root == nullptr || blocks.size() == 1)
+    //     {
+    //         blocks.erase(blocks.begin() + i);
+    //         i--;
+    //     }
+    // }
 }
 
 int getPrecedence(string token) // Helper function for constructAST
 {
     if (token == "=")
         return (1);
-    else if (token == "+" || token == "-")
+    else if (token == "|")
         return (2);
-    else if (token == "*" || token == "/")
+    else if (token == "^")
         return (3);
-    else
+    else if (token == "&")
         return (4);
+    else if (token == "==" || token == "!=")
+        return (5);
+    else if (token == "<" || token == "<=" || token == ">" || token == ">=")
+        return (6);
+    else if (token == "+" || token == "-")
+        return (7);
+    else if (token == "*" || token == "/"  || token == "%")
+        return (8);
+    else
+        return (9);
 }
 
-Parser::Node *Parser::constructAST(vector<Token> tokens)
+Node *Parser::constructAST(vector<Token> tokens, int line)
 {
     // CHECK FOR ALL UNEXPECTED TOKEN ERRORS
     // The following function will print the error message on its own.
     // It returns true if there's an error detected.
-    if (checkError(tokens) == true)
+    if (checkError(tokens, line) == true)
     {
         return nullptr;
     }
@@ -65,16 +79,16 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
         {
             stringStack.push("(");
         }
-        else if (tokens[i].isNumber() || tokens[i].isVariable()) // numbers and variables are treated the same at a base level
+        else if (tokens[i].isOperand()) // numbers and variables are treated the same at a base level
         {
-            nodeStack.push(new Node{Parser::Node{tokens[i], vector<Node *>(), nullptr}});
+            nodeStack.push(new Node{Node{tokens[i], vector<Node *>(), nullptr}});
             if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
             {
                 while (!stringStack.empty() && stringStack.top() != "(")
                 {
                     string currentString = stringStack.top();
                     root = new Node{
-                        Parser::Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
+                        Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
                     stringStack.pop();
                     child1 = nodeStack.top();
                     nodeStack.pop();
@@ -96,7 +110,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
             { // cases are treated differently based on if there is an = sign involved due to the right associativity of the = operator
                 string currentString = stringStack.top();
                 root = new Node{
-                    Parser::Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
+                    Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
                 stringStack.pop();
                 child1 = nodeStack.top();
                 nodeStack.pop();
@@ -116,7 +130,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
             {
                 string currentString = stringStack.top();
                 root = new Node{
-                    Parser::Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
+                    Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
                 stringStack.pop();
                 child1 = nodeStack.top();
                 nodeStack.pop();
@@ -137,7 +151,7 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
                     {
                         string currentString = stringStack.top();
                         root = new Node{
-                            Parser::Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
+                            Node{Token{0, (int)i + 1, currentString}, vector<Node *>(), nullptr}};
                         stringStack.pop();
                         child1 = nodeStack.top();
                         nodeStack.pop();
@@ -159,29 +173,42 @@ Parser::Node *Parser::constructAST(vector<Token> tokens)
 
 void Parser::print() // Infix
 {
-    for (Node *root : roots)
+    for (unsigned int i = 0; i < blocks.size(); i++)
     {
+        Block oneBlock = blocks[i];
+        if(oneBlock.root == nullptr)
+        {
+            continue;
+        }
         for (auto s : variables)
         {
             provisional[s.first] = variables[s.first];
         }
-        double finalValue = evaluate(root);
-        if (isnan(finalValue))
-        {
-            continue;
-        }
 
-        for (auto s : provisional)
+        typedValue finalValue = evaluate(oneBlock.root);
+        // cout << finalValue.type << "\n";
+        string finalInfix = printHelper(oneBlock.root, true);
+        outputPerExpression[i] << finalInfix << "\n";
+        if(finalValue.isError())
         {
-            variables[s.first] = provisional[s.first];
+            outputPerExpression[i] << finalValue.outputError();
         }
-        string finalInfix = printHelper(root, true);
-        cout << finalInfix << endl;
-        cout << finalValue << endl;
+        else
+        {
+            for (auto s : provisional)
+            {
+                variables[s.first] = provisional[s.first];
+            }
+            outputPerExpression[i] << finalValue << "\n";
+        }
+    }
+    for(unsigned int i = 0; i < outputPerExpression.size(); i++)
+    {
+        cout << outputPerExpression[i].str();
     }
 }
 
-string Parser::printHelper(Parser::Node *top, bool lastChild)
+string Parser::printHelper(Node *top, bool lastChild)
 {
     string finalText = "";
     if (!top)
@@ -222,37 +249,85 @@ string Parser::printHelper(Parser::Node *top, bool lastChild)
     return (finalText);
 }
 
-double Parser::evaluate(Node *top)
+typedValue Parser::evaluate(Node *top)
 {
+    typedValue result = typedValue{DOUBLE, 0, ""};
     if (!top)
     {
-        return 0;
+        return result;
     }
-    double result = 0;
     Token t = top->info;
     string text = top->info.text;
+    // TYPE MISMATCH ERROR
+    if(t.isOperator() && !(t.text == "="))
+    {
+        typedValue result1 = evaluate(top->branches[0]);
+        typedValue result2 = evaluate(top->branches[1]);
+        TypeTag type1 = evaluate(top->branches[0]).type;
+        TypeTag type2 = evaluate(top->branches[1]).type;
+        // cout << t.text << " " << type1 << " " << type2 << "\n";
+        if (!(result1.isError() || result2.isError()) && (
+            type1 != type2
+        || (t.takesBoolsOnly() && (type1 == DOUBLE || type2 == DOUBLE))
+        || (t.takesDoublesOnly() && (type1 == BOOLEAN || type2 == BOOLEAN))))
+        {
+            result.type = TYPEERROR;
+            return(result);
+        }
+    }
+    // DIVISION BY ZERO ERROR AND UNKNOWN IDENTIFIER ERROR
+    if(t.isOperator())
+    {
+        typedValue result1 = evaluate(top->branches[0]);
+        typedValue result2 = evaluate(top->branches[1]);
+        // cout << result1.type << ", " << result2.type << "\n";
+        if(t.text != "=") result.setType(result1.type);
+        result.setType(result2.type);
+        if(result1.type == IDERROR) 
+        {
+            // cout << "IDERROR FOUND " << "\n";
+            result.unknownIDText = result1.unknownIDText;
+        }
+        if(result2.type == IDERROR)
+        {
+            // cout << "IDERROR FOUND " << "\n";
+            result.unknownIDText = result2.unknownIDText;
+        } 
+    }
+    
+    
     if (text == "+")
     {
-        for (Node *child : top->branches)
-        {
-            result += evaluate(child);
-        }
+        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
+        result.data.doubleValue += evaluate(top->branches[1]).data.doubleValue;
     }
     else if (text == "-")
     {
-        result = evaluate(top->branches[0]);
-        for (unsigned int i = 1; i < top->branches.size(); i++)
+        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
+        result.data.doubleValue -= evaluate(top->branches[1]).data.doubleValue;
+    }
+    else if (text == "%")
+    {
+        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
+        for (unsigned int i = 1 ; i < top->branches.size() ; i++)
         {
-            result -= evaluate(top->branches[i]);
+            // Do modulus, but check for division by 0
+            double d2 = evaluate(top->branches[i]).data.doubleValue;
+            if (d2 == 0)
+            {
+                while (top->parent) top = top -> parent;
+                result.type = DIVZEROERROR;
+                result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
+                return (result);
+            }
+            //result = result % d2;
+            result.data.doubleValue = result.data.doubleValue - d2 * std::floor(result.data.doubleValue / d2);
         }
     }
     else if (text == "*")
     {
-        result = 1;
-        for (Node *child : top->branches)
-        {
-            result *= evaluate(child);
-        }
+        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
+        result.data.doubleValue *= evaluate(top->branches[1]).data.doubleValue;
     }
     else if (text == "/")
     {
@@ -260,7 +335,7 @@ double Parser::evaluate(Node *top)
         for (unsigned int i = 1; i < top->branches.size(); i++)
         {
             // Divide, but check for division by 0 error
-            double divisor = evaluate(top->branches[i]);
+            double divisor = evaluate(top->branches[i]).data.doubleValue;
             if (divisor == 0)
             {
                 // Find the root of the tree and print infix version (the tree should still print in infix form when a runtime error occurs!)
@@ -268,85 +343,145 @@ double Parser::evaluate(Node *top)
                 {
                     top = top->parent;
                 }
-                cout << printHelper(top, true) << endl;
-                cout << "Runtime error: division by zero." << endl;
-                return (std::numeric_limits<double>::quiet_NaN());
+                result.type = DIVZEROERROR;
+                result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
+                return (result);
             }
-            result /= divisor;
+            result.data.doubleValue /= divisor;
         }
     }
     // The assignment operator is right-associative, so it evaluates the last (rightmost) child
     // of the operator in the AST to figure out what to assign these variables to.
+    // doASSIGNMENT
     else if (text == "=")
     {
         // There are no assignee errors at this point (they were caught in checkError), assign all the operands to the value of the rightmost expression.
-        result = evaluate(top->branches[top->branches.size() - 1]);
-        for (unsigned int i = 0; i < top->branches.size() - 1; i++)
-        {
-            provisional[top->branches[i]->info.text] = result;
-        }
+        result = evaluate(top->branches[1]);
+        string key = top->branches[0]->info.text;
+        provisional[key] = result;
     }
     else if (t.isNumber())
     {
-        result = stod(text);
+        result = (top->info.getValue());
     }
     else if (t.isVariable())
     {
         // Test for undefined identifier error
         if (provisional.find(text) == provisional.end())
         {
-            // Find the root of the tree and print infix version (the tree should still print in infix form when a runtime error occurs!)
-            while (top->parent)
-            {
-                top = top->parent;
-            }
-            cout << printHelper(top, true) << endl;
-            cout << "Runtime error: unknown identifier " << text << endl;
-            return (std::numeric_limits<double>::quiet_NaN());
+            result.type = IDERROR;
+            result.unknownIDText = text;
+            result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
+            return (result);
         }
         else
         {
             result = provisional[text];
         }
     }
+    else if(t.isBoolean())
+    {
+        result.setType(BOOLEAN);
+        result.data.booleanValue = t.getValue().data.booleanValue;
+    }
+    // ALL LOGIC OPERATORS
+    else if (text == "<")
+    {
+        result.setType(BOOLEAN);
+        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue < evaluate(top->branches[1]).data.doubleValue);
+    }
+    else if (text == ">")
+    {
+        result.setType(BOOLEAN);
+        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue > evaluate(top->branches[1]).data.doubleValue);
+    }
+    else if (text == ">=")
+    {
+        result.setType(BOOLEAN);
+        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue >= evaluate(top->branches[1]).data.doubleValue);
+    }
+    else if (text == "<=")
+    {
+        result.setType(BOOLEAN);
+        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue <= evaluate(top->branches[1]).data.doubleValue);
+    }
+    else if (text == "==")
+    {
+        result.setType(BOOLEAN);
+        result.data.booleanValue = (evaluate(top->branches[0]) == evaluate(top->branches[1]));
+    }
+    else if (text == "!=")
+    {
+        result.setType(BOOLEAN);
+        result.data.booleanValue = (evaluate(top->branches[0]) != evaluate(top->branches[1]));
+    }
+    else if (text == "|")
+    {
+        result.setType(BOOLEAN);
+        result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue || evaluate(top->branches[1]).data.booleanValue);
+    }
+    else if (text == "&")
+    {
+        result.setType(BOOLEAN);
+        result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue && evaluate(top->branches[1]).data.booleanValue);
+    }
+    else if (text == "^")
+    {
+        result.setType(BOOLEAN);
+        result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue != evaluate(top->branches[1]).data.booleanValue);
+    }
     return (result);
 }
 
-bool Parser::checkError(vector<Token> expression) // runs before we try evaluating
+bool Parser::checkError(vector<Token> expression, int line) // runs before we try evaluating
 {
     int lastIndex = expression.size() - 2;
     Token theEnd = expression.back();
     if (!theEnd.isEnd()) // make sure formatting of END is correct
     {
-        cout << "ERROR: END TOKEN NOT PUSHED BACK TO EXPRESSION" << endl;
-        cout << expression.back().text << endl;
+        cout << "ERROR: END TOKEN NOT PUSHED BACK TO EXPRESSION" << "\n";
+        cout << expression.back().text << "\n";
         exit(4);
+    }
+    if (expression[lastIndex].isEnd()) // Covers weird case where we get 2 end tokens in 1 expression.
+    {
+        expression.pop_back();
+        lastIndex--;
+        Token theEnd = expression.back();
     }
     int parentheses = 0;
     for (int i = 0; i <= lastIndex; i++)
     {
         Token t = expression[i];
-
+        // Statements are not yet supported.
+        if(t.isStatement())
+        {
+            parseError(t, line);
+            return(true);
+        }
         // Operators should have two operands between them.
         // The left operand can be a RIGHT parenthesis or a number or an identifier.
         // The right operand can be a LEFT parenthesis or a number or an identifier.
         // If the operand ocurrs at the beginning or ending of the vector, that's also bad.
-        if (t.isOperator())
+        if (t.isOperator() || t.isOrderComparison())
         {
             if (i == 0 ||
-                !(expression[i - 1].isNumber() || expression[i - 1].isVariable() || expression[i - 1].text == ")"))
+                !(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
             {
-                parseError(t);
+                // cout << "INVALID OPERATOR: CASE 1" << "\n";
+                parseError(t, line);
                 return (true);
             }
             else if (i == lastIndex)
             {
-                parseError(theEnd);
+                // cout << "INVALID OPERATOR: CASE 2" << "\n";
+                parseError(theEnd, line);
                 return (true);
             }
-            else if (!(expression[i + 1].isNumber() || expression[i + 1].isVariable() || expression[i + 1].text == "("))
+            else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "("))
             {
-                parseError(expression[i + 1]);
+                // cout << "INVALID OPERATOR: CASE 3" << "\n";
+                parseError(expression[i + 1], line);
                 return (true);
             }
         }
@@ -355,7 +490,7 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
         {
             if (!(expression[i - 1].isVariable()))
             {
-                parseError(t);
+                parseError(t, line);
                 return (true);
             }
         }
@@ -367,12 +502,12 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
             parentheses++;
             if (i == lastIndex)
             {
-                parseError(theEnd);
+                parseError(theEnd, line);
                 return (true);
             }
-            if (!(expression[i + 1].isNumber() || expression[i + 1].isVariable() || expression[i + 1].text == "(") || expression[i + 1].text == ")")
+            if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(") || expression[i + 1].text == ")")
             {
-                parseError(expression[i + 1]);
+                parseError(expression[i + 1], line);
                 return (true);
             }
         }
@@ -384,29 +519,29 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
             parentheses--;
             if (parentheses < 0) // This also covers the case where i == 0.
             {
-                parseError(t);
+                parseError(t, line);
                 return (true);
             }
-            if (!(expression[i - 1].isNumber() || expression[i - 1].isVariable() || expression[i - 1].text == ")"))
+            if (!(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
             {
-                parseError(expression[i - 1]);
+                parseError(expression[i - 1], line);
                 return (true);
             }
         }
         // Numbers and identifiers should have operators or parentheses to either side.
         // The parentheses on either side must only be open (when to the left) or closed (to the right).
-        else if (t.isNumber() || t.isVariable())
+        else if (t.isOperand())
         {
             // Check left
             if (i != 0 && !(expression[i - 1].text == "(" || expression[i - 1].isOperator()))
             {
-                parseError(t);
+                parseError(t, line);
                 return (true);
             }
             // Check right
             else if (i != lastIndex && !(expression[i + 1].text == ")" || expression[i + 1].isOperator()))
             {
-                parseError(expression[i + 1]);
+                parseError(expression[i + 1], line);
                 return (true);
             }
         }
@@ -418,22 +553,22 @@ bool Parser::checkError(vector<Token> expression) // runs before we try evaluati
     }
     else
     {
-        parseError(theEnd);
+        parseError(theEnd, line);
         return (true);
     }
 }
 
-void Parser::parseError(Token token)
+void Parser::parseError(Token token, int line)
 {
     token.line = 1;
-    cout << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << endl;
+    outputPerExpression[line] << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n";
 }
 
 Parser::~Parser()
 {
-    for (Node *root : roots)
+    for (Block block : blocks)
     {
-        clear(root);
+        clear(block.root);
     }
 }
 

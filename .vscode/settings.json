@@ -5,7 +5,11 @@
         "string_view": "cpp",
         "initializer_list": "cpp",
         "ostream": "cpp",
-        "new": "cpp"
+        "new": "cpp",
+        "iostream": "cpp",
+        "limits": "cpp",
+        "string": "cpp",
+        "functional": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

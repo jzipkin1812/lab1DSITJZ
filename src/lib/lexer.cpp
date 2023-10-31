@@ -29,8 +29,8 @@ Lexer::Lexer(bool addEnd) // time complexity O(n^2), (number of lines) X (number
         getline(cin, expression);
     }
     lineNumber++;
-    parseString(expression, lineNumber); // parseString runs one more time after cin.eof() in the case of an eof being located on the same line as an expression
-    tokens.back().push_back(Token(lineNumber, expression.length() + 1, "END")); //tokens: vector of vectors, each vector contains a new expression
+    parseString(expression, lineNumber);                                        // parseString runs one more time after cin.eof() in the case of an eof being located on the same line as an expression
+    tokens.back().push_back(Token(lineNumber, expression.length() + 1, "END")); // tokens: vector of vectors, each vector contains a new expression
 }
 
 void Lexer::parseString(string expression, int lineNumber) // time complexity O(n), n=characters in expression
@@ -50,7 +50,13 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
             case '-':
             case '*':
             case '/':
-            case '=':
+            case '^':
+            case '}':
+            case '{':
+            case '|':
+            case '&':
+            case '%':
+
                 if (currentString != "")
                 {
                     currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
@@ -58,6 +64,37 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
                 }
                 currentString = currentChar;
                 currentExpression.push_back(Token(lineNumber, i + 1, currentString));
+                currentString = "";
+                continue;
+            case '=':
+            case '<':
+            case '>':
+                if (currentString != "")
+                {
+                    currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
+                    currentString = "";
+                }
+                currentString = expression[i + 1] == '=' ? string(1, currentChar) + "=" : string(1, currentChar);
+                if (currentString.length() == 2)
+                    i++;
+                currentExpression.push_back(Token(lineNumber, i + 2 - currentString.length(), currentString));
+                currentString = "";
+                continue;
+            case '!':
+                if (currentString != "")
+                {
+                    currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));
+                    currentString = "";
+                }
+                if (expression[i + 1] == '=')
+                    currentString = "!=";
+                else
+                {
+                    throw(i + 1);
+                }
+                if (currentString.length() == 2)
+                    i++;
+                currentExpression.push_back(Token(lineNumber, i + 2 - currentString.length(), currentString));
                 currentString = "";
                 continue;
             default: // case of spaces, digits, and '.'
@@ -117,8 +154,8 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
         }
         catch (int columnNum)
         {
-            
-            if(pushEnds)
+
+            if (pushEnds)
             {
                 cout << "Syntax error on line " << 1 << " column " << columnNum << "." << endl;
                 return;
@@ -137,9 +174,9 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
     }
     // Take the entire expression and push it to the 2D vector
     // For the new parser, we want ENDs everywhere
-    if(pushEnds)
+    if (pushEnds)
     {
         currentExpression.push_back(Token(lineNumber, expression.length() + 1, "END"));
-    } 
+    }
     tokens.push_back(currentExpression);
 }
