@@ -14,14 +14,14 @@ using namespace std;
 
 Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
 {
-    for (vector<Token> tokens : inputFromLexer)
-    {
-        for (Token token : tokens)
-        {
-            cout << token.text << " ";
-        }
-        cout << endl;
-    }
+    // for (vector<Token> tokens : inputFromLexer)
+    // {
+    //     for (Token token : tokens)
+    //     {
+    //         cout << token.text << " ";
+    //     }
+    //     cout << endl;
+    // }
 
 
     exitImmediately = allowStatements = statements;
