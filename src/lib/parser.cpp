@@ -14,6 +14,16 @@ using namespace std;
 
 Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
 {
+    for (vector<Token> tokens : inputFromLexer)
+    {
+        for (Token token : tokens)
+        {
+            cout << token.text << " ";
+        }
+        cout << endl;
+    }
+
+
     exitImmediately = allowStatements = statements;
     // Simple process of 1 expression per line used when statements are not present.
     if(!statements)
