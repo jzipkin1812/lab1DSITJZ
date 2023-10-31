@@ -318,7 +318,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, string expectedValue)
         }
     }
     Node *finalRoot = nodeStack.top();
-    if ((expectedValue == "Boolean") && (finalRoot->info.type != BOOLEAN))
+    if ((expectedValue == "Boolean") && (evaluate(finalRoot).type != BOOLEAN))
     {
         cout << "Runtime error: condition is not a bool." << endl;
         exit(3);
