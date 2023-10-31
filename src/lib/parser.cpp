@@ -102,10 +102,10 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                 // The parent pointer is now the current statement we're about to be nested inside of.
                 // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
                 targetParent = &((*target).back());
-                if (evaluate((*target).back().condition).type != BOOLEAN)
+                /* if (evaluate((*target).back().condition).type != BOOLEAN)
                 {
                     cout << "Runtime error: condition is not a bool." << endl;
-                }
+                } */
             }
             else if(beginning.text == "else")
             {
@@ -148,10 +148,10 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                 // The parent pointer is now the current statement we're about to be nested inside of.
                 // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
                 targetParent = &((*target).back());
-                if (evaluate((*target).back().condition).type != BOOLEAN)
+                /* if (evaluate((*target).back().condition).type != BOOLEAN)
                 {
                     cout << "Runtime error: condition is not a bool." << endl;
-                }
+                } */
             }
 
             // CASE BRACKET: A closed bracket.
