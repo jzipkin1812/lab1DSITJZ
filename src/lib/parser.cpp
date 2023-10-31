@@ -119,14 +119,6 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                         inputFromLexer.insert(inputFromLexer.begin() + nextClosedIndex, oneBracket);
                         // cout << "Inserted bracket at line " << nextClosedIndex << endl;
                     } 
-                    // Unless there's ANOTHER else afterwards we need another bracket for the if else
-                    // if(!anotherElseAfterward)
-                    // {
-                    //     cout << "There's not another else statement after line " << nextClosedIndex << endl;
-                    //     nextClosedIndex = nextClose(inputFromLexer, i);
-                    //     inputFromLexer.insert(inputFromLexer.begin() + nextClosedIndex, oneBracket);
-                    //     cout << "Inserted bracket at line " << nextClosedIndex << endl;
-                    // }
                     // Redo code
                     inputFromLexer[i].erase(inputFromLexer[i].begin());
                     i--;
