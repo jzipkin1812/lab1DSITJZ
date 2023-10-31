@@ -34,7 +34,7 @@ private:
     void parseError(Token token, int line = 0);
     void clearNode(Node *top);
     void clearBlock(Block b);
-    Node *constructAST(vector<Token> tokens, int line = 0, string expectedValue = "");
+    Node *constructAST(vector<Token> tokens, int line = 0);
     void executeHelper(Block b);
     void formatHelper(Block b, unsigned int indents = 0);
     bool containsClose(vector<Token> line);

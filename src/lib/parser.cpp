@@ -98,10 +98,14 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                 // cout << "Found if statement on line " << i << endl;
                 line.erase(line.begin()); // The if
                 line.erase(line.end() - 2); // The brace
-                (*target).push_back(Block("if", constructAST(line, i, "Boolean"), targetParent));
+                (*target).push_back(Block("if", constructAST(line, i), targetParent));
                 // The parent pointer is now the current statement we're about to be nested inside of.
                 // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
                 targetParent = &((*target).back());
+                if (evaluate((*target).back().condition).type != BOOLEAN)
+                {
+                    cout << "Runtime error: condition is not a bool." << endl;
+                }
             }
             else if(beginning.text == "else")
             {
@@ -140,10 +144,14 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             {
                 line.erase(line.begin()); // The while
                 line.erase(line.end() - 2); // The brace
-                (*target).push_back(Block("while", constructAST(line, i, "Boolean"), targetParent));
+                (*target).push_back(Block("while", constructAST(line, i), targetParent));
                 // The parent pointer is now the current statement we're about to be nested inside of.
                 // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
                 targetParent = &((*target).back());
+                if (evaluate((*target).back().condition).type != BOOLEAN)
+                {
+                    cout << "Runtime error: condition is not a bool." << endl;
+                }
             }
 
             // CASE BRACKET: A closed bracket.
@@ -202,7 +210,7 @@ int getPrecedence(string token) // Helper function for constructAST
         return (9);
 }
 
-Node *Parser::constructAST(vector<Token> tokens, int line, string expectedValue)
+Node *Parser::constructAST(vector<Token> tokens, int line)
 {
     // CHECK FOR ALL UNEXPECTED TOKEN ERRORS
     // The following function will print the error message on its own.
@@ -318,11 +326,10 @@ Node *Parser::constructAST(vector<Token> tokens, int line, string expectedValue)
         }
     }
     Node *finalRoot = nodeStack.top();
-    if ((expectedValue == "Boolean") && (evaluate(finalRoot).type != BOOLEAN))
+    /* if ((expectedValue == "Boolean") && (evaluate(finalRoot).type != BOOLEAN))
     {
         cout << "Runtime error: condition is not a bool." << endl;
-        exit(3);
-    }
+    } */
     return finalRoot;
 }
 
