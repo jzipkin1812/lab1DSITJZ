@@ -816,20 +816,20 @@ void Parser::executeHelper(Block b)
     else if(b.statementType == "while")
     {
         typedValue conditionResult = evaluate(b.condition);
-        //cout << "Condition type = " << conditionResult.type << endl;
+        // If the condition is not boolean, exit
         if(conditionResult.type != BOOLEAN)
         {
             cout << "Runtime error: condition is not a bool." << endl;
             exit(3);
         }
-        while(evaluate(b.condition).data.booleanValue)
+        while(conditionResult.data.booleanValue)
         {
             for(Block nested : b.nestedStatements)
             {
                 executeHelper(nested);
             }
+            // If the condition is not boolean, exit
             conditionResult = evaluate(b.condition);
-            //cout << "Condition type = " << conditionResult.type << endl;
             if(conditionResult.type != BOOLEAN)
             {
                 cout << "Runtime error: condition is not a bool." << endl;

@@ -23,13 +23,12 @@ Lexer::Lexer(bool addEnd, bool exitImmediately) // time complexity O(n^2), (numb
     string expression = ""; // expression is set equal to each new line read by cin
     getline(cin, expression);
     int lineNumber = 0;
-    int count = 0;
+    int count = 0; // when count reaches 2 (two consecutive empty lines), the program should stop asking for input
     while (!cin.eof() && count < 2) //&& expression != "")
     {
         lineNumber++;
         if (expression == "") count++;
         else count = 0;
-        //cout << "Input: " << expression << endl;
         parseString(expression, lineNumber); // parseString() breaks each line into tokens and pushes them to the tokens vector
         getline(cin, expression);
     }
