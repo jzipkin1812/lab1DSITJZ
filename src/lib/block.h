@@ -30,7 +30,6 @@ using namespace std;
 // ELSE:
 // Belongs to the if statement via * elseStatement pointer
 
-// print "helli"
 class Block
 {
     public:

@@ -14,16 +14,6 @@ using namespace std;
 
 Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
 {
-    // for (vector<Token> tokens : inputFromLexer)
-    // {
-    //     for (Token token : tokens)
-    //     {
-    //         cout << token.text << " ";
-    //     }
-    //     cout << endl;
-    // }
-
-
     exitImmediately = allowStatements = statements;
     // Simple process of 1 expression per line used when statements are not present.
     if(!statements)
@@ -54,8 +44,6 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
         {
             line = inputFromLexer[i];
             beginning = line[0];
-            // cout << "Beginning of line " << i << " : " << beginning.text << endl;
-            // cout << "--------LINE STARTING WITH " << beginning.text << endl;
             // Find the correct block vector to push things into. If parent is nullptr, that means we're not nested in anything and it should just be blocks.
             if(!targetParent)
             {
@@ -63,7 +51,6 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             }
             else
             {
-                // cout << "Changing target to nestedStatements of target, which currently has size " << parent->nestedStatements.size() << endl;
                 target = &(targetParent->nestedStatements);
             }
 
@@ -77,9 +64,7 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             // Construct an AST and push it to target.
             else if(!(beginning.isStatement() || beginning.isBrace()))
             {   
-                // cout << "Beginning AST starting with: " << beginning.text << endl;
                 (*target).push_back(Block(constructAST(line, i)));
-                // cout << "Created an AST" << endl;
             }
             // CASE 2: A print statement.
             // Pop the print token. Construct an AST. Push a new block to target with this AST and type "print".
@@ -88,42 +73,32 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             {
                 line.erase(line.begin());
                 (*target).push_back(Block("print", constructAST(line, i), targetParent));
-                // cout << "After pushing the print, target's size is " << (*target).size() << endl;
             }
             // CASE 3: An if statement.
             // Pop the if token. Pop the brace. Construct an AST for the condition. 
             // Change "target" to this if statement's nestedStatements vector so that statements on future lines are added to it.
             else if(beginning.text == "if")
             {
-                // cout << "Found if statement on line " << i << endl;
                 line.erase(line.begin()); // The if
                 line.erase(line.end() - 2); // The brace
                 (*target).push_back(Block("if", constructAST(line, i), targetParent));
                 // The parent pointer is now the current statement we're about to be nested inside of.
                 // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
                 targetParent = &((*target).back());
-                /* if (evaluate((*target).back().condition).type != BOOLEAN)
-                {
-                    cout << "Runtime error: condition is not a bool." << endl;
-                } */
             }
             else if(beginning.text == "else")
             {
-                // Block * oldIf = &((*target).back());
                 Block * newElse = new Block("else", nullptr, targetParent);
-                // cout << "Else statement on line " << i << " has if parent with condition " << printHelper(oldIf->condition, true) << endl;
                 targetParent->elseStatement = newElse;
                 targetParent = newElse;
                 // Detect whether this is the last else in the chain
                 vector<Token> oneBracket = {Token(0, 0, "}")};
                 unsigned int nextClosedIndex = nextClose(inputFromLexer, i);
                 bool lastElseChain = (nextClosedIndex == inputFromLexer.size() - 1) || (inputFromLexer[nextClosedIndex + 1][0].text != "else");
-                // cout << "Else at line " << i << " is the last one? " << lastElseChain << endl;
                 // Add another bracket at the proper location if it's the last one
                 if(lastElseChain)
                 {
                     inputFromLexer.insert(inputFromLexer.begin() + nextClosedIndex, oneBracket);
-                    // cout << "Inserted bracket at line " << nextClosedIndex << endl;
                 } 
                 // Redo the loop for an 'else if'
                 if(line[1].text == "if")
@@ -131,7 +106,6 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                     if(lastElseChain)
                     {
                         inputFromLexer.insert(inputFromLexer.begin() + nextClosedIndex, oneBracket);
-                        // cout << "Inserted bracket at line " << nextClosedIndex << endl;
                     } 
                     // Redo code
                     inputFromLexer[i].erase(inputFromLexer[i].begin());
@@ -148,10 +122,6 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                 // The parent pointer is now the current statement we're about to be nested inside of.
                 // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
                 targetParent = &((*target).back());
-                /* if (evaluate((*target).back().condition).type != BOOLEAN)
-                {
-                    cout << "Runtime error: condition is not a bool." << endl;
-                } */
             }
 
             // CASE BRACKET: A closed bracket.
@@ -162,30 +132,11 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                 {
                     continue;
                 }
-                // If the most recent statement we encountered was an else statement, we have to go up 
-                // 2 times, once to go into the else's parent "if", another time to go into the "if"'s parent.
-                // if(targetParent && (*targetParent).statementType == "else")
-                // {
-                //     targetParent = targetParent->parent;
-                // }
-                targetParent = targetParent->parent;
-                
-                // cout << "The closing brace on line " << i << "sets the parent to a statement with condition " << printHelper(targetParent->condition, true) << endl;
+                targetParent = targetParent->parent;                
                 continue;
             }
         }
-        // cout << "There are " << blocks.size() << " top-level blocks" << endl;
     }
-    
-    // Delete any vectors that are nullptr
-    // for (unsigned int i = 0; i < blocks.size(); i++)
-    // {
-    //     if (blocks[i].root == nullptr || blocks.size() == 1)
-    //     {
-    //         blocks.erase(blocks.begin() + i);
-    //         i--;
-    //     }
-    // }
 }
 
 int getPrecedence(string token) // Helper function for constructAST
@@ -427,7 +378,6 @@ typedValue Parser::evaluate(Node *top)
         typedValue result2 = evaluate(top->branches[1]);
         TypeTag type1 = evaluate(top->branches[0]).type;
         TypeTag type2 = evaluate(top->branches[1]).type;
-        // cout << t.text << " " << type1 << " " << type2 << "\n";
         if (!(result1.isError() || result2.isError()) && (
             type1 != type2
         || (t.takesBoolsOnly() && (type1 == DOUBLE || type2 == DOUBLE))
@@ -442,17 +392,14 @@ typedValue Parser::evaluate(Node *top)
     {
         typedValue result1 = evaluate(top->branches[0]);
         typedValue result2 = evaluate(top->branches[1]);
-        // cout << result1.type << ", " << result2.type << "\n";
         if(t.text != "=") result.setType(result1.type);
         result.setType(result2.type);
         if(result1.type == IDERROR) 
         {
-            // cout << "IDERROR FOUND " << "\n";
             result.unknownIDText = result1.unknownIDText;
         }
         if(result2.type == IDERROR)
         {
-            // cout << "IDERROR FOUND " << "\n";
             result.unknownIDText = result2.unknownIDText;
         } 
     }
