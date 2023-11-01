@@ -9,7 +9,7 @@ using namespace std;
 
 int main()
 {
-    Lexer myLexer = Lexer();
+    Lexer myLexer = Lexer(false, true);
     myLexer.print();
     return (0);
 }

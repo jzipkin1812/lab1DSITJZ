@@ -16,15 +16,19 @@ void Lexer::print()
     }
 }
 
-Lexer::Lexer(bool addEnd) // time complexity O(n^2), (number of lines) X (number of characters in each line)
+Lexer::Lexer(bool addEnd, bool exitImmediately) // time complexity O(n^2), (number of lines) X (number of characters in each line)
 {
     pushEnds = addEnd;
+    exitOnError = exitImmediately;
     string expression = ""; // expression is set equal to each new line read by cin
     getline(cin, expression);
     int lineNumber = 0;
-    while (!cin.eof() && expression != "")
+    int count = 0; // when count reaches 2 (two consecutive empty lines), the program should stop asking for input
+    while (!cin.eof() && count < 2) //&& expression != "")
     {
         lineNumber++;
+        if (expression == "") count++;
+        else count = 0;
         parseString(expression, lineNumber); // parseString() breaks each line into tokens and pushes them to the tokens vector
         getline(cin, expression);
     }
@@ -158,13 +162,13 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
             if (pushEnds)
             {
                 cout << "Syntax error on line " << 1 << " column " << columnNum << "." << endl;
-                return;
             }
             else
             {
                 cout << "Syntax error on line " << lineNumber << " column " << columnNum << "." << endl;
-                exit(1);
             }
+            if(exitOnError) exit(1);
+            else return;
         }
     }
     if (currentString != "") // case for when a number is located directly before '\n'

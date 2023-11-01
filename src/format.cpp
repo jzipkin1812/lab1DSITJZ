@@ -9,12 +9,17 @@ using namespace std;
 
 int main()
 {
-    Lexer myLexer = Lexer(true);
+    Lexer myLexer = Lexer(true, true);
     // myLexer.print();
-    // Parser myParser = Parser(myLexer.getTokens());
-    // myParser.print(); // calls evaluate() internally.
-    //vector<Token> tokens = myLexer.getTokens()[0];
-    //for (Token token : tokens) cout << token.text << " ";
-    //cout << endl;
+    // for(vector<Token> line : myLexer.getTokens())
+    // {
+    //     for(Token t : line)
+    //     {
+    //         cout << t.text << " ";
+    //     }
+    //     cout << endl;
+    // }
+    Parser myParser = Parser(myLexer.getTokens(), true);
+    myParser.format(); // DOES NOT CALL EVALUATE(). Prints the program raw (with parentheses.)
     return 0;
 }
