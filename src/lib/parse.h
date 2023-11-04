@@ -30,11 +30,11 @@ private:
     string printHelper(Node * top, bool lastChild);
     typedValue evaluate(Node *top);
     stringstream finalOutput;
-    bool checkError(vector<Token> expression, int line = 0);
+    bool checkError(vector<Token> expression, int line = 0, bool requireSemicolons = false);
     void parseError(Token token, int line = 0);
     void clearNode(Node *top);
     void clearBlock(Block b);
-    Node *constructAST(vector<Token> tokens, int line = 0);
+    Node *constructAST(vector<Token> tokens, int line = 0, bool requireSemicolons = false);
     void executeHelper(Block b);
     void formatHelper(Block b, unsigned int indents = 0);
     bool containsClose(vector<Token> line);

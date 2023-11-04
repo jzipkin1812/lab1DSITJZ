@@ -64,7 +64,7 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             // Construct an AST and push it to target.
             else if(!(beginning.isStatement() || beginning.isBrace()))
             {   
-                (*target).push_back(Block(constructAST(line, i)));
+                (*target).push_back(Block(constructAST(line, i, true)));
             }
             // CASE 2: A print statement.
             // Pop the print token. Construct an AST. Push a new block to target with this AST and type "print".
@@ -72,7 +72,7 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             else if(beginning.text == "print")
             {
                 line.erase(line.begin());
-                (*target).push_back(Block("print", constructAST(line, i), targetParent));
+                (*target).push_back(Block("print", constructAST(line, i, true), targetParent));
             }
             // CASE 3: An if statement.
             // Pop the if token. Pop the brace. Construct an AST for the condition. 
@@ -161,17 +161,22 @@ int getPrecedence(string token) // Helper function for constructAST
         return (9);
 }
 
-Node *Parser::constructAST(vector<Token> tokens, int line)
+Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolons)
 {
     // CHECK FOR ALL UNEXPECTED TOKEN ERRORS
     // The following function will print the error message on its own.
     // It returns true if there's an error detected.
-    if (checkError(tokens, line) == true)
+    if (checkError(tokens, line, requireSemicolons) == true)
     {
         return nullptr;
     }
     // Remove the end token, which is no longer needed after checkError().
     tokens.pop_back();
+    // Remove the semicolon token, which is no longer needed after checkError().
+    if(requireSemicolons)
+    {
+        tokens.pop_back();
+    }
 
     stack<Node *> nodeStack;   // will contain child and root nodes before linking to each other
     stack<string> stringStack; // will contain operators and parentheses, used for determining order of tree
@@ -284,7 +289,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line)
     return finalRoot;
 }
 
-void Parser::print() // Infix
+void Parser::print() // Infix, no statements, no semicolons
 {
     for (unsigned int i = 0; i < blocks.size(); i++)
     {
@@ -304,7 +309,7 @@ void Parser::print() // Infix
         outputPerExpression[i] << finalInfix << "\n";
         if(finalValue.isError())
         {
-            outputPerExpression[i] << finalValue.outputError();
+            outputPerExpression[i] << finalValue.outputError(false);
         }
         else
         {
@@ -404,7 +409,6 @@ typedValue Parser::evaluate(Node *top)
         } 
     }
     
-    
     if (text == "+")
     {
         result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
@@ -464,10 +468,21 @@ typedValue Parser::evaluate(Node *top)
     // doASSIGNMENT
     else if (text == "=")
     {
-        // There are no assignee errors at this point (they were caught in checkError), assign all the operands to the value of the rightmost expression.
-        result = evaluate(top->branches[1]);
-        string key = top->branches[0]->info.text;
-        provisional[key] = result;
+        // Check for the invalid assignee runtime error
+        Token assignee = top->branches[0]->info;
+        if(assignee.isVariable())
+        {
+            // There are no assignee errors at this point. Assign the variables.
+            result = evaluate(top->branches[1]);
+            string key = top->branches[0]->info.text;
+            provisional[key] = result;
+        }
+        else
+        {
+            // Invalid assignee error.
+            result.type = ASSIGNEEERROR;
+        }
+        
     }
     else if (t.isNumber())
     {
@@ -542,7 +557,7 @@ typedValue Parser::evaluate(Node *top)
     return (result);
 }
 
-bool Parser::checkError(vector<Token> expression, int line) // runs before we try evaluating
+bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolons) // runs before we try evaluating
 {
     int lastIndex = expression.size() - 2;
     Token theEnd = expression.back();
@@ -558,6 +573,20 @@ bool Parser::checkError(vector<Token> expression, int line) // runs before we tr
         lastIndex--;
         Token theEnd = expression.back();
     }
+    // Check for the semicolon right away. If it's there, we can decrement last index.
+    if(requireSemicolons)
+    {
+        if(expression[lastIndex].text != ";" && expression.size())
+        {
+            parseError(theEnd, line);
+            return(true);
+        }
+        else
+        {
+            lastIndex--;
+        }
+    }
+
     int parentheses = 0;
     for (int i = 0; i <= lastIndex; i++)
     {
@@ -565,8 +594,10 @@ bool Parser::checkError(vector<Token> expression, int line) // runs before we tr
         // Statements are not supported if allowStatements is false. In this case they're errors.
         if(t.isStatement() && !(allowStatements))
         {
+            cout << "CASE 1" << endl;
             parseError(t, line);
             return(true);
+            
         }
         // Operators should have two operands between them.
         // The left operand can be a RIGHT parenthesis or a number or an identifier.
@@ -577,32 +608,32 @@ bool Parser::checkError(vector<Token> expression, int line) // runs before we tr
             if (i == 0 ||
                 !(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
             {
-                // cout << "INVALID OPERATOR: CASE 1" << "\n";
+                cout << "INVALID OPERATOR: CASE 1" << "\n";
                 parseError(t, line);
                 return (true);
             }
             else if (i == lastIndex)
             {
-                // cout << "INVALID OPERATOR: CASE 2" << "\n";
+                cout << "INVALID OPERATOR: CASE 2" << "\n";
                 parseError(theEnd, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "("))
             {
-                // cout << "INVALID OPERATOR: CASE 3" << "\n";
+                cout << "INVALID OPERATOR: CASE 3" << "\n";
                 parseError(expression[i + 1], line);
                 return (true);
             }
         }
-        // The left of every equals sign should only be an identifier.
-        if (t.text == "=")
-        {
-            if (!(expression[i - 1].isVariable()))
-            {
-                parseError(t, line);
-                return (true);
-            }
-        }
+        // Assignee errors are no longer caught until runtime. I am commenting this out.
+        // if (t.text == "=")
+        // {
+        //     if (!(expression[i - 1].isVariable()))
+        //     {
+        //         parseError(t, line);
+        //         return (true);
+        //     }
+        // }
         // Parentheses should be balanced.
         // There should never be an empty set of two closed parentheses.
         // After an open parentheses, we must see a number or an identifier or another open parenthesis.
@@ -611,11 +642,14 @@ bool Parser::checkError(vector<Token> expression, int line) // runs before we tr
             parentheses++;
             if (i == lastIndex)
             {
+                cout << "CASE 2" << endl;
                 parseError(theEnd, line);
                 return (true);
+                
             }
             if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(") || expression[i + 1].text == ")")
             {
+                cout << "CASE 2" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -644,15 +678,25 @@ bool Parser::checkError(vector<Token> expression, int line) // runs before we tr
             // Check left
             if (i != 0 && !(expression[i - 1].text == "(" || expression[i - 1].isOperator()))
             {
+                cout << "CASE 3" << endl;
                 parseError(t, line);
                 return (true);
             }
             // Check right
             else if (i != lastIndex && !(expression[i + 1].text == ")" || expression[i + 1].isOperator()))
             {
+                cout << "CASE 4" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
+        }
+
+        // Semicolons should not show up at all. If they were at the end of an expression,
+        // then they should already have been ignored by a lastIndex decrement.
+        else if(t.isSemicolon())
+        {
+            parseError(t, line);
+            return(true);
         }
     }
     // At the very end of the expression, all the parentheses should be balanced.
@@ -730,16 +774,15 @@ void Parser::executeHelper(Block b)
 {
     if(b.statementType == "print")
     {
+        typedValue printResult = evaluate(b.root);
+        if(printResult.isError()) printResult.outputError(true);
         cout << evaluate(b.root) << endl;
     }
     else if(b.statementType == "if")
     {
         typedValue conditionResult = evaluate(b.condition);
-        if(conditionResult.type != BOOLEAN)
-        {
-            cout << "Runtime error: condition is not a bool." << endl;
-            exit(3);
-        }
+        if(conditionResult.type != BOOLEAN) conditionResult.setType(NOCONDITIONERROR);
+        if(conditionResult.isError()) conditionResult.outputError(true);
         bool branchTaken = conditionResult.data.booleanValue;
         if(branchTaken)
         {
@@ -763,12 +806,9 @@ void Parser::executeHelper(Block b)
     else if(b.statementType == "while")
     {
         typedValue conditionResult = evaluate(b.condition);
-        // If the condition is not boolean, exit
-        if(conditionResult.type != BOOLEAN)
-        {
-            cout << "Runtime error: condition is not a bool." << endl;
-            exit(3);
-        }
+        // If the condition is not boolean or another runtime error occurs in a condition, exit
+        if(conditionResult.type != BOOLEAN) conditionResult.setType(NOCONDITIONERROR);
+        if(conditionResult.isError()) conditionResult.outputError(true);
         while(conditionResult.data.booleanValue)
         {
             for(Block nested : b.nestedStatements)
@@ -784,9 +824,11 @@ void Parser::executeHelper(Block b)
             }
         }
     }
-    else
+    else // Case for expression
     {
-        evaluate(b.root);
+        typedValue expressionResult = evaluate(b.root);
+        // cout << expressionResult.type << endl;
+        if(expressionResult.isError()) expressionResult.outputError(true);
     }
     
 }
@@ -815,11 +857,11 @@ void Parser::formatHelper(Block b, unsigned int indents)
     // Then the content of the statements
     if(type == "expression")
     {
-        cout << printHelper(b.root, true);
+        cout << printHelper(b.root, true) << ";";
     }
     else if(type == "print")
     {
-        cout << "print " << printHelper(b.root, true);
+        cout << "print " << printHelper(b.root, true) << ";";
     }
     else if(type == "if" || type == "while" || type == "else")
     {

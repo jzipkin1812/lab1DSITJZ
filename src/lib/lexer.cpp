@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <iomanip>
+#include <fstream>
 #include "token.h"
 #include "lex.h"
 
@@ -16,25 +17,49 @@ void Lexer::print()
     }
 }
 
-Lexer::Lexer(bool addEnd, bool exitImmediately) // time complexity O(n^2), (number of lines) X (number of characters in each line)
+Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complexity O(n^2), (number of lines) X (number of characters in each line)
 {
+    // Handle text files
+    ifstream fileStream;
+    if(fileName != "") fileStream = ifstream(fileName);
+    
     pushEnds = addEnd;
     exitOnError = exitImmediately;
     string expression = ""; // expression is set equal to each new line read by cin
-    getline(cin, expression);
+    if(fileName == "")
+    {
+        getline(cin, expression);
+    }
+    else
+    {
+        getline(fileStream, expression);
+    }
+    
     int lineNumber = 0;
     int count = 0; // when count reaches 2 (two consecutive empty lines), the program should stop asking for input
-    while (!cin.eof() && count < 2) //&& expression != "")
+    bool endOfFile = cin.eof();
+    if(fileName != "") endOfFile = fileStream.eof();
+    while (!endOfFile && count < 2)
     {
         lineNumber++;
         if (expression == "") count++;
         else count = 0;
         parseString(expression, lineNumber); // parseString() breaks each line into tokens and pushes them to the tokens vector
-        getline(cin, expression);
+        if(fileName == "")
+        {
+            getline(cin, expression);
+            endOfFile = cin.eof();
+        }
+        else
+        {
+            getline(fileStream, expression);
+            endOfFile = fileStream.eof();
+        }
     }
     lineNumber++;
     parseString(expression, lineNumber);                                        // parseString runs one more time after cin.eof() in the case of an eof being located on the same line as an expression
     tokens.back().push_back(Token(lineNumber, expression.length() + 1, "END")); // tokens: vector of vectors, each vector contains a new expression
+    fileStream.close();
 }
 
 void Lexer::parseString(string expression, int lineNumber) // time complexity O(n), n=characters in expression
@@ -52,6 +77,8 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
             case '(':
             case '+':
             case '-':
+            case ';':
+            case ',':
             case '*':
             case '/':
             case '^':

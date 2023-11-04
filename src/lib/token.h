@@ -58,7 +58,7 @@ class Token
         }
         bool isNumber()
         {
-            return (!(isBoolean() || isOperator() || isBrace() || isParenthesis() || isEnd() || isVariable() || isStatement()));
+            return (!(isSemicolon() || isComma() || isBoolean() || isOperator() || isBrace() || isParenthesis() || isEnd() || isVariable() || isStatement()));
         }
         bool isBoolean()
         {
@@ -75,6 +75,14 @@ class Token
         bool isBrace()
         {
             return(text == "{" || text == "}");
+        }
+        bool isComma()
+        {
+            return(text == ",");
+        }
+        bool isSemicolon()
+        {
+            return(text == ";");
         }
         
         typedValue getValue()

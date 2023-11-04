@@ -12,7 +12,9 @@ enum TypeTag
     BOOLEAN, // 1
     TYPEERROR, // Operator took the wrong type. E.g. true + false or 3 > true
     DIVZEROERROR, // Divide by zero. 3 / 0
-    IDERROR // Unknown identifier. e.g. b + 3 but b was never declared.
+    IDERROR, // Unknown identifier. e.g. b + 3 but b was never declared.
+    ASSIGNEEERROR, // Invalid assignee, e.g. 3 = 4 or (1 * 2) = a
+    NOCONDITIONERROR, // A condition for a statement wasn't a boolean e.g. while(3 + 3) {
 };
 
 struct typedValue
@@ -79,7 +81,7 @@ struct typedValue
 
     bool isError()
     {
-        return(type == TYPEERROR || type == DIVZEROERROR || type == IDERROR);
+        return(type == TYPEERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR);
     }
 
     string outputError(bool exitImmediately = false)
@@ -89,6 +91,8 @@ struct typedValue
         else if (type == TYPEERROR) finalOutput = "Runtime error: invalid operand type.\n";
         else if (type == DIVZEROERROR) finalOutput = "Runtime error: division by zero.\n";
         else if (type == IDERROR) finalOutput = "Runtime error: unknown identifier " +  unknownIDText + "\n";
+        else if (type == ASSIGNEEERROR) finalOutput = "Runtime error: invalid assignee.\n";
+        else if (type == NOCONDITIONERROR) finalOutput = "Runtime error: condition is not a bool.\n";
         
         if(exitImmediately)
         {
