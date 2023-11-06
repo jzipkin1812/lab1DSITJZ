@@ -25,10 +25,14 @@ public:
 private:
     bool exitImmediately;
     bool allowStatements;
+    // The map maps variables to their values
+    map<string, typedValue> variables;
+    // This map is used to set the variables before checking for runtime errors. If there are no runtime errors by the end of evaluation, provisional is transfered to variables.
+    map<string, typedValue> provisional;
     vector<vector<Token>> tokens;
     vector<Block> blocks;
     string printHelper(Node * top, bool lastChild);
-    typedValue evaluate(Node *top);
+    typedValue evaluate(Node *top, map<string, typedValue>& scopeMap);
     stringstream finalOutput;
     bool checkError(vector<Token> expression, int line = 0, bool requireSemicolons = false);
     void parseError(Token token, int line = 0);
@@ -41,10 +45,7 @@ private:
     bool containsOpen(vector<Token> line);
     unsigned int nextClose(vector<vector<Token>> program, unsigned int lineNum);
     vector<stringstream> outputPerExpression;
-    // The map maps variables to their values
-    map<string, typedValue> variables;
-    // This map is used to set the variables before checking for runtime errors. If there are no runtime errors by the end of evaluation, provisional is transfered to variables.
-    map<string, typedValue> provisional;
+    
 };
 
 

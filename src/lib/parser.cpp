@@ -303,7 +303,7 @@ void Parser::print() // Infix, no statements, no semicolons
             provisional[s.first] = variables[s.first];
         }
 
-        typedValue finalValue = evaluate(oneBlock.root);
+        typedValue finalValue = evaluate(oneBlock.root, provisional);
         // cout << finalValue.type << "\n";
         string finalInfix = printHelper(oneBlock.root, true);
         outputPerExpression[i] << finalInfix << "\n";
@@ -367,7 +367,7 @@ string Parser::printHelper(Node *top, bool lastChild)
     return (finalText);
 }
 
-typedValue Parser::evaluate(Node *top)
+typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
 {
     typedValue result = typedValue{DOUBLE, {0}, ""};
     if (!top)
@@ -379,12 +379,12 @@ typedValue Parser::evaluate(Node *top)
     // TYPE MISMATCH ERROR
     if(t.isOperator() && !(t.text == "="))
     {
-        typedValue result1 = evaluate(top->branches[0]);
-        typedValue result2 = evaluate(top->branches[1]);
-        TypeTag type1 = evaluate(top->branches[0]).type;
-        TypeTag type2 = evaluate(top->branches[1]).type;
+        typedValue result1 = evaluate(top->branches[0], scopeMap);
+        typedValue result2 = evaluate(top->branches[1], scopeMap);
+        TypeTag type1 = evaluate(top->branches[0], scopeMap).type;
+        TypeTag type2 = evaluate(top->branches[1], scopeMap).type;
         if (!(result1.isError() || result2.isError()) && (
-            type1 != type2
+            ((type1 != type2) && (t.text != "==" && t.text != "!="))
         || (t.takesBoolsOnly() && (type1 == DOUBLE || type2 == DOUBLE))
         || (t.takesDoublesOnly() && (type1 == BOOLEAN || type2 == BOOLEAN))))
         {
@@ -395,8 +395,8 @@ typedValue Parser::evaluate(Node *top)
     // DIVISION BY ZERO ERROR AND UNKNOWN IDENTIFIER ERROR
     if(t.isOperator())
     {
-        typedValue result1 = evaluate(top->branches[0]);
-        typedValue result2 = evaluate(top->branches[1]);
+        typedValue result1 = evaluate(top->branches[0], scopeMap);
+        typedValue result2 = evaluate(top->branches[1], scopeMap);
         if(t.text != "=") result.setType(result1.type);
         result.setType(result2.type);
         if(result1.type == IDERROR) 
@@ -411,21 +411,21 @@ typedValue Parser::evaluate(Node *top)
     
     if (text == "+")
     {
-        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
-        result.data.doubleValue += evaluate(top->branches[1]).data.doubleValue;
+        result.data.doubleValue = evaluate(top->branches[0], scopeMap).data.doubleValue;
+        result.data.doubleValue += evaluate(top->branches[1], scopeMap).data.doubleValue;
     }
     else if (text == "-")
     {
-        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
-        result.data.doubleValue -= evaluate(top->branches[1]).data.doubleValue;
+        result.data.doubleValue = evaluate(top->branches[0], scopeMap).data.doubleValue;
+        result.data.doubleValue -= evaluate(top->branches[1], scopeMap).data.doubleValue;
     }
     else if (text == "%")
     {
-        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
+        result.data.doubleValue = evaluate(top->branches[0], scopeMap).data.doubleValue;
         for (unsigned int i = 1 ; i < top->branches.size() ; i++)
         {
             // Do modulus, but check for division by 0
-            double d2 = evaluate(top->branches[i]).data.doubleValue;
+            double d2 = evaluate(top->branches[i], scopeMap).data.doubleValue;
             if (d2 == 0)
             {
                 while (top->parent) top = top -> parent;
@@ -439,16 +439,16 @@ typedValue Parser::evaluate(Node *top)
     }
     else if (text == "*")
     {
-        result.data.doubleValue = evaluate(top->branches[0]).data.doubleValue;
-        result.data.doubleValue *= evaluate(top->branches[1]).data.doubleValue;
+        result.data.doubleValue = evaluate(top->branches[0], scopeMap).data.doubleValue;
+        result.data.doubleValue *= evaluate(top->branches[1], scopeMap).data.doubleValue;
     }
     else if (text == "/")
     {
-        result = evaluate(top->branches[0]);
+        result = evaluate(top->branches[0], scopeMap);
         for (unsigned int i = 1; i < top->branches.size(); i++)
         {
             // Divide, but check for division by 0 error
-            double divisor = evaluate(top->branches[i]).data.doubleValue;
+            double divisor = evaluate(top->branches[i], scopeMap).data.doubleValue;
             if (divisor == 0)
             {
                 // Find the root of the tree and print infix version (the tree should still print in infix form when a runtime error occurs!)
@@ -473,9 +473,9 @@ typedValue Parser::evaluate(Node *top)
         if(assignee.isVariable())
         {
             // There are no assignee errors at this point. Assign the variables.
-            result = evaluate(top->branches[1]);
+            result = evaluate(top->branches[1], scopeMap);
             string key = top->branches[0]->info.text;
-            provisional[key] = result;
+            scopeMap[key] = result;
         }
         else
         {
@@ -491,16 +491,15 @@ typedValue Parser::evaluate(Node *top)
     else if (t.isVariable())
     {
         // Test for undefined identifier error
-        if (provisional.find(text) == provisional.end())
+        if (scopeMap.find(text) == scopeMap.end())
         {
             result.type = IDERROR;
             result.unknownIDText = text;
-            result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
             return (result);
         }
         else
         {
-            result = provisional[text];
+            result = scopeMap[text];
         }
     }
     else if(t.isBoolean())
@@ -512,47 +511,47 @@ typedValue Parser::evaluate(Node *top)
     else if (text == "<")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue < evaluate(top->branches[1]).data.doubleValue);
+        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.doubleValue < evaluate(top->branches[1], scopeMap).data.doubleValue);
     }
     else if (text == ">")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue > evaluate(top->branches[1]).data.doubleValue);
+        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.doubleValue > evaluate(top->branches[1], scopeMap).data.doubleValue);
     }
     else if (text == ">=")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue >= evaluate(top->branches[1]).data.doubleValue);
+        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.doubleValue >= evaluate(top->branches[1], scopeMap).data.doubleValue);
     }
     else if (text == "<=")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0]).data.doubleValue <= evaluate(top->branches[1]).data.doubleValue);
+        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.doubleValue <= evaluate(top->branches[1], scopeMap).data.doubleValue);
     }
     else if (text == "==")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0]) == evaluate(top->branches[1]));
+        result.data.booleanValue = (evaluate(top->branches[0], scopeMap) == evaluate(top->branches[1], scopeMap));
     }
     else if (text == "!=")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0]) != evaluate(top->branches[1]));
+        result.data.booleanValue = (evaluate(top->branches[0], scopeMap) != evaluate(top->branches[1], scopeMap));
     }
     else if (text == "|")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue || evaluate(top->branches[1]).data.booleanValue);
+        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.booleanValue || evaluate(top->branches[1], scopeMap).data.booleanValue);
     }
     else if (text == "&")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue && evaluate(top->branches[1]).data.booleanValue);
+        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.booleanValue && evaluate(top->branches[1], scopeMap).data.booleanValue);
     }
     else if (text == "^")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0]).data.booleanValue != evaluate(top->branches[1]).data.booleanValue);
+        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.booleanValue != evaluate(top->branches[1], scopeMap).data.booleanValue);
     }
     return (result);
 }
@@ -625,15 +624,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 return (true);
             }
         }
-        // Assignee errors are no longer caught until runtime. I am commenting this out.
-        // if (t.text == "=")
-        // {
-        //     if (!(expression[i - 1].isVariable()))
-        //     {
-        //         parseError(t, line);
-        //         return (true);
-        //     }
-        // }
+        // Assignee errors are no longer caught until runtime.
         // Parentheses should be balanced.
         // There should never be an empty set of two closed parentheses.
         // After an open parentheses, we must see a number or an identifier or another open parenthesis.
@@ -774,13 +765,13 @@ void Parser::executeHelper(Block b)
 {
     if(b.statementType == "print")
     {
-        typedValue printResult = evaluate(b.root);
+        typedValue printResult = evaluate(b.root, provisional);
         if(printResult.isError()) printResult.outputError(true);
-        cout << evaluate(b.root) << endl;
+        cout << evaluate(b.root, provisional) << endl;
     }
     else if(b.statementType == "if")
     {
-        typedValue conditionResult = evaluate(b.condition);
+        typedValue conditionResult = evaluate(b.condition, provisional);
         if(conditionResult.type != BOOLEAN) conditionResult.setType(NOCONDITIONERROR);
         if(conditionResult.isError()) conditionResult.outputError(true);
         bool branchTaken = conditionResult.data.booleanValue;
@@ -805,7 +796,7 @@ void Parser::executeHelper(Block b)
     }
     else if(b.statementType == "while")
     {
-        typedValue conditionResult = evaluate(b.condition);
+        typedValue conditionResult = evaluate(b.condition, provisional);
         // If the condition is not boolean or another runtime error occurs in a condition, exit
         if(conditionResult.type != BOOLEAN) conditionResult.setType(NOCONDITIONERROR);
         if(conditionResult.isError()) conditionResult.outputError(true);
@@ -816,7 +807,7 @@ void Parser::executeHelper(Block b)
                 executeHelper(nested);
             }
             // If the condition is not boolean, exit
-            conditionResult = evaluate(b.condition);
+            conditionResult = evaluate(b.condition, provisional);
             if(conditionResult.type != BOOLEAN)
             {
                 cout << "Runtime error: condition is not a bool." << endl;
@@ -826,7 +817,7 @@ void Parser::executeHelper(Block b)
     }
     else // Case for expression
     {
-        typedValue expressionResult = evaluate(b.root);
+        typedValue expressionResult = evaluate(b.root, provisional);
         // cout << expressionResult.type << endl;
         if(expressionResult.isError()) expressionResult.outputError(true);
     }
