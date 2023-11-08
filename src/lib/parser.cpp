@@ -69,10 +69,10 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             // CASE 2: A print statement.
             // Pop the print token. Construct an AST. Push a new block to target with this AST and type "print".
             // We don't need to track the parents of print statements. They don't nest.
-            else if(beginning.text == "print")
+            else if(beginning.text == "print" || beginning.text == "return")
             {
                 line.erase(line.begin());
-                (*target).push_back(Block("print", constructAST(line, i, true), targetParent));
+                (*target).push_back(Block(beginning.text, constructAST(line, i, true), targetParent));
             }
             // CASE 3: An if statement.
             // Pop the if token. Pop the brace. Construct an AST for the condition. 
@@ -113,12 +113,12 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                     continue;
                 }
             }
-            // While case is the same as if
-            else if(beginning.text == "while")
+            // While and def case are the same as if but without any "else" shenanigans
+            else if(beginning.text == "while" || beginning.text == "def")
             {
                 line.erase(line.begin()); // The while
                 line.erase(line.end() - 2); // The brace
-                (*target).push_back(Block("while", constructAST(line, i), targetParent));
+                (*target).push_back(Block(beginning.text, constructAST(line, i), targetParent));
                 // The parent pointer is now the current statement we're about to be nested inside of.
                 // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
                 targetParent = &((*target).back());
@@ -607,19 +607,19 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             if (i == 0 ||
                 !(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
             {
-                cout << "INVALID OPERATOR: CASE 1" << "\n";
+                // cout << "INVALID OPERATOR: CASE 1" << "\n";
                 parseError(t, line);
                 return (true);
             }
             else if (i == lastIndex)
             {
-                cout << "INVALID OPERATOR: CASE 2" << "\n";
+                // cout << "INVALID OPERATOR: CASE 2" << "\n";
                 parseError(theEnd, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "("))
             {
-                cout << "INVALID OPERATOR: CASE 3" << "\n";
+                // cout << "INVALID OPERATOR: CASE 3" << "\n";
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -633,14 +633,14 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             parentheses++;
             if (i == lastIndex)
             {
-                cout << "CASE 2" << endl;
+                // cout << "CASE 2" << endl;
                 parseError(theEnd, line);
                 return (true);
                 
             }
             if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(") || expression[i + 1].text == ")")
             {
-                cout << "CASE 2" << endl;
+                // cout << "CASE 2" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -669,14 +669,14 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // Check left
             if (i != 0 && !(expression[i - 1].text == "(" || expression[i - 1].isOperator()))
             {
-                cout << "CASE 3" << endl;
+                // cout << "CASE 3" << endl;
                 parseError(t, line);
                 return (true);
             }
             // Check right
             else if (i != lastIndex && !(expression[i + 1].text == ")" || expression[i + 1].isOperator()))
             {
-                cout << "CASE 4" << endl;
+                // cout << "CASE 4" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -850,11 +850,11 @@ void Parser::formatHelper(Block b, unsigned int indents)
     {
         cout << printHelper(b.root, true) << ";";
     }
-    else if(type == "print")
+    else if(type == "print" || type == "return")
     {
-        cout << "print " << printHelper(b.root, true) << ";";
+        cout << type << " " << printHelper(b.root, true) << ";";
     }
-    else if(type == "if" || type == "while" || type == "else")
+    else if(type == "if" || type == "while" || type == "else" || type == "def")
     {
         if(b.condition)
         {   

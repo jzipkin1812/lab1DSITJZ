@@ -6,7 +6,7 @@ format: format.cpp lib/typedValue.h lib/parse.h lib/token.h lib/lexer.cpp lib/pa
 	g++ -o format -std=c++17 -Wall -Wextra -Werror format.cpp lib/parser.cpp lib/lexer.cpp
 scrypt: scrypt.cpp lib/typedValue.h lib/parse.h lib/token.h lib/lexer.cpp lib/parser.cpp lib/block.h
 	g++ -o scrypt -std=c++17 -Wall -Wextra -Werror scrypt.cpp lib/parser.cpp lib/lexer.cpp
-withText: withText.cpp lib/typedValue.h lib/parse.h lib/token.h lib/lexer.cpp lib/parser.cpp lib/block.h
+withText: lib/node.h withText.cpp lib/typedValue.h lib/parse.h lib/token.h lib/lexer.cpp lib/parser.cpp lib/block.h
 	g++ -o withText -std=c++17 -Wall -Wextra -Werror withText.cpp lib/parser.cpp lib/lexer.cpp
 leak: calc calc.cpp lib/parser.cpp
 	valgrind --leak-check=full ./format

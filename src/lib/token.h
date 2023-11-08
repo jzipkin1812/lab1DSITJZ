@@ -70,7 +70,7 @@ class Token
         }
         bool isStatement()
         {
-            return(text == "while" || text == "if" || text == "else" || text == "print");
+            return(text == "return" || text == "def" || text == "while" || text == "if" || text == "else" || text == "print");
         }
         bool isBrace()
         {

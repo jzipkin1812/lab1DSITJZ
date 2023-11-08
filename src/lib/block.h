@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 using namespace std;
-
+ 
 // Types of blocks
 // EXPRESSION:
 // statementType = "expression"
@@ -22,9 +22,15 @@ using namespace std;
 // nestedStatements = all the blocks inside the brackets
 // root = nullptr
 
-// PRINT
-// statementType = "print"
-// root = constructAST(what we want to print)
+// DEF:
+// statementType = "def"
+// nestedStatements = everything in there
+// arguments = list of all the arguments in order with their names
+// root = nullptr
+
+// PRINT, RETURN:
+// statementType = "print" or "return"
+// root = constructAST(what we want to print or return)
 // everything else null or empty
 
 // ELSE:
@@ -35,7 +41,8 @@ class Block
     public:
         string statementType; // Expression, if, else, while, or print
         Node * condition; // Used for IF, ELSE, WHILE only
-        vector<Block> nestedStatements; // Used for IF, ELSE, WHILE only
+        vector<Block> nestedStatements; // Used for IF, ELSE, WHILE, DEF only
+        vector<string> arguments; // Used for DEF only
         Node * root; // Used for expressions and print only
         Block * parent; // Used for nested blocks only
         Block * elseStatement; // Used for if statements only
@@ -59,7 +66,7 @@ class Block
         {
             parent = outer;
             statementType = type;
-            if(type == "print")
+            if(type == "print" || type == "return")
             {
                 condition = nullptr;
                 root = AST;
@@ -76,10 +83,25 @@ class Block
         {
             nestedStatements.push_back(b);
         }
+        int argc() 
+        {
+            return(arguments.size());
+        }
 
     private:    
-        
+};
 
+class Func: public Block
+{
+    map<string, typedValue> variables;
+    unsigned int argc;
+    Func(Block information, map<string, typedValue> captured)
+    {
+        variables = captured;
+        arguments = information.arguments;
+        argc = arguments.size();
+        nestedStatements = information.nestedStatements;
+    }
 };
 
 #endif
