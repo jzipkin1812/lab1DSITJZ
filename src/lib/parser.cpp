@@ -227,7 +227,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 vector<Token> argument;
                 root = new Node{tokens[i], vector<Node *>(), nullptr};
                 i = i + 2;
-                cout << "Reached a function call..." << endl;
+                // cout << "Reached a function call..." << endl;
                 while (true) 
                 {
                     if (tokens[i].text == "(") parenCount++;
@@ -261,11 +261,10 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                     else { argument.push_back(tokens[i]); }
                     i++;
                 }
-                cout << "Leaving a function call..." << endl;
                 tokens.erase(tokens.begin() + originalIndex + 1, tokens.begin() + i + 1);
                 nodeStack.push(root);
                 i = originalIndex;
-                cout << "Tokens[i - 1] is now \"" << tokens[i - 1].text << "\"" << endl;
+                // cout << "Tokens[i - 1] is now \"" << tokens[i - 1].text << "\"" << endl;
             }
             else{ nodeStack.push(new Node{tokens[i], vector<Node *>(), nullptr}); }
 
@@ -421,12 +420,12 @@ string Parser::printHelper(Node *top, bool lastChild)
     }
     else if (top->info.isVariable() && top->branches.size() > 0)
     {
-        cout << top->info.text << "(";
+        finalText += top->info.text + "(";
         for(unsigned int j = 0; j < top->branches.size(); j++)
         {
             Node * param = top->branches[j];
-            if(j < top->branches.size() - 1) cout << printHelper(param, true) << ", ";
-            else cout << printHelper(param, true) << ")";
+            if(j < top->branches.size() - 1) finalText += printHelper(param, true) + ", ";
+            else finalText += printHelper(param, true) + ")";
             
         }
     }

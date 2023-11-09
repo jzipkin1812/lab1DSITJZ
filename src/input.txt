@@ -2,8 +2,5 @@ def square(x) {
     return x;
     print 4 + 4;
 }
-
-a = 2 + 2;
-b = 3;
-c = true;
-d = false;
+1 + square(2) + 2;
+square(1, 2, 3 + 3);
