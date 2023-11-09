@@ -418,7 +418,7 @@ string Parser::printHelper(Node *top, bool lastChild)
             finalText += " " + top->parent->info.text + " ";
         }
     }
-    else if (top->info.isVariable() && top->branches.size() > 0)
+    else if (top->info.isOperand() && top->branches.size() > 0)
     {
         finalText += top->info.text + "(";
         for(unsigned int j = 0; j < top->branches.size(); j++)
