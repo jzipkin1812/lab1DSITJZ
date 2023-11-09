@@ -226,6 +226,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 int parenCount = 0;
                 vector<Token> argument;
                 root = new Node{tokens[i], vector<Node *>(), nullptr};
+                root->isFunctionCall = true;
                 i = i + 2;
                 // cout << "Reached a function call..." << endl;
                 while (true) 
@@ -567,6 +568,12 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         }
         
     }
+    // NOT A FUNCTION ERROR
+    else if (top->isFunctionCall && !(t.isVariable()))
+    {
+        result.type = NOTFUNCTIONERROR;
+        return(result);
+    }
     else if (t.isNumber())
     {
         result = (top->info.getValue());
@@ -586,6 +593,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             // But...if result is a function, we need to call the function.
             if(result.type == FUNCTION)
             {
+                // At this point, we already know the "not a function" error was accounted for, so we don't have to check for it.
                 Func * converted = reinterpret_cast<Func*>(result.data.functionValue);
                 vector<typedValue> evaluatedArguments;
                 for(Node * child : top->branches)

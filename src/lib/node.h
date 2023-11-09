@@ -10,7 +10,7 @@ struct Node
     Token info;
     vector<Node *> branches;
     Node *parent;
-    bool isFunctionCall = false; // Default-set to false. You must change this only if it's a function
+    bool isFunctionCall = false; // Default-set to false. You must change this only if it's a function CALL
 };
 
 #endif

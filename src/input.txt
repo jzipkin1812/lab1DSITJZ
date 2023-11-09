@@ -1,18 +1,23 @@
-y = 2;
-
-def square(x) {
-    return x * x;
-}
-def isEven(num) {
-    if num % 2 == 0 {
-        return true;
+def fib(N)
+{
+    if(N == 0 | N == 1)
+    {
+        return 1;
     }
-    else {
-        return false;
+    else
+    {
+        return fib(N - 1) + fib(N - 2);
     }
 }
-N = 6;
-while N < 20 {
-    N = N + 1;
-    print isEven(N);
+def pow(base, exponent)
+{
+    result = base;
+    counter = 1;
+    while counter < exponent {
+        result = result * base;
+        counter = counter + 1;
+    }
+    return result;
 }
+n = 15;
+print pow(n, 2);

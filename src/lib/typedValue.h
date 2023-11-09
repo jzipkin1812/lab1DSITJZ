@@ -16,7 +16,8 @@ enum TypeTag
     ASSIGNEEERROR, // Invalid assignee, e.g. 3 = 4 or (1 * 2) = a
     NOCONDITIONERROR, // A condition for a statement wasn't a boolean e.g. while(3 + 3) {
     NONE,
-    FUNCTION
+    FUNCTION,
+    NOTFUNCTIONERROR // Not a function e.g. 7(6, 2, 3) or true(9, 10)
 };
 
 struct typedValue
@@ -89,7 +90,7 @@ struct typedValue
 
     bool isError()
     {
-        return(type == TYPEERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR);
+        return(type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR);
     }
 
     string outputError(bool exitImmediately = false)
@@ -101,6 +102,7 @@ struct typedValue
         else if (type == IDERROR) finalOutput = "Runtime error: unknown identifier " +  unknownIDText + "\n";
         else if (type == ASSIGNEEERROR) finalOutput = "Runtime error: invalid assignee.\n";
         else if (type == NOCONDITIONERROR) finalOutput = "Runtime error: condition is not a bool.\n";
+        else if (type == NOTFUNCTIONERROR) finalOutput = "Runtime error: not a function.\n";
         
         if(exitImmediately)
         {
