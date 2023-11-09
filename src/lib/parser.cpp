@@ -186,13 +186,15 @@ int getPrecedence(string token) // Helper function for constructAST
 
 Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolons)
 {
+    if (line == 90000) return nullptr;
+    
     // CHECK FOR ALL UNEXPECTED TOKEN ERRORS
     // The following function will print the error message on its own.
     // It returns true if there's an error detected.
-    if (checkError(tokens, line, requireSemicolons) == true)
-    {
-        return nullptr;
-    }
+    //if (checkError(tokens, line, requireSemicolons) == true)
+    //{
+       // return nullptr;
+    //}
     // Remove the end token, which is no longer needed after checkError().
     tokens.pop_back();
     // Remove the semicolon token, which is no longer needed after checkError().
@@ -218,7 +220,55 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
         }
         else if (tokens[i].isOperand()) // numbers and variables are treated the same at a base level
         {
-            nodeStack.push(new Node{Node{tokens[i], vector<Node *>(), nullptr}});
+            if (i+1<tokens.size() && tokens[i+1].text == "("){
+
+                unsigned int originalIndex = i;
+                int parenCount = 0;
+                vector<Token> argument;
+                root = new Node{tokens[i], vector<Node *>(), nullptr};
+                i = i + 2;
+                cout << "Reached a function call..." << endl;
+                while (true) 
+                {
+                    if (tokens[i].text == "(") parenCount++;
+                    if (tokens[i].text == ")") parenCount--;
+                    if (parenCount < 0)
+                    {
+                        // cout << "Constructing argument with size " << argument.size() << endl;
+                        argument.push_back(Token(0, 0, ")"));
+                        argument.push_back(Token(0, 0, ";"));
+                        argument.push_back(Token(0, 0, "END"));
+                        Node * temp = constructAST(argument);
+                        // cout << "Pushing temp with root text " << temp->info.text << endl;
+                        temp->parent = root;
+                        root->branches.push_back(temp);
+                        argument.clear();
+                        break;
+                    }
+                    else if (tokens[i].text == "," && parenCount == 0)
+                    {
+                        // cout << "Constructing argument with size " << argument.size() << endl;
+                        argument.push_back(Token(0, 0, ")"));
+                        argument.push_back(Token(0, 0, ";"));
+                        argument.push_back(Token(0, 0, "END"));
+                        Node * temp = constructAST(argument);
+                        // cout << "Pushing temp with root text " << temp->info.text << endl;
+                        temp->parent = root;
+                        root->branches.push_back(temp);
+                        argument.clear();
+                        argument.push_back(Token(0, 0, "("));
+                    }
+                    else { argument.push_back(tokens[i]); }
+                    i++;
+                }
+                cout << "Leaving a function call..." << endl;
+                tokens.erase(tokens.begin() + originalIndex + 1, tokens.begin() + i + 1);
+                nodeStack.push(root);
+                i = originalIndex;
+                cout << "Tokens[i - 1] is now \"" << tokens[i - 1].text << "\"" << endl;
+            }
+            else{ nodeStack.push(new Node{tokens[i], vector<Node *>(), nullptr}); }
+
             if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
             {
                 while (!stringStack.empty() && stringStack.top() != "(")
@@ -367,6 +417,17 @@ string Parser::printHelper(Node *top, bool lastChild)
         if (!lastChild)
         {
             finalText += " " + top->parent->info.text + " ";
+        }
+    }
+    else if (top->info.isVariable() && top->branches.size() > 0)
+    {
+        cout << top->info.text << "(";
+        for(unsigned int j = 0; j < top->branches.size(); j++)
+        {
+            Node * param = top->branches[j];
+            if(j < top->branches.size() - 1) cout << printHelper(param, true) << ", ";
+            else cout << printHelper(param, true) << ")";
+            
         }
     }
     else
