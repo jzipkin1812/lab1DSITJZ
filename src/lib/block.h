@@ -3,9 +3,9 @@
 
 #include "token.h"
 #include "node.h"
-#include "typedValue.h"
 #include <vector>
 #include <string>
+#include <map>
 #include <iostream>
 using namespace std;
  
@@ -40,9 +40,11 @@ class Block
 {
     public:
         string statementType; // Expression, if, else, while, or print
+        string functionName; // Function's name in a def statement only
         Node * condition; // Used for IF, ELSE, WHILE only
         vector<Block> nestedStatements; // Used for IF, ELSE, WHILE, DEF only
-        vector<string> arguments; // Used for DEF only
+        vector<string> argumentNames; // Used for DEF only
+        map<string, typedValue> capturedVariables; // Used for DEF only
         Node * root; // Used for expressions and print only
         Block * parent; // Used for nested blocks only
         Block * elseStatement; // Used for if statements only
@@ -83,25 +85,28 @@ class Block
         {
             nestedStatements.push_back(b);
         }
-        int argc() 
-        {
-            return(arguments.size());
-        }
 
     private:    
 };
 
 class Func: public Block
 {
-    map<string, typedValue> variables;
-    unsigned int argc;
-    Func(Block information, map<string, typedValue> captured)
-    {
-        variables = captured;
-        arguments = information.arguments;
-        argc = arguments.size();
-        nestedStatements = information.nestedStatements;
-    }
+    public:
+        map<string, typedValue> variables;
+        unsigned int argc;
+        Func()
+        {
+            argc = 0;
+            Block();
+        }
+        Func(Block information, map<string, typedValue> captured)
+        {
+            functionName = information.functionName;
+            variables = captured;
+            argumentNames = information.argumentNames;
+            argc = argumentNames.size();
+            nestedStatements = information.nestedStatements;
+        }
 };
 
 #endif

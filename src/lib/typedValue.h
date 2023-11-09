@@ -15,6 +15,8 @@ enum TypeTag
     IDERROR, // Unknown identifier. e.g. b + 3 but b was never declared.
     ASSIGNEEERROR, // Invalid assignee, e.g. 3 = 4 or (1 * 2) = a
     NOCONDITIONERROR, // A condition for a statement wasn't a boolean e.g. while(3 + 3) {
+    NONE,
+    FUNCTION
 };
 
 struct typedValue
@@ -24,7 +26,9 @@ struct typedValue
     {
         double doubleValue;
         bool booleanValue;
+        void * functionValue;
     };
+
     d data;
     string unknownIDText;
 
@@ -102,6 +106,7 @@ struct typedValue
 
         return(finalOutput);
     }
+
 };
 
 #endif

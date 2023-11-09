@@ -1,3 +1,9 @@
-return 6;
-return 4;
-return 2 + 2 + 3 + 4;
+def square(x) {
+    return x;
+    print 4 + 4;
+}
+
+a = 2 + 2;
+b = 3;
+c = true;
+d = false;

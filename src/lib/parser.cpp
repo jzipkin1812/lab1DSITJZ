@@ -113,14 +113,37 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                     continue;
                 }
             }
-            // While and def case are the same as if but without any "else" shenanigans
-            else if(beginning.text == "while" || beginning.text == "def")
+            // While case
+            else if(beginning.text == "while")
             {
                 line.erase(line.begin()); // The while
                 line.erase(line.end() - 2); // The brace
                 (*target).push_back(Block(beginning.text, constructAST(line, i), targetParent));
                 // The parent pointer is now the current statement we're about to be nested inside of.
                 // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
+                targetParent = &((*target).back());
+            }
+
+            // Def statement
+            else if(beginning.text == "def")
+            {
+                line.erase(line.begin()); // The while
+                line.erase(line.end() - 2); // The brace
+                Block defBlock;
+                defBlock.statementType = "def"; // Def
+                defBlock.functionName = (*line.begin()).text; // Name of new function
+                line.erase(line.begin()); // Get rid of the function name
+                for(unsigned int j = 0; j < line.size(); j++)
+                {
+                    Token possibleArgument = line[j];
+                    if(possibleArgument.isVariable())
+                    {
+                        defBlock.argumentNames.push_back(possibleArgument.text);
+                    }
+                }
+                defBlock.parent = targetParent;
+
+                (*target).push_back(defBlock);
                 targetParent = &((*target).back());
             }
 
@@ -757,21 +780,36 @@ void Parser::execute()
 {
     for(Block b : blocks)
     {
-        executeHelper(b);
+        executeHelper(b, provisional);
+    }
+    for(auto variablePair : provisional)
+    {
+        if(variablePair.second.type != FUNCTION) cout << variablePair.first << " : " << variablePair.second << endl;
+        else
+        {
+            typedValue var = variablePair.second;
+
+            Func * converted = reinterpret_cast<Func*>(var.data.functionValue);
+            cout << variablePair.first << " is a function with this information:\n";
+            cout << converted->argc << " arguments, " << converted->nestedStatements.size() << " nested blocks, and the name " << converted->functionName << endl;
+        }
+        
     }
 }
 
-void Parser::executeHelper(Block b)
+typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
 {
+    typedValue noneReturn;
+    noneReturn.type = NONE;
     if(b.statementType == "print")
     {
-        typedValue printResult = evaluate(b.root, provisional);
+        typedValue printResult = evaluate(b.root, scope);
         if(printResult.isError()) printResult.outputError(true);
-        cout << evaluate(b.root, provisional) << endl;
+        cout << evaluate(b.root, scope) << endl;
     }
     else if(b.statementType == "if")
     {
-        typedValue conditionResult = evaluate(b.condition, provisional);
+        typedValue conditionResult = evaluate(b.condition, scope);
         if(conditionResult.type != BOOLEAN) conditionResult.setType(NOCONDITIONERROR);
         if(conditionResult.isError()) conditionResult.outputError(true);
         bool branchTaken = conditionResult.data.booleanValue;
@@ -779,24 +817,24 @@ void Parser::executeHelper(Block b)
         {
             for(Block nested : b.nestedStatements)
             {
-                executeHelper(nested);
+                executeHelper(nested, scope);
             }
         }
         else if (b.elseStatement)
         {
-            executeHelper(*(b.elseStatement));
+            executeHelper(*(b.elseStatement), scope);
         }
     }
     else if(b.statementType == "else")
     {
         for(Block nested : b.nestedStatements)
         {
-            executeHelper(nested);
+            executeHelper(nested, scope);
         }
     }
     else if(b.statementType == "while")
     {
-        typedValue conditionResult = evaluate(b.condition, provisional);
+        typedValue conditionResult = evaluate(b.condition, scope);
         // If the condition is not boolean or another runtime error occurs in a condition, exit
         if(conditionResult.type != BOOLEAN) conditionResult.setType(NOCONDITIONERROR);
         if(conditionResult.isError()) conditionResult.outputError(true);
@@ -804,10 +842,10 @@ void Parser::executeHelper(Block b)
         {
             for(Block nested : b.nestedStatements)
             {
-                executeHelper(nested);
+                executeHelper(nested, scope);
             }
             // If the condition is not boolean, exit
-            conditionResult = evaluate(b.condition, provisional);
+            conditionResult = evaluate(b.condition, scope);
             if(conditionResult.type != BOOLEAN)
             {
                 cout << "Runtime error: condition is not a bool." << endl;
@@ -815,13 +853,30 @@ void Parser::executeHelper(Block b)
             }
         }
     }
+    else if(b.statementType == "def")
+    {
+        // Capture variables
+        b.capturedVariables = scope;
+        Func * newFunction = new Func(b, scope);
+        typedValue functionStorage;
+        functionStorage.type = FUNCTION;
+        functionStorage.data.functionValue = newFunction;
+        scope[b.functionName] = functionStorage;
+    }
+    else if(b.statementType == "return")
+    {
+        typedValue returnResult = evaluate(b.root, scope);
+        if(returnResult.isError()) returnResult.outputError(true);
+        return(returnResult);
+    }
     else // Case for expression
     {
         typedValue expressionResult = evaluate(b.root, provisional);
         // cout << expressionResult.type << endl;
         if(expressionResult.isError()) expressionResult.outputError(true);
     }
-    
+
+    return(noneReturn);
 }
 
 void Parser::format()
@@ -854,7 +909,7 @@ void Parser::formatHelper(Block b, unsigned int indents)
     {
         cout << type << " " << printHelper(b.root, true) << ";";
     }
-    else if(type == "if" || type == "while" || type == "else" || type == "def")
+    else if(type == "if" || type == "while" || type == "else")
     {
         if(b.condition)
         {   
@@ -876,6 +931,25 @@ void Parser::formatHelper(Block b, unsigned int indents)
             cout << endl;
             formatHelper(*(b.elseStatement), indents);
         }
+    }
+    if(type == "def")
+    {
+        cout << "def " << b.functionName << "(";
+        for(unsigned int arg = 0; arg < b.argumentNames.size(); arg++)
+        {
+            cout << b.argumentNames[arg];
+            if(arg < b.argumentNames.size() - 1)
+            {
+                cout << ", ";
+            }
+        }
+        cout << ") {\n";
+        for(Block nestedBlock : b.nestedStatements)
+        {
+            formatHelper(nestedBlock, indents + 1);
+            cout << endl;
+        }
+        cout << whitespace << "}";
     }
 }
 
@@ -917,4 +991,27 @@ bool Parser::containsClose(vector<Token> line)
         if(t.text == "}") return true;
     }
     return (false);
+}
+
+typedValue Parser::callFunction(Func givenFunction, vector<Node *> arguments)
+{
+    // Capture parameters passed in by value 
+    for(unsigned int i = 0; i < arguments.size(); i++)
+    {
+        givenFunction.capturedVariables[givenFunction.argumentNames[i]] = evaluate(arguments[i], givenFunction.capturedVariables);
+    }
+
+    typedValue nullValue;
+    nullValue.type = NONE;
+
+    for(Block b : givenFunction.nestedStatements)
+    {
+        typedValue returned = executeHelper(b, givenFunction.capturedVariables);
+        if(returned.type != NONE)
+        {
+            return(returned);
+        }
+    }
+
+    return(nullValue);
 }
