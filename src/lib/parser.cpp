@@ -220,7 +220,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
         }
         else if (tokens[i].isOperand()) // numbers and variables are treated the same at a base level
         {
-            if (i+1<tokens.size() && tokens[i+1].text == "("){
+            if (i+1<tokens.size() && tokens[i+1].text == "("){ //condition to handle function calls
 
                 unsigned int originalIndex = i;
                 int parenCount = 0;
@@ -228,32 +228,27 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 root = new Node{tokens[i], vector<Node *>(), nullptr};
                 root->isFunctionCall = true;
                 i = i + 2;
-                // cout << "Reached a function call..." << endl;
                 while (true) 
                 {
                     if (tokens[i].text == "(") parenCount++;
                     if (tokens[i].text == ")") parenCount--;
-                    if (parenCount < 0)
+                    if (parenCount < 0) //checks if the end of the function call has been reached
                     {
-                        // cout << "Constructing argument with size " << argument.size() << endl;
                         argument.push_back(Token(0, 0, ")"));
                         argument.push_back(Token(0, 0, ";"));
                         argument.push_back(Token(0, 0, "END"));
                         Node * temp = constructAST(argument);
-                        // cout << "Pushing temp with root text " << temp->info.text << endl;
                         temp->parent = root;
                         root->branches.push_back(temp);
                         argument.clear();
                         break;
                     }
-                    else if (tokens[i].text == "," && parenCount == 0)
+                    else if (tokens[i].text == "," && parenCount == 0) //checks if the end of argument (could be an expression) has been reached
                     {
-                        // cout << "Constructing argument with size " << argument.size() << endl;
                         argument.push_back(Token(0, 0, ")"));
                         argument.push_back(Token(0, 0, ";"));
                         argument.push_back(Token(0, 0, "END"));
-                        Node * temp = constructAST(argument);
-                        // cout << "Pushing temp with root text " << temp->info.text << endl;
+                        Node * temp = constructAST(argument); //construct AST for expression in argument of function call
                         temp->parent = root;
                         root->branches.push_back(temp);
                         argument.clear();
@@ -265,7 +260,6 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 tokens.erase(tokens.begin() + originalIndex + 1, tokens.begin() + i + 1);
                 nodeStack.push(root);
                 i = originalIndex;
-                // cout << "Tokens[i - 1] is now \"" << tokens[i - 1].text << "\"" << endl;
             }
             else{ nodeStack.push(new Node{tokens[i], vector<Node *>(), nullptr}); }
 
