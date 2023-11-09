@@ -1,6 +1,18 @@
+y = 2;
+
 def square(x) {
-    return x;
-    print 4 + 4;
+    return x * x;
 }
-1 + 7(2) > 0 + 2;
-7(1, 2, 3 + 3);
+def isEven(num) {
+    if num % 2 == 0 {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+N = 6;
+while N < 20 {
+    N = N + 1;
+    print isEven(N);
+}

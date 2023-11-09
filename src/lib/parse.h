@@ -43,7 +43,7 @@ private:
     void formatHelper(Block b, unsigned int indents = 0);
     bool containsClose(vector<Token> line);
     bool containsOpen(vector<Token> line);
-    typedValue callFunction(Func givenFunction, vector<Node *> arguments);
+    typedValue callFunction(Func givenFunction, vector<typedValue> arguments);
     unsigned int nextClose(vector<vector<Token>> program, unsigned int lineNum);
     vector<stringstream> outputPerExpression;
     

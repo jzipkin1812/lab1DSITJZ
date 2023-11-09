@@ -583,6 +583,17 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         else
         {
             result = scopeMap[text];
+            // But...if result is a function, we need to call the function.
+            if(result.type == FUNCTION)
+            {
+                Func * converted = reinterpret_cast<Func*>(result.data.functionValue);
+                vector<typedValue> evaluatedArguments;
+                for(Node * child : top->branches)
+                {
+                    evaluatedArguments.push_back(evaluate(child, scopeMap));
+                }
+                result = callFunction(*converted, evaluatedArguments);
+            }
         }
     }
     else if(t.isBoolean())
@@ -842,30 +853,31 @@ void Parser::execute()
     {
         executeHelper(b, provisional);
     }
-    for(auto variablePair : provisional)
-    {
-        if(variablePair.second.type != FUNCTION) cout << variablePair.first << " : " << variablePair.second << endl;
-        else
-        {
-            typedValue var = variablePair.second;
+    // for(auto variablePair : provisional)
+    // {
+    //     if(variablePair.second.type != FUNCTION) cout << variablePair.first << " : " << variablePair.second << endl;
+    //     else
+    //     {
+    //         typedValue var = variablePair.second;
 
-            Func * converted = reinterpret_cast<Func*>(var.data.functionValue);
-            cout << variablePair.first << " is a function with this information:\n";
-            cout << converted->argc << " arguments, " << converted->nestedStatements.size() << " nested blocks, and the name " << converted->functionName << endl;
-        }
+    //         Func * converted = reinterpret_cast<Func*>(var.data.functionValue);
+    //         cout << variablePair.first << " is a function with this information:\n";
+    //         cout << converted->argc << " arguments, " << converted->nestedStatements.size() << " nested blocks, and the name " << converted->functionName << endl;
+    //     }
         
-    }
+    // }
 }
 
 typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
 {
     typedValue noneReturn;
+    typedValue doReturn;
     noneReturn.type = NONE;
     if(b.statementType == "print")
     {
         typedValue printResult = evaluate(b.root, scope);
         if(printResult.isError()) printResult.outputError(true);
-        cout << evaluate(b.root, scope) << endl;
+        cout << printResult << endl;
     }
     else if(b.statementType == "if")
     {
@@ -877,19 +889,22 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
         {
             for(Block nested : b.nestedStatements)
             {
-                executeHelper(nested, scope);
+                doReturn = executeHelper(nested, scope);
+                if(doReturn.type != NONE) return doReturn;
             }
         }
         else if (b.elseStatement)
         {
-            executeHelper(*(b.elseStatement), scope);
+            doReturn = executeHelper(*(b.elseStatement), scope);
+            if(doReturn.type != NONE) return doReturn;
         }
     }
     else if(b.statementType == "else")
     {
         for(Block nested : b.nestedStatements)
         {
-            executeHelper(nested, scope);
+            doReturn = executeHelper(nested, scope);
+            if(doReturn.type != NONE) return doReturn;
         }
     }
     else if(b.statementType == "while")
@@ -902,7 +917,8 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
         {
             for(Block nested : b.nestedStatements)
             {
-                executeHelper(nested, scope);
+                doReturn = executeHelper(nested, scope);
+                if(doReturn.type != NONE) return doReturn;
             }
             // If the condition is not boolean, exit
             conditionResult = evaluate(b.condition, scope);
@@ -917,11 +933,13 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
     {
         // Capture variables
         b.capturedVariables = scope;
-        Func * newFunction = new Func(b, scope);
-        typedValue functionStorage;
-        functionStorage.type = FUNCTION;
-        functionStorage.data.functionValue = newFunction;
-        scope[b.functionName] = functionStorage;
+        // cout << "New captured variables has address " << &b.capturedVariables << " and is capturing from address " << &scope << endl;
+        Func * newFunction = new Func(b, b.capturedVariables);
+        newFunction->capturedVariables = b.capturedVariables;
+        typedValue functionStorage; // Stores the new function in a typedValue.
+        functionStorage.type = FUNCTION; // This typedvalue is of type FUNCTION.
+        functionStorage.data.functionValue = newFunction; 
+        scope[b.functionName] = functionStorage; // Remember the function for later.
     }
     else if(b.statementType == "return")
     {
@@ -931,7 +949,7 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
     }
     else // Case for expression
     {
-        typedValue expressionResult = evaluate(b.root, provisional);
+        typedValue expressionResult = evaluate(b.root, scope);
         // cout << expressionResult.type << endl;
         if(expressionResult.isError()) expressionResult.outputError(true);
     }
@@ -1053,12 +1071,15 @@ bool Parser::containsClose(vector<Token> line)
     return (false);
 }
 
-typedValue Parser::callFunction(Func givenFunction, vector<Node *> arguments)
+typedValue Parser::callFunction(Func givenFunction, vector<typedValue> arguments)
 {
+    // Stop using capturedVariables (which is only useful in a def statement) and start using Variables (which belongs to this specific function call)
+    givenFunction.variables = givenFunction.capturedVariables;
+
     // Capture parameters passed in by value 
     for(unsigned int i = 0; i < arguments.size(); i++)
     {
-        givenFunction.capturedVariables[givenFunction.argumentNames[i]] = evaluate(arguments[i], givenFunction.capturedVariables);
+        givenFunction.variables[givenFunction.argumentNames[i]] = arguments[i];
     }
 
     typedValue nullValue;
@@ -1066,7 +1087,7 @@ typedValue Parser::callFunction(Func givenFunction, vector<Node *> arguments)
 
     for(Block b : givenFunction.nestedStatements)
     {
-        typedValue returned = executeHelper(b, givenFunction.capturedVariables);
+        typedValue returned = executeHelper(b, givenFunction.variables);
         if(returned.type != NONE)
         {
             return(returned);

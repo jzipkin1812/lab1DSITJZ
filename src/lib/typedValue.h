@@ -38,9 +38,13 @@ struct typedValue
         {
             o << boolalpha << tValue.data.booleanValue;
         }
-        else
+        else if(tValue.type == DOUBLE)
         {
             o << tValue.data.doubleValue;
+        }
+        else if(tValue.type == NONE)
+        {
+            o << "null";
         }
         return o;
     };
