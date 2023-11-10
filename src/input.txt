@@ -1,17 +1,11 @@
-z = 42;
-
-def foo(x, y) {
-  def square(value) {
-    return value * value;
+def tenner() {
+  print 10;
+}
+def generateMul(factor) {
+  def muller(x)
+  {
+    return x * factor;
   }
-
-  print square(x + y + z);
+  return muller;
 }
-
-z = 108;
-f = foo;
-
-result = f(1, 2);
-if result != null {
-  print result;
-}
+tenner();

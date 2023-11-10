@@ -198,8 +198,8 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
         }
         else if (tokens[i].isOperand()) // numbers and variables are treated the same at a base level
         {
-            if (i+1<tokens.size() && tokens[i+1].text == "("){ //condition to handle function calls
-
+            if (i+1<tokens.size() && tokens[i+1].text == "(")  //condition to handle function calls
+            {
                 unsigned int originalIndex = i;
                 int parenCount = 0;
                 vector<Token> argument;
@@ -212,6 +212,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                     if (tokens[i].text == ")") parenCount--;
                     if (parenCount < 0) //checks if the end of the function call has been reached
                     {
+                        if(argument.size() == 0) break; // A no-argument function call will reach this statement
                         argument.push_back(Token(0, 0, ")"));
                         argument.push_back(Token(0, 0, ";"));
                         argument.push_back(Token(0, 0, "END"));
