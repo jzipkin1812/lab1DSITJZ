@@ -1,14 +1,2 @@
-def tenner() {
-  print 10;
-}
-def generateMul(factor) {
-  def muller(x)
-  {
-    return x * factor;
-  }
-  return muller;
-}
-generateMul(2);
-generateMul(3);
-a = generateMul(2);
-print a(a(a(2)));
+a = 5;
+print a(2, 3);

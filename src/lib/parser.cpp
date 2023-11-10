@@ -454,7 +454,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         }
         
     }
-    // NOT A FUNCTION ERROR
+    // NOT A FUNCTION ERROR TYPE 1: NON-VARIABLE
     else if (top->isFunctionCall && !(t.isVariable()))
     {
         result.type = NOTFUNCTIONERROR;
@@ -478,8 +478,14 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             // Gets a function pointer, boolean, null, or double
             result = scopeMap[text];
             // But...if result is a function, we need to call the function.
-            if(result.type == FUNCTION && top->isFunctionCall)
+            if(top->isFunctionCall)
             {
+                // Sometimes the function call node IS a variable but DOESN'T refer to a function. This is a runtime error.
+                if(result.type != FUNCTION)
+                {
+                    result.type = NOTFUNCTIONERROR;
+                    return(result);
+                }
                 // At this point, we already know the "not a function" error was accounted for, so we don't have to check for it.
                 Func * converted = reinterpret_cast<Func*>(result.data.functionValue);
                 vector<typedValue> evaluatedArguments;
@@ -599,8 +605,8 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         }
         // Assignee errors are no longer caught until runtime.
         // Parentheses should be balanced.
-        // There should never be an empty set of two closed parentheses unless we are in a function call.
         // After an open parentheses, we must see a number or an identifier or another open parenthesis.
+        // There should never be an empty set of two parentheses unless we are in a function call.
         else if (t.text == "(")
         {
             parentheses++;
@@ -613,15 +619,15 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 parseError(theEnd, line);
                 return (true);
             }
-            if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(") || 
-                (expression[i + 1].text == ")" && !isFunctionCall))
+            if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" 
+              || (expression[i + 1].text == ")" && isFunctionCall)))
             {
                 parseError(expression[i + 1], line);
                 return (true);
             }
         }
         // Parentheses should be balanced.
-        // Before a closed parentheses, we must see a number or an identifier or another closed parenthesis.
+        // After a closed parentheses, we must see: operator, comma, semicolon, end token.
         else if (t.text == ")")
         {
             parentheses--;
@@ -639,15 +645,16 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 parseError(t, line);
                 return (true);
             }
-            if (!(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
+            if (!(expression[i + 1].isOperator() || expression[i + 1].text == ")" || expression[i + 1].isComma() 
+               || expression[i + 1].isSemicolon() || expression[i + 1].isEnd()))
             {
-                parseError(expression[i - 1], line);
+                parseError(expression[i + 1], line);
                 return (true);
             }
         }
         // Operands are trickier.
         // To the left can be: Comma, Operator, (, start of expression. We don't need to check these cases; they're redundant with other parts of this function.
-        // To the right can be: Comma, Operator, ), ;, or (, but the ( means we're looking at a function call.
+        // To the right can be: Comma, Operator, ), ;, END, or (, but the ( means we're looking at a function call.
         else if (t.isOperand())
         {
             // Check for a function call.
@@ -657,7 +664,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             }
             // Check right, if no function call exists.
             else if (!(expression[i + 1].text == ")" || expression[i + 1].isOperator() || expression[i + 1].isComma() 
-                    || expression[i + 1].isSemicolon()))
+                    || expression[i + 1].isSemicolon() || expression[i + 1].isEnd()))
             {
                 parseError(expression[i + 1], line);
                 return (true);
@@ -681,7 +688,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             }
         }
         // Commas should not appear outside function calls.
-        // The right of a comma should be: An operand, a left parenthesis.
+        // The right of a comma should be: An operand or a left parenthesis.
         else if(t.isComma())
         {
             if(!isFunctionCall)
@@ -896,7 +903,6 @@ void Parser::formatHelper(Block b, unsigned int indents)
         cout << whitespace << "}";
     }
 }
-
 
 typedValue Parser::callFunction(Func givenFunction, vector<typedValue> arguments)
 {
