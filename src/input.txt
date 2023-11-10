@@ -8,4 +8,7 @@ def generateMul(factor) {
   }
   return muller;
 }
-tenner();
+generateMul(2);
+generateMul(3);
+a = generateMul(8);
+print a(3);

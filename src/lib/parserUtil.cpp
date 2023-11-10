@@ -89,10 +89,16 @@ string Parser::printHelper(Node *top, bool lastChild)
 
 Parser::~Parser()
 {
+    
     for (Block block : blocks)
     {
         clearBlock(block);
     }
+    for(Func * funcPtr : globalFunctions)
+    {
+        delete funcPtr;
+    }
+    
 }
 
 void Parser::clearNode(Node *top)
@@ -161,7 +167,6 @@ bool Parser::containsClose(vector<Token> line)
     }
     return (false);
 }
-
 
 unsigned int Parser::nextClose(vector<vector<Token>> program, unsigned int lineNum)
 {

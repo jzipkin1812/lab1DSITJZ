@@ -775,6 +775,7 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope, bool a
         b.capturedVariables = scope;
         // cout << "New captured variables has address " << &b.capturedVariables << " and is capturing from address " << &scope << endl;
         Func * newFunction = new Func(b, b.capturedVariables);
+        globalFunctions.push_back(newFunction); // for memory clearing later
         newFunction->capturedVariables = b.capturedVariables;
         typedValue functionStorage; // Stores the new function in a typedValue.
         newFunction->capturedVariables[b.functionName] = functionStorage; // For recursion, we need to store the function inside of its own captured variables.

@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <cctype>
+#include <memory>
 using namespace std;
 
 enum TypeTag 

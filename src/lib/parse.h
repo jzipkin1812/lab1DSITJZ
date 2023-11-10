@@ -46,8 +46,8 @@ private:
     int getPrecedence(string token);
     typedValue callFunction(Func givenFunction, vector<typedValue> arguments);
     unsigned int nextClose(vector<vector<Token>> program, unsigned int lineNum);
-    vector<stringstream> outputPerExpression;
-    
+    vector<stringstream> outputPerExpression;    
+    vector<Func *> globalFunctions; // used for memory clearing at the end of the program.
 };
 
 
