@@ -162,17 +162,17 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
     }
 }
 
-Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolons)
+Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolons, bool ignoreErrors)
 {
-    if (line == 90000) return nullptr;
+    // if (line == 90000) return nullptr;
     
     // CHECK FOR ALL UNEXPECTED TOKEN ERRORS
     // The following function will print the error message on its own.
     // It returns true if there's an error detected.
-    //if (checkError(tokens, line, requireSemicolons) == true)
-    //{
-       // return nullptr;
-    //}
+    if (!ignoreErrors && (checkError(tokens, line, requireSemicolons) == true))
+    {
+       return nullptr;
+    }
     // Remove the end token, which is no longer needed after checkError().
     tokens.pop_back();
     // Remove the semicolon token, which is no longer needed after checkError().
@@ -210,13 +210,15 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 {
                     if (tokens[i].text == "(") parenCount++;
                     if (tokens[i].text == ")") parenCount--;
+                    // Note that the following recursive calls to constructAST() pass "true" for ignoreErrors, which means that checkError will not be called again.
+                    // This is because such errors would have already been caught by the top-level call to checkError() and another call would be redundant.
                     if (parenCount < 0) //checks if the end of the function call has been reached
                     {
                         if(argument.size() == 0) break; // A no-argument function call will reach this statement
                         argument.push_back(Token(0, 0, ")"));
                         argument.push_back(Token(0, 0, ";"));
                         argument.push_back(Token(0, 0, "END"));
-                        Node * temp = constructAST(argument);
+                        Node * temp = constructAST(argument, line, false, true);
                         temp->parent = root;
                         root->branches.push_back(temp);
                         argument.clear();
@@ -227,7 +229,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                         argument.push_back(Token(0, 0, ")"));
                         argument.push_back(Token(0, 0, ";"));
                         argument.push_back(Token(0, 0, "END"));
-                        Node * temp = constructAST(argument); //construct AST for expression in argument of function call
+                        Node * temp = constructAST(argument, line, false, true); //construct AST for expression in argument of function call
                         temp->parent = root;
                         root->branches.push_back(temp);
                         argument.clear();
@@ -551,6 +553,8 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
 {
     int lastIndex = expression.size() - 2;
     Token theEnd = expression.back();
+    bool isFunctionCall = false;
+    int functionCallParentheses = 0;
     if (!theEnd.isEnd()) // make sure formatting of END is correct
     {
         cout << "ERROR: END TOKEN NOT PUSHED BACK TO EXPRESSION" << "\n";
@@ -563,75 +567,55 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         lastIndex--;
         Token theEnd = expression.back();
     }
-    // Check for the semicolon right away. If it's there, we can decrement last index.
-    if(requireSemicolons)
-    {
-        if(expression[lastIndex].text != ";" && expression.size())
-        {
-            parseError(theEnd, line);
-            return(true);
-        }
-        else
-        {
-            lastIndex--;
-        }
-    }
 
     int parentheses = 0;
     for (int i = 0; i <= lastIndex; i++)
     {
         Token t = expression[i];
-        // Statements are not supported if allowStatements is false. In this case they're errors.
-        if(t.isStatement() && !(allowStatements))
+        // Statements should NEVER show up inside an expression. They're not part of ASTs. Same with curly braces.
+        if(t.isStatement() || t.isBrace())
         {
-            cout << "CASE 1" << endl;
             parseError(t, line);
             return(true);
             
         }
         // Operators should have two operands between them.
-        // The left operand can be a RIGHT parenthesis or a number or an identifier.
-        // The right operand can be a LEFT parenthesis or a number or an identifier.
+        // The left can be a RIGHT parenthesis or a number or an identifier.
+        // The right can be a LEFT parenthesis or a number or an identifier.
         // If the operand ocurrs at the beginning or ending of the vector, that's also bad.
-        if (t.isOperator() || t.isOrderComparison())
+        else if (t.isOperator() || t.isOrderComparison())
         {
             if (i == 0 ||
                 !(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
             {
-                // cout << "INVALID OPERATOR: CASE 1" << "\n";
                 parseError(t, line);
-                return (true);
-            }
-            else if (i == lastIndex)
-            {
-                // cout << "INVALID OPERATOR: CASE 2" << "\n";
-                parseError(theEnd, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "("))
             {
-                // cout << "INVALID OPERATOR: CASE 3" << "\n";
                 parseError(expression[i + 1], line);
                 return (true);
             }
         }
         // Assignee errors are no longer caught until runtime.
         // Parentheses should be balanced.
-        // There should never be an empty set of two closed parentheses.
+        // There should never be an empty set of two closed parentheses unless we are in a function call.
         // After an open parentheses, we must see a number or an identifier or another open parenthesis.
         else if (t.text == "(")
         {
             parentheses++;
+            if(isFunctionCall)
+            {
+                functionCallParentheses++;
+            }
             if (i == lastIndex)
             {
-                // cout << "CASE 2" << endl;
                 parseError(theEnd, line);
                 return (true);
-                
             }
-            if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(") || expression[i + 1].text == ")")
+            if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(") || 
+                (expression[i + 1].text == ")" && !isFunctionCall))
             {
-                // cout << "CASE 2" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -640,8 +624,16 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         // Before a closed parentheses, we must see a number or an identifier or another closed parenthesis.
         else if (t.text == ")")
         {
-
             parentheses--;
+            // The following checks if we've reached the end of a function call or multiple nested function calls.
+            if(isFunctionCall)
+            {
+                functionCallParentheses--;
+                if(functionCallParentheses == 0)
+                {
+                    isFunctionCall = false;
+                }
+            }
             if (parentheses < 0) // This also covers the case where i == 0.
             {
                 parseError(t, line);
@@ -653,36 +645,60 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 return (true);
             }
         }
-        // Numbers and identifiers should have operators or parentheses to either side.
-        // The parentheses on either side must only be open (when to the left) or closed (to the right).
+        // Operands are trickier.
+        // To the left can be: Comma, Operator, (, start of expression. We don't need to check these cases; they're redundant with other parts of this function.
+        // To the right can be: Comma, Operator, ), ;, or (, but the ( means we're looking at a function call.
         else if (t.isOperand())
         {
-            // Check left
-            if (i != 0 && !(expression[i - 1].text == "(" || expression[i - 1].isOperator()))
+            // Check for a function call.
+            if(expression[i + 1].text == "(")
             {
-                // cout << "CASE 3" << endl;
-                parseError(t, line);
-                return (true);
+                isFunctionCall = true;
             }
-            // Check right
-            else if (i != lastIndex && !(expression[i + 1].text == ")" || expression[i + 1].isOperator()))
+            // Check right, if no function call exists.
+            else if (!(expression[i + 1].text == ")" || expression[i + 1].isOperator() || expression[i + 1].isComma() 
+                    || expression[i + 1].isSemicolon()))
             {
-                // cout << "CASE 4" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
         }
 
-        // Semicolons should not show up at all. If they were at the end of an expression,
-        // then they should already have been ignored by a lastIndex decrement.
         else if(t.isSemicolon())
         {
-            parseError(t, line);
-            return(true);
+            // Semicolons are unexpected if not required. 
+            // Semicolons are also unexpected if there are remaining open parentheses.
+            if(!requireSemicolons || parentheses > 0)
+            {
+                parseError(t, line);
+                return(true);
+            }
+            // The token AFTER a semicolon is always unexpected if it's not the END of the expression.
+            else if(!(expression[i + 1].isEnd()))
+            {
+                parseError(expression[i + 1], line);
+                return(true);
+            }
+        }
+        // Commas should not appear outside function calls.
+        // The right of a comma should be: An operand, a left parenthesis.
+        else if(t.isComma())
+        {
+            if(!isFunctionCall)
+            {
+                parseError(t, line);
+                return(true);
+            }
+            else if(!(expression[i + 1].isOperand() || expression[i + 1].text == "("))
+            {
+                parseError(expression[i + 1], line);
+                return(true);
+            }
         }
     }
     // At the very end of the expression, all the parentheses should be balanced.
-    if (parentheses == 0)
+    // Additionally, the end of the expression should be a semicolon if required.
+    if (parentheses == 0 && (!requireSemicolons || expression[lastIndex].isSemicolon()))
     {
         return (false);
     }

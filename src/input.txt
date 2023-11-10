@@ -10,5 +10,5 @@ def generateMul(factor) {
 }
 generateMul(2);
 generateMul(3);
-a = generateMul(8);
-print a(3);
+a = generateMul(2);
+print a(a(a(2)));

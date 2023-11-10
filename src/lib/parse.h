@@ -38,7 +38,7 @@ private:
     void parseError(Token token, int line = 0);
     void clearNode(Node *top);
     void clearBlock(Block b);
-    Node *constructAST(vector<Token> tokens, int line = 0, bool requireSemicolons = false);
+    Node *constructAST(vector<Token> tokens, int line = 0, bool requireSemicolons = false, bool ignoreErrors = false);
     typedValue executeHelper(Block b, map<string, typedValue>& scope, bool allowReturns = false);
     void formatHelper(Block b, unsigned int indents = 0);
     bool containsClose(vector<Token> line);
