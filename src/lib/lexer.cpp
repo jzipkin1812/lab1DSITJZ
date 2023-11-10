@@ -39,7 +39,7 @@ Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complex
     int count = 0; // when count reaches 2 (two consecutive empty lines), the program should stop asking for input
     bool endOfFile = cin.eof();
     if(fileName != "") endOfFile = fileStream.eof();
-    while (!endOfFile && count < 2)
+    while (!endOfFile)
     {
         lineNumber++;
         if (expression == "") count++;

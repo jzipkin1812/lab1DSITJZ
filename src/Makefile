@@ -12,3 +12,7 @@ leak: calc calc.cpp lib/parser.cpp
 	valgrind --leak-check=full ./format
 clean:
 	rm -f project
+	rm -f scrypt
+	rm -f calc
+	rm -f format
+	rm -f withText

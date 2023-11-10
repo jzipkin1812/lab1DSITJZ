@@ -1,23 +1,17 @@
-def fib(N)
-{
-    if(N == 0 | N == 1)
-    {
-        return 1;
-    }
-    else
-    {
-        return fib(N - 1) + fib(N - 2);
-    }
+z = 42;
+
+def foo(x, y) {
+  def square(value) {
+    return value * value;
+  }
+
+  print square(x + y + z);
 }
-def pow(base, exponent)
-{
-    result = base;
-    counter = 1;
-    while counter < exponent {
-        result = result * base;
-        counter = counter + 1;
-    }
-    return result;
+
+z = 108;
+f = foo;
+
+result = f(1, 2);
+if result != null {
+  print result;
 }
-n = 15;
-print pow(n, 2);

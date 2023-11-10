@@ -151,11 +151,12 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             // Target should be redirected back up the control flow tree.
             else if(beginning.text == "}")
             {
-                if(targetParent && (*targetParent).statementType == "if" && inputFromLexer[i + 1][0].text == "else")
+                if(targetParent && (*targetParent).statementType == "if" && i < inputFromLexer.size() - 1 && inputFromLexer[i + 1][0].text == "else")
                 {
                     continue;
                 }
-                targetParent = targetParent->parent;                
+                targetParent = targetParent->parent;  
+                cout << targetParent << endl;              
                 continue;
             }
         }
@@ -591,7 +592,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         {
             result = scopeMap[text];
             // But...if result is a function, we need to call the function.
-            if(result.type == FUNCTION)
+            if(result.type == FUNCTION && top->isFunctionCall)
             {
                 // At this point, we already know the "not a function" error was accounted for, so we don't have to check for it.
                 Func * converted = reinterpret_cast<Func*>(result.data.functionValue);
@@ -945,6 +946,7 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
         Func * newFunction = new Func(b, b.capturedVariables);
         newFunction->capturedVariables = b.capturedVariables;
         typedValue functionStorage; // Stores the new function in a typedValue.
+        newFunction->capturedVariables[b.functionName] = functionStorage; // For recursion, we need to store the function inside of its own captured variables.
         functionStorage.type = FUNCTION; // This typedvalue is of type FUNCTION.
         functionStorage.data.functionValue = newFunction; 
         scope[b.functionName] = functionStorage; // Remember the function for later.
