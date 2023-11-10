@@ -156,33 +156,10 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                     continue;
                 }
                 targetParent = targetParent->parent;  
-                cout << targetParent << endl;              
                 continue;
             }
         }
     }
-}
-
-int getPrecedence(string token) // Helper function for constructAST
-{
-    if (token == "=")
-        return (1);
-    else if (token == "|")
-        return (2);
-    else if (token == "^")
-        return (3);
-    else if (token == "&")
-        return (4);
-    else if (token == "==" || token == "!=")
-        return (5);
-    else if (token == "<" || token == "<=" || token == ">" || token == ">=")
-        return (6);
-    else if (token == "+" || token == "-")
-        return (7);
-    else if (token == "*" || token == "/"  || token == "%")
-        return (8);
-    else
-        return (9);
 }
 
 Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolons)
@@ -357,95 +334,6 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
     return finalRoot;
 }
 
-void Parser::print() // Infix, no statements, no semicolons
-{
-    for (unsigned int i = 0; i < blocks.size(); i++)
-    {
-        Block oneBlock = blocks[i];
-        if(oneBlock.root == nullptr)
-        {
-            continue;
-        }
-        for (auto s : variables)
-        {
-            provisional[s.first] = variables[s.first];
-        }
-
-        typedValue finalValue = evaluate(oneBlock.root, provisional);
-        // cout << finalValue.type << "\n";
-        string finalInfix = printHelper(oneBlock.root, true);
-        outputPerExpression[i] << finalInfix << "\n";
-        if(finalValue.isError())
-        {
-            outputPerExpression[i] << finalValue.outputError(false);
-        }
-        else
-        {
-            for (auto s : provisional)
-            {
-                variables[s.first] = provisional[s.first];
-            }
-            outputPerExpression[i] << finalValue << "\n";
-        }
-    }
-    for(unsigned int i = 0; i < outputPerExpression.size(); i++)
-    {
-        cout << outputPerExpression[i].str();
-    }
-}
-
-string Parser::printHelper(Node *top, bool lastChild)
-{
-    string finalText = "";
-    if (!top)
-        return finalText;
-    bool last;
-    if (top->info.isOperator())
-    {
-        finalText += "(";
-        for (unsigned int i = 0; i < top->branches.size(); i++)
-        {
-            last = (i == top->branches.size() - 1);
-            finalText += printHelper(top->branches[i], last);
-        }
-        finalText += ")";
-        if (!lastChild)
-        {
-            finalText += " " + top->parent->info.text + " ";
-        }
-    }
-    else if (top->info.isOperand() && top->branches.size() > 0)
-    {
-        finalText += top->info.text + "(";
-        for(unsigned int j = 0; j < top->branches.size(); j++)
-        {
-            Node * param = top->branches[j];
-            if(j < top->branches.size() - 1) finalText += printHelper(param, true) + ", ";
-            else finalText += printHelper(param, true) + ")";
-            
-        }
-    }
-    else
-    {
-        string converted = top->info.text;
-        // Formatting removes trailing 0s
-        if (converted != "0" && converted.find('.') != string::npos)
-        {
-            converted.erase(converted.find_last_not_of('0') + 1, std::string::npos);
-            converted.erase(converted.find_last_not_of('.') + 1, std::string::npos);
-        }
-
-        finalText += converted;
-
-        if (!lastChild)
-        {
-            // Space, parent operator, space
-            finalText += " " + top->parent->info.text + " ";
-        }
-    }
-    return (finalText);
-}
-
 typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
 {
     typedValue result = typedValue{DOUBLE, {0}, ""};
@@ -471,22 +359,22 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             return(result);
         }
     }
-    // DIVISION BY ZERO ERROR AND UNKNOWN IDENTIFIER ERROR
-    if(t.isOperator())
-    {
-        typedValue result1 = evaluate(top->branches[0], scopeMap);
-        typedValue result2 = evaluate(top->branches[1], scopeMap);
-        if(t.text != "=") result.setType(result1.type);
-        result.setType(result2.type);
-        if(result1.type == IDERROR) 
-        {
-            result.unknownIDText = result1.unknownIDText;
-        }
-        if(result2.type == IDERROR)
-        {
-            result.unknownIDText = result2.unknownIDText;
-        } 
-    }
+    // // UNKNOWN IDENTIFIER ERROR
+    // if(t.isOperator())
+    // {
+    //     typedValue result1 = evaluate(top->branches[0], scopeMap);
+    //     typedValue result2 = evaluate(top->branches[1], scopeMap);
+    //     if(t.text != "=") result.setType(result1.type);
+    //     result.setType(result2.type);
+    //     if(result1.type == IDERROR) 
+    //     {
+    //         result.unknownIDText = result1.unknownIDText;
+    //     }
+    //     if(result2.type == IDERROR)
+    //     {
+    //         result.unknownIDText = result2.unknownIDText;
+    //     } 
+    // }
     
     if (text == "+")
     {
@@ -584,6 +472,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         }
         else
         {
+            // Gets a function pointer, boolean, null, or double
             result = scopeMap[text];
             // But...if result is a function, we need to call the function.
             if(result.type == FUNCTION && top->isFunctionCall)
@@ -603,6 +492,10 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     {
         result.setType(BOOLEAN);
         result.data.booleanValue = t.getValue().data.booleanValue;
+    }
+    else if(t.isNull())
+    {
+        result.setType(NONE);
     }
     // ALL LOGIC OPERATORS
     else if (text == "<")
@@ -814,64 +707,7 @@ void Parser::parseError(Token token, int line)
     return;
 }
 
-Parser::~Parser()
-{
-    for (Block block : blocks)
-    {
-        clearBlock(block);
-    }
-}
-
-void Parser::clearNode(Node *top)
-{
-    if (!top)
-    {
-        return;
-    }
-    for (Node *child : top->branches)
-    {
-        clearNode(child);
-    }
-    delete top;
-}
-
-void Parser::clearBlock(Block b)
-{
-    clearNode(b.condition);
-    clearNode(b.root);
-    if(b.elseStatement)
-    {
-        clearBlock(*(b.elseStatement));
-        delete b.elseStatement;
-    }
-    for(Block g : b.nestedStatements)
-    {
-        clearBlock(g);
-    }
-}
-
-void Parser::execute()
-{
-    for(Block b : blocks)
-    {
-        executeHelper(b, provisional);
-    }
-    // for(auto variablePair : provisional)
-    // {
-    //     if(variablePair.second.type != FUNCTION) cout << variablePair.first << " : " << variablePair.second << endl;
-    //     else
-    //     {
-    //         typedValue var = variablePair.second;
-
-    //         Func * converted = reinterpret_cast<Func*>(var.data.functionValue);
-    //         cout << variablePair.first << " is a function with this information:\n";
-    //         cout << converted->argc << " arguments, " << converted->nestedStatements.size() << " nested blocks, and the name " << converted->functionName << endl;
-    //     }
-        
-    // }
-}
-
-typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
+typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope, bool allowReturns)
 {
     typedValue noneReturn;
     typedValue doReturn;
@@ -892,13 +728,13 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
         {
             for(Block nested : b.nestedStatements)
             {
-                doReturn = executeHelper(nested, scope);
+                doReturn = executeHelper(nested, scope, allowReturns);
                 if(doReturn.type != NONE) return doReturn;
             }
         }
         else if (b.elseStatement)
         {
-            doReturn = executeHelper(*(b.elseStatement), scope);
+            doReturn = executeHelper(*(b.elseStatement), scope, allowReturns);
             if(doReturn.type != NONE) return doReturn;
         }
     }
@@ -906,7 +742,7 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
     {
         for(Block nested : b.nestedStatements)
         {
-            doReturn = executeHelper(nested, scope);
+            doReturn = executeHelper(nested, scope, allowReturns);
             if(doReturn.type != NONE) return doReturn;
         }
     }
@@ -920,7 +756,7 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
         {
             for(Block nested : b.nestedStatements)
             {
-                doReturn = executeHelper(nested, scope);
+                doReturn = executeHelper(nested, scope, allowReturns);
                 if(doReturn.type != NONE) return doReturn;
             }
             // If the condition is not boolean, exit
@@ -947,6 +783,14 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope)
     }
     else if(b.statementType == "return")
     {
+        // If the scope passed in was Parser's provisional, we don't expect any return statements.
+        if(!allowReturns)
+        {
+            typedValue returnError;
+            returnError.type = BADRETURNERROR;
+            returnError.outputError(true);
+        }
+        // Otherwise, returns are expected and we can do this.
         typedValue returnResult = evaluate(b.root, scope);
         if(returnResult.isError()) returnResult.outputError(true);
         return(returnResult);
@@ -1035,68 +879,35 @@ void Parser::formatHelper(Block b, unsigned int indents)
     }
 }
 
-unsigned int Parser::nextClose(vector<vector<Token>> program, unsigned int lineNum)
-{
-    int brackets = 0;
-    for(; lineNum < program.size(); lineNum++)
-    {
-        vector<Token> line = program[lineNum];
-        if(containsOpen(line))
-        {
-            brackets++;
-        }
-        if(containsClose(line))
-        {
-            brackets--;
-            if(brackets == 0)
-            {
-                return(lineNum);
-            }
-        }
-    }
-    return(0);
-}
-
-bool Parser::containsOpen(vector<Token> line)
-{
-    for(Token t : line)
-    {
-        if(t.text == "{") return true;
-    }
-    return (false);
-}
-
-bool Parser::containsClose(vector<Token> line)
-{
-    for(Token t : line)
-    {
-        if(t.text == "}") return true;
-    }
-    return (false);
-}
 
 typedValue Parser::callFunction(Func givenFunction, vector<typedValue> arguments)
 {
+    typedValue result;
+    result.type = NONE;
+
     // Stop using capturedVariables (which is only useful in a def statement) and start using Variables (which belongs to this specific function call)
     givenFunction.variables = givenFunction.capturedVariables;
 
-    // Capture parameters passed in by value 
+    // Argument count incorrect error
+    if(arguments.size() != givenFunction.argumentNames.size())
+    {
+        result.type = ARGCERROR;
+        return(result);
+    }
+    // Use the arguments, which were passed in by value 
     for(unsigned int i = 0; i < arguments.size(); i++)
     {
         givenFunction.variables[givenFunction.argumentNames[i]] = arguments[i];
     }
 
-    typedValue nullValue;
-    nullValue.type = NONE;
-
     for(Block b : givenFunction.nestedStatements)
     {
-        typedValue returned = executeHelper(b, givenFunction.variables);
-        if(returned.type != NONE)
+        result = executeHelper(b, givenFunction.variables, true);
+        if(result.type != NONE)
         {
-            return(returned);
+            return(result);
         }
     }
 
-    return(nullValue);
+    return(result);
 }

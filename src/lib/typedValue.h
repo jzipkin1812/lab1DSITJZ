@@ -17,7 +17,9 @@ enum TypeTag
     NOCONDITIONERROR, // A condition for a statement wasn't a boolean e.g. while(3 + 3) {
     NONE,
     FUNCTION,
-    NOTFUNCTIONERROR // Not a function e.g. 7(6, 2, 3) or true(9, 10)
+    NOTFUNCTIONERROR, // Not a function e.g. 7(6, 2, 3) or true(9, 10)
+    ARGCERROR, // Incorrect # of arguments passed to function 
+    BADRETURNERROR, // Return at top-level, not inside function
 };
 
 struct typedValue
@@ -90,7 +92,7 @@ struct typedValue
 
     bool isError()
     {
-        return(type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR);
+        return(type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR);
     }
 
     string outputError(bool exitImmediately = false)
@@ -103,7 +105,9 @@ struct typedValue
         else if (type == ASSIGNEEERROR) finalOutput = "Runtime error: invalid assignee.\n";
         else if (type == NOCONDITIONERROR) finalOutput = "Runtime error: condition is not a bool.\n";
         else if (type == NOTFUNCTIONERROR) finalOutput = "Runtime error: not a function.\n";
-        
+        else if (type == ARGCERROR) finalOutput = "Runtime error: incorrect argument count.\n";
+        else if (type == BADRETURNERROR) finalOutput = "Runtime error: unexpected return.\n";
+
         if(exitImmediately)
         {
             cout << finalOutput;

@@ -39,10 +39,11 @@ private:
     void clearNode(Node *top);
     void clearBlock(Block b);
     Node *constructAST(vector<Token> tokens, int line = 0, bool requireSemicolons = false);
-    typedValue executeHelper(Block b, map<string, typedValue>& scope);
+    typedValue executeHelper(Block b, map<string, typedValue>& scope, bool allowReturns = false);
     void formatHelper(Block b, unsigned int indents = 0);
     bool containsClose(vector<Token> line);
     bool containsOpen(vector<Token> line);
+    int getPrecedence(string token);
     typedValue callFunction(Func givenFunction, vector<typedValue> arguments);
     unsigned int nextClose(vector<vector<Token>> program, unsigned int lineNum);
     vector<stringstream> outputPerExpression;

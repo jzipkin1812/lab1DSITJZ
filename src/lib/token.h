@@ -54,11 +54,11 @@ class Token
         bool isVariable()
         {
             char first = text[0];
-            return (!(isEnd() || isStatement() || isBoolean()) && (isalpha(first) || first == '_'));
+            return (!(isEnd() || isStatement() || isNull() || isBoolean()) && (isalpha(first) || first == '_'));
         }
         bool isNumber()
         {
-            return (!(isSemicolon() || isComma() || isBoolean() || isOperator() || isBrace() || isParenthesis() || isEnd() || isVariable() || isStatement()));
+            return (!(isSemicolon() || isNull() || isComma() || isBoolean() || isOperator() || isBrace() || isParenthesis() || isEnd() || isVariable() || isStatement()));
         }
         bool isBoolean()
         {
@@ -66,7 +66,7 @@ class Token
         }
         bool isOperand()
         {
-            return(isBoolean() || isNumber() || isVariable());
+            return(isBoolean() || isNumber() || isVariable() || isNull());
         }
         bool isStatement()
         {
@@ -83,6 +83,10 @@ class Token
         bool isSemicolon()
         {
             return(text == ";");
+        }
+        bool isNull()
+        {
+            return(text == "null");
         }
         
         typedValue getValue()
