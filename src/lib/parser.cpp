@@ -347,13 +347,20 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     Token t = top->info;
     string text = top->info.text;
     // TYPE MISMATCH ERROR
+    typedValue left;
+    typedValue right;
+    if(t.isOperator())
+    {
+        left = evaluate(top->branches[0], scopeMap);
+        right = evaluate(top->branches[1], scopeMap);
+        result.setType(left.type);
+        result.setType(right.type);
+    }
     if(t.isOperator() && !(t.text == "="))
     {
-        typedValue result1 = evaluate(top->branches[0], scopeMap);
-        typedValue result2 = evaluate(top->branches[1], scopeMap);
         TypeTag type1 = evaluate(top->branches[0], scopeMap).type;
         TypeTag type2 = evaluate(top->branches[1], scopeMap).type;
-        if (!(result1.isError() || result2.isError()) && (
+        if (!(left.isError() || right.isError()) && (
             ((type1 != type2) && (t.text != "==" && t.text != "!="))
         || (t.takesBoolsOnly() && (type1 == DOUBLE || type2 == DOUBLE))
         || (t.takesDoublesOnly() && (type1 == BOOLEAN || type2 == BOOLEAN))))
@@ -362,36 +369,18 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             return(result);
         }
     }
-    // // UNKNOWN IDENTIFIER ERROR
-    // if(t.isOperator())
-    // {
-    //     typedValue result1 = evaluate(top->branches[0], scopeMap);
-    //     typedValue result2 = evaluate(top->branches[1], scopeMap);
-    //     if(t.text != "=") result.setType(result1.type);
-    //     result.setType(result2.type);
-    //     if(result1.type == IDERROR) 
-    //     {
-    //         result.unknownIDText = result1.unknownIDText;
-    //     }
-    //     if(result2.type == IDERROR)
-    //     {
-    //         result.unknownIDText = result2.unknownIDText;
-    //     } 
-    // }
-    
+    // UNKNOWN IDENTIFIER ERROR
     if (text == "+")
     {
-        result.data.doubleValue = evaluate(top->branches[0], scopeMap).data.doubleValue;
-        result.data.doubleValue += evaluate(top->branches[1], scopeMap).data.doubleValue;
+        result.data.doubleValue = left.data.doubleValue + right.data.doubleValue;
     }
     else if (text == "-")
     {
-        result.data.doubleValue = evaluate(top->branches[0], scopeMap).data.doubleValue;
-        result.data.doubleValue -= evaluate(top->branches[1], scopeMap).data.doubleValue;
+        result.data.doubleValue = left.data.doubleValue - right.data.doubleValue;
     }
     else if (text == "%")
     {
-        result.data.doubleValue = evaluate(top->branches[0], scopeMap).data.doubleValue;
+        result.data.doubleValue = left.data.doubleValue;
         for (unsigned int i = 1 ; i < top->branches.size() ; i++)
         {
             // Do modulus, but check for division by 0
@@ -409,29 +398,20 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     }
     else if (text == "*")
     {
-        result.data.doubleValue = evaluate(top->branches[0], scopeMap).data.doubleValue;
-        result.data.doubleValue *= evaluate(top->branches[1], scopeMap).data.doubleValue;
+        result.data.doubleValue = left.data.doubleValue * right.data.doubleValue;
     }
     else if (text == "/")
     {
-        result = evaluate(top->branches[0], scopeMap);
-        for (unsigned int i = 1; i < top->branches.size(); i++)
+        result = left;
+        // Divide, but check for division by 0 error
+        double divisor = right.data.doubleValue;
+        if (divisor == 0)
         {
-            // Divide, but check for division by 0 error
-            double divisor = evaluate(top->branches[i], scopeMap).data.doubleValue;
-            if (divisor == 0)
-            {
-                // Find the root of the tree and print infix version (the tree should still print in infix form when a runtime error occurs!)
-                while (top->parent)
-                {
-                    top = top->parent;
-                }
-                result.type = DIVZEROERROR;
-                result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
-                return (result);
-            }
-            result.data.doubleValue /= divisor;
+            result.type = DIVZEROERROR;
+            result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
+            return (result);
         }
+        result.data.doubleValue /= divisor;
     }
     // The assignment operator is right-associative, so it evaluates the last (rightmost) child
     // of the operator in the AST to figure out what to assign these variables to.
@@ -443,7 +423,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         if(assignee.isVariable())
         {
             // There are no assignee errors at this point. Assign the variables.
-            result = evaluate(top->branches[1], scopeMap);
+            result = right;
             string key = top->branches[0]->info.text;
             scopeMap[key] = result;
         }
@@ -454,7 +434,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         }
         
     }
-    // NOT A FUNCTION ERROR TYPE 1: NON-VARIABLE
+    // NOT A FUNCTION ERROR (CASE 1 of 2): NON-VARIABLE
     else if (top->isFunctionCall && !(t.isVariable()))
     {
         result.type = NOTFUNCTIONERROR;
@@ -480,6 +460,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             // But...if result is a function, we need to call the function.
             if(top->isFunctionCall)
             {
+                // NOT A FUNCTION ERROR (CASE 2 OF 2)
                 // Sometimes the function call node IS a variable but DOESN'T refer to a function. This is a runtime error.
                 if(result.type != FUNCTION)
                 {
@@ -510,47 +491,47 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     else if (text == "<")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.doubleValue < evaluate(top->branches[1], scopeMap).data.doubleValue);
+        result.data.booleanValue = left.data.doubleValue < right.data.doubleValue;
     }
     else if (text == ">")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.doubleValue > evaluate(top->branches[1], scopeMap).data.doubleValue);
+        result.data.booleanValue = left.data.doubleValue > right.data.doubleValue;
     }
     else if (text == ">=")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.doubleValue >= evaluate(top->branches[1], scopeMap).data.doubleValue);
+        result.data.booleanValue = left.data.doubleValue >= right.data.doubleValue;
     }
     else if (text == "<=")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.doubleValue <= evaluate(top->branches[1], scopeMap).data.doubleValue);
+        result.data.booleanValue = left.data.doubleValue <= right.data.doubleValue;
     }
     else if (text == "==")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0], scopeMap) == evaluate(top->branches[1], scopeMap));
+        result.data.booleanValue = left == right;
     }
     else if (text == "!=")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0], scopeMap) != evaluate(top->branches[1], scopeMap));
+        result.data.booleanValue = left != right;
     }
     else if (text == "|")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.booleanValue || evaluate(top->branches[1], scopeMap).data.booleanValue);
+        result.data.booleanValue = left.data.booleanValue || right.data.booleanValue;
     }
     else if (text == "&")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.booleanValue && evaluate(top->branches[1], scopeMap).data.booleanValue);
+        result.data.booleanValue = left.data.booleanValue && right.data.booleanValue;
     }
     else if (text == "^")
     {
         result.setType(BOOLEAN);
-        result.data.booleanValue = (evaluate(top->branches[0], scopeMap).data.booleanValue != evaluate(top->branches[1], scopeMap).data.booleanValue);
+        result.data.booleanValue = left.data.booleanValue != right.data.booleanValue;
     }
     return (result);
 }
