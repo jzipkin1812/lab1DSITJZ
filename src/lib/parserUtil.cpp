@@ -299,6 +299,13 @@ vector<vector<Token>> Parser::separateLines(vector<vector<Token>> input)
             }
         }
     }
+    // Once more at the end, in case of a parse error where semicolons/braces were not used at all.
+    if(dividedLine.size() > 0)
+    {
+        result.push_back(dividedLine);
+        dividedLine.clear();
+    }
+
     // Now it's time to make sure all our END tokens are normal. End tokens in the middle of the expression should be removed,
     // and lines without end tokens should be given one.
     for(unsigned int line = 0; line < result.size(); line++)
