@@ -48,6 +48,7 @@ class Block
         Node * root; // Used for expressions and print only
         Block * parent; // Used for nested blocks only
         Block * elseStatement; // Used for if statements only
+        int closingLine; // used for if statements only to track when exactly they end for blocking
         Block()
         {
             statementType = "";

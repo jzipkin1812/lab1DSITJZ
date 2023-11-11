@@ -44,8 +44,10 @@ private:
     bool containsClose(vector<Token> line);
     bool containsOpen(vector<Token> line);
     int getPrecedence(string token);
+    unsigned int chainEndIndex(vector<vector<Token>> program, unsigned int lineNum);
     typedValue callFunction(Func givenFunction, vector<typedValue> arguments);
     unsigned int nextClose(vector<vector<Token>> program, unsigned int lineNum);
+    vector<vector<Token>> cleanInput(vector<vector<Token>> inputFromLexer);
     vector<stringstream> outputPerExpression;    
     vector<Func *> globalFunctions; // used for memory clearing at the end of the program.
 };

@@ -28,11 +28,7 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
     // A more complex process of "blocking" occurs when statements are present.
     else
     {
-        vector<Token> &lastLine = inputFromLexer[inputFromLexer.size() - 1];
-        if((lastLine.size() >= 2) && lastLine[lastLine.size() - 2].isEnd())
-        {
-            lastLine.erase(lastLine.end() - 1);
-        }
+        inputFromLexer = cleanInput(inputFromLexer);
         // The "target" points to the block vector that we should currently be stuffing things into.
         // It starts as the parser's block vector, but if we encounter while/if/else statements,
         // we'll have to change it so that future blocks are added to what is nested within.
@@ -64,6 +60,7 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             // Construct an AST and push it to target.
             else if(!(beginning.isStatement() || beginning.isBrace()))
             {   
+                // cout << "Expression " << beginning.text << " going to parent with addy: " << targetParent << endl;
                 (*target).push_back(Block(constructAST(line, i, true)));
             }
             // CASE 2: A print statement.
@@ -81,37 +78,25 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             {
                 line.erase(line.begin()); // The if
                 line.erase(line.end() - 2); // The brace
-                (*target).push_back(Block("if", constructAST(line, i), targetParent));
+                Block newIf = Block("if", constructAST(line, i), targetParent);
+                // newIf.closingLine = chainEndIndex(inputFromLexer, i);
+                (*target).push_back(newIf);
+                
                 // The parent pointer is now the current statement we're about to be nested inside of.
                 // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
                 targetParent = &((*target).back());
+                // cout << "Reached a pure if statement on line " << i << " ending index is " << newIf.closingLine << " address is " << targetParent << endl;
             }
             else if(beginning.text == "else")
             {
                 Block * newElse = new Block("else", nullptr, targetParent);
+                // newElse->closingLine = targetParent->closingLine;
+                // cout << "Putting an else inside of " << targetParent;
                 targetParent->elseStatement = newElse;
-                targetParent = newElse;
-                // Detect whether this is the last else in the chain
-                vector<Token> oneBracket = {Token(0, 0, "}")};
-                unsigned int nextClosedIndex = nextClose(inputFromLexer, i);
-                bool lastElseChain = (nextClosedIndex == inputFromLexer.size() - 1) || (inputFromLexer[nextClosedIndex + 1][0].text != "else");
-                // Add another bracket at the proper location if it's the last one
-                if(lastElseChain)
-                {
-                    inputFromLexer.insert(inputFromLexer.begin() + nextClosedIndex, oneBracket);
-                } 
-                // Redo the loop for an 'else if'
-                if(line[1].text == "if")
-                {
-                    if(lastElseChain)
-                    {
-                        inputFromLexer.insert(inputFromLexer.begin() + nextClosedIndex, oneBracket);
-                    } 
-                    // Redo code
-                    inputFromLexer[i].erase(inputFromLexer[i].begin());
-                    i--;
-                    continue;
-                }
+                targetParent = targetParent->elseStatement;
+                // Insert an extra bracket at the very end of the entire if-else chain
+                // vector<Token> oneBracket = {Token(0, 0, "}")};
+                // inputFromLexer.insert(inputFromLexer.begin() + newElse->closingLine, oneBracket);
             }
             // While case
             else if(beginning.text == "while")
@@ -151,10 +136,19 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             // Target should be redirected back up the control flow tree.
             else if(beginning.text == "}")
             {
-                if(targetParent && (*targetParent).statementType == "if" && i < inputFromLexer.size() - 1 && inputFromLexer[i + 1][0].text == "else")
+                if(targetParent && (*targetParent).statementType == "if" 
+                && i < inputFromLexer.size() - 1 && inputFromLexer[i + 1][0].text == "else")
                 {
+                    // cout << "BRACE (IGNORED)" << endl;
                     continue;
                 }
+                if(targetParent && targetParent->statementType == "else")
+                {
+                    cout << "back twice..." << flush;
+                    targetParent = targetParent->parent;  
+                    cout << "done. New parent is " << targetParent->statementType << endl;
+                }
+                // cout << "BRACE (Old Parent " << (*targetParent).statementType << ")(Next " << inputFromLexer[i + 1][0].text << ")" << endl;
                 targetParent = targetParent->parent;  
                 continue;
             }

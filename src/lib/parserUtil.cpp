@@ -4,6 +4,7 @@
 #include <stack>
 #include <cmath>
 #include <limits>
+#include <stack>
 #include <sstream>
 #include "token.h"
 #include "node.h"
@@ -190,6 +191,96 @@ unsigned int Parser::nextClose(vector<vector<Token>> program, unsigned int lineN
     return(0);
 }
 
+unsigned int Parser::chainEndIndex(vector<vector<Token>> program, unsigned int lineNum)
+{
+    int brackets = 0;
+    for(; lineNum < program.size(); lineNum++)
+    {
+        vector<Token> line = program[lineNum];
+        Token first = *line.begin();
+        if(first.text == "else" || (lineNum < program.size() - 1 && program[lineNum + 1][0].text == "else"))
+        {
+            continue;
+        }
+        if(containsOpen(line))
+        {
+            brackets++;
+        }
+        if(containsClose(line))
+        {
+            brackets--;
+            if(brackets == 0)
+            {
+                return(lineNum);
+            }
+        }
+    }
+    return(0);
+}
+vector<vector<Token>> Parser::cleanInput(vector<vector<Token>> inputFromLexer)
+{
+    vector<Token> &lastLine = inputFromLexer[inputFromLexer.size() - 1];
+    vector<Token> line;
+    
+    stack<unsigned int> closingLines;
+
+    if((lastLine.size() >= 2) && lastLine[lastLine.size() - 2].isEnd())
+    {
+        lastLine.erase(lastLine.end() - 1);
+    }
+    // Get rid of any pure whitespace lines
+    for(unsigned int i = 0; i < inputFromLexer.size(); i++)
+    {
+        if((*inputFromLexer[i].begin()).isEnd())
+        {
+            inputFromLexer.erase(inputFromLexer.begin() + i);
+            i--;
+        }
+    }
+    // Convert any else-if statements to else THEN if statements
+    for(unsigned int i = 0; i < inputFromLexer.size(); i++)
+    {
+        line = inputFromLexer[i];
+        Token beginning = line[0];
+        Token second = line[1];
+        // cout << "\t " << i << endl;
+        if(beginning.text == "if")
+        {
+            // cout << "closing line: ";
+            closingLines.push(chainEndIndex(inputFromLexer, i));
+            // cout << closingLines.top() << endl;
+        }
+        else if(beginning.text == "else" && second.text == "if")
+        {
+            // cout << "elif at " << i << flush;
+            vector<Token> ifStatement = vector<Token>(line.begin() + 1, line.end());
+            // cout << " created if statement " << flush;
+            inputFromLexer[i].erase(inputFromLexer[i].begin() + 1, inputFromLexer[i].end());
+            // cout << " erased " << flush;
+            inputFromLexer[i].push_back(Token(0, 0, "{"));
+            inputFromLexer.insert(inputFromLexer.begin() + i + 1, ifStatement);\
+            // cout << " inserted back in " << flush;
+            vector<Token> oneBracket = {Token(0, 0, "}"), Token(0, 0, "END")};
+            inputFromLexer.insert(inputFromLexer.begin() + closingLines.top() + 1, oneBracket);
+            // cout << " bracketed " << flush;
+            // cout << " is DONE" << endl;
+        }
+        else 
+        {
+            if(!closingLines.empty() && i == closingLines.top()) closingLines.pop();
+        }
+    }
+    // for(auto myLine : inputFromLexer)
+    // {
+    //     for(auto t : myLine)
+    //     {
+    //         cout << t.text << " ";
+    //     }
+    //     cout << endl;
+    // }
+    return(inputFromLexer);
+    
+}
 void Parser::print() // Infix, no statements, no semicolons
 {
     for (unsigned int i = 0; i < blocks.size(); i++)
