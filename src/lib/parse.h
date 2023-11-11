@@ -44,6 +44,7 @@ private:
     bool containsClose(vector<Token> line);
     bool containsOpen(vector<Token> line);
     int getPrecedence(string token);
+    vector<vector<Token>> separateLines(vector<vector<Token>> input);
     unsigned int chainEndIndex(vector<vector<Token>> program, unsigned int lineNum);
     typedValue callFunction(Func givenFunction, vector<typedValue> arguments);
     unsigned int nextClose(vector<vector<Token>> program, unsigned int lineNum);

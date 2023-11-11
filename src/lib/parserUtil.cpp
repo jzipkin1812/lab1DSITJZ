@@ -282,6 +282,44 @@ vector<vector<Token>> Parser::cleanInput(vector<vector<Token>> inputFromLexer)
     return(inputFromLexer);
     
 }
+
+vector<vector<Token>> Parser::separateLines(vector<vector<Token>> input)
+{
+    vector<vector<Token>> result;
+    vector<Token> dividedLine;
+    for(auto line : input)
+    {
+        for(Token t : line)
+        {
+            dividedLine.push_back(t);
+            if(t.isBrace() || t.isSemicolon()) // these are the only way to end lines.
+            {
+                result.push_back(dividedLine);
+                dividedLine.clear();
+            }
+        }
+    }
+    // Now it's time to make sure all our END tokens are normal. End tokens in the middle of the expression should be removed,
+    // and lines without end tokens should be given one.
+    for(unsigned int line = 0; line < result.size(); line++)
+    {
+        for(unsigned int col = 0; col < result[line].size(); col++)
+        {
+            Token t = result[line][col];
+            if(t.isEnd() && col < result[line].size() - 1) // Excess END!
+            {
+                result[line].erase(result[line].begin() + col);
+                col--;
+            }
+            else if(!t.isEnd() && col == result[line].size() - 1) // Oops, we need another END!
+            {
+                result[line].push_back(Token(line, t.column + 1, "END"));
+            }
+        }
+    }
+    return(result);
+}
+
 void Parser::print() // Infix, no statements, no semicolons
 {
     for (unsigned int i = 0; i < blocks.size(); i++)

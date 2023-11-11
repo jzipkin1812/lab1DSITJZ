@@ -28,6 +28,7 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
     // A more complex process of "blocking" occurs when statements are present.
     else
     {
+        inputFromLexer = separateLines(inputFromLexer);
         inputFromLexer = cleanInput(inputFromLexer);
         // The "target" points to the block vector that we should currently be stuffing things into.
         // It starts as the parser's block vector, but if we encounter while/if/else statements,
@@ -66,7 +67,12 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             // CASE 2: A print statement.
             // Pop the print token. Construct an AST. Push a new block to target with this AST and type "print".
             // We don't need to track the parents of print statements. They don't nest.
-            else if(beginning.text == "print" || beginning.text == "return")
+            else if(beginning.text == "print")
+            {
+                line.erase(line.begin());
+                (*target).push_back(Block(beginning.text, constructAST(line, i, true), targetParent));
+            }
+            else if(beginning.text == "return")
             {
                 line.erase(line.begin());
                 (*target).push_back(Block(beginning.text, constructAST(line, i, true), targetParent));
@@ -336,7 +342,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     typedValue result = typedValue{DOUBLE, {0}, ""};
     if (!top)
     {
-        return result;
+        return typedValue{NONE, {0}, ""};
     }
     Token t = top->info;
     string text = top->info.text;
@@ -852,7 +858,8 @@ void Parser::formatHelper(Block b, unsigned int indents)
     }
     else if(type == "print" || type == "return")
     {
-        cout << type << " " << printHelper(b.root, true) << ";";
+        if(b.root) cout << type << " " << printHelper(b.root, true) << ";";
+        else cout << type << printHelper(b.root, true) << ";";
     }
     else if(type == "if" || type == "while" || type == "else")
     {
