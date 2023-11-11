@@ -144,9 +144,9 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                 }
                 if(targetParent && targetParent->statementType == "else")
                 {
-                    cout << "back twice..." << flush;
+                    // cout << "back twice..." << flush;
                     targetParent = targetParent->parent;  
-                    cout << "done. New parent is " << targetParent->statementType << endl;
+                    // cout << "done. New parent is " << targetParent->statementType << endl;
                 }
                 // cout << "BRACE (Old Parent " << (*targetParent).statementType << ")(Next " << inputFromLexer[i + 1][0].text << ")" << endl;
                 targetParent = targetParent->parent;  

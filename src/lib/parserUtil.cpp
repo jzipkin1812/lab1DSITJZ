@@ -56,16 +56,17 @@ string Parser::printHelper(Node *top, bool lastChild)
             finalText += " " + top->parent->info.text + " ";
         }
     }
-    else if (top->info.isOperand() && top->branches.size() > 0)
+    else if (top->info.isOperand() && top->isFunctionCall)
     {
         finalText += top->info.text + "(";
         for(unsigned int j = 0; j < top->branches.size(); j++)
         {
             Node * param = top->branches[j];
             if(j < top->branches.size() - 1) finalText += printHelper(param, true) + ", ";
-            else finalText += printHelper(param, true) + ")";
+            else finalText += printHelper(param, true);
             
         }
+        finalText += ")";
     }
     else
     {

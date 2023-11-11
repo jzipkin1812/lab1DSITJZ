@@ -1,16 +1,5 @@
-z = 42;
-
-def foo(x, y) {
-  def square(value) {
-    return value * value;
-  }
-
-  print square(x + y + z);
+def nuller() {
+  print 5;
+  print nuller();
 }
-
-z = 108;
-f = foo;
-result = f(1, 2);
-if result != null {
-  print result;
-}
+print nuller();
