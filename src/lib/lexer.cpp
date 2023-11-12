@@ -48,13 +48,13 @@ Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complex
         if(fileName == "")
         {
             getline(cin, expression);
-            //cout << expression << endl;
+            cout << expression << endl;
             endOfFile = cin.eof();
         }
         else
         {
             getline(fileStream, expression);
-            //cout << expression << endl;
+            cout << expression << endl;
             endOfFile = fileStream.eof();
         }
     }
@@ -66,7 +66,6 @@ Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complex
 
 void Lexer::parseString(string expression, int lineNumber) // time complexity O(n), n=characters in expression
 {
-    cout << expression << endl;
     string currentString = ""; // currentString gets set to each token and pushed to tokens vector
     vector<Token> currentExpression;
     for (int i = 0; i < (int)expression.length(); i++) // (int) cast necessary when comparing int and unsigned int
