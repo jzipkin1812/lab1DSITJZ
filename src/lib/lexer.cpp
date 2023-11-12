@@ -29,12 +29,10 @@ Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complex
     if(fileName == "")
     {
         getline(cin, expression);
-        cout << expression << endl;
     }
     else
     {
         getline(fileStream, expression);
-        cout << expression << endl;
     }
     
     int lineNumber = 0;
@@ -50,11 +48,13 @@ Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complex
         if(fileName == "")
         {
             getline(cin, expression);
+            cout << expression << endl;
             endOfFile = cin.eof();
         }
         else
         {
             getline(fileStream, expression);
+            cout << expression << endl;
             endOfFile = fileStream.eof();
         }
     }
