@@ -90,6 +90,7 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
             case '&':
             case '[':
             case ']':
+            case ',':
             case '%':
 
                 if (currentString != "")
