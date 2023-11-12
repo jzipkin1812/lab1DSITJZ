@@ -43,6 +43,10 @@ class Token
         {
             return (text == "<" || text == "<=" || text == ">" || text == "<=");
         }
+        bool isBrackets()
+        {
+            return (text == "]" || text == "[");
+        }
         bool isParenthesis()
         {
             return (text == ")" || text == "(");
@@ -58,7 +62,7 @@ class Token
         }
         bool isNumber()
         {
-            return (!(isSemicolon() || isNull() || isComma() || isBoolean() || isOperator() || isBrace() || isParenthesis() || isEnd() || isVariable() || isStatement()));
+            return (!(isBrackets() || isSemicolon() || isNull() || isComma() || isBoolean() || isOperator() || isBrace() || isParenthesis() || isEnd() || isVariable() || isStatement()));
         }
         bool isBoolean()
         {
@@ -96,7 +100,7 @@ class Token
 
             if(type == DOUBLE)
             {
-                // cout << "Calling stod on: " << text << endl;
+                cout << "Calling stod on: " << text << endl;
                 result.data.doubleValue = stod(text);
             }
             else if(type == BOOLEAN)
