@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <cctype>
+#include <memory>
 using namespace std;
 
 enum TypeTag 
@@ -12,7 +13,15 @@ enum TypeTag
     BOOLEAN, // 1
     TYPEERROR, // Operator took the wrong type. E.g. true + false or 3 > true
     DIVZEROERROR, // Divide by zero. 3 / 0
-    IDERROR // Unknown identifier. e.g. b + 3 but b was never declared.
+    IDERROR, // Unknown identifier. e.g. b + 3 but b was never declared.
+    ASSIGNEEERROR, // Invalid assignee, e.g. 3 = 4 or (1 * 2) = a
+    NOCONDITIONERROR, // A condition for a statement wasn't a boolean e.g. while(3 + 3) {
+    NONE,
+    FUNCTION,
+    NOTFUNCTIONERROR, // Not a function e.g. 7(6, 2, 3) or true(9, 10)
+    ARGCERROR, // Incorrect # of arguments passed to function 
+    BADRETURNERROR, // Return at top-level, not inside function
+    ARRAY // [1, 2]
 };
 
 struct typedValue
@@ -22,7 +31,9 @@ struct typedValue
     {
         double doubleValue;
         bool booleanValue;
+        void * functionValue;
     };
+
     d data;
     string unknownIDText;
 
@@ -32,9 +43,13 @@ struct typedValue
         {
             o << boolalpha << tValue.data.booleanValue;
         }
-        else
+        else if(tValue.type == DOUBLE)
         {
             o << tValue.data.doubleValue;
+        }
+        else if(tValue.type == NONE)
+        {
+            o << "null";
         }
         return o;
     };
@@ -79,7 +94,7 @@ struct typedValue
 
     bool isError()
     {
-        return(type == TYPEERROR || type == DIVZEROERROR || type == IDERROR);
+        return(type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR);
     }
 
     string outputError(bool exitImmediately = false)
@@ -89,7 +104,12 @@ struct typedValue
         else if (type == TYPEERROR) finalOutput = "Runtime error: invalid operand type.\n";
         else if (type == DIVZEROERROR) finalOutput = "Runtime error: division by zero.\n";
         else if (type == IDERROR) finalOutput = "Runtime error: unknown identifier " +  unknownIDText + "\n";
-        
+        else if (type == ASSIGNEEERROR) finalOutput = "Runtime error: invalid assignee.\n";
+        else if (type == NOCONDITIONERROR) finalOutput = "Runtime error: condition is not a bool.\n";
+        else if (type == NOTFUNCTIONERROR) finalOutput = "Runtime error: not a function.\n";
+        else if (type == ARGCERROR) finalOutput = "Runtime error: incorrect argument count.\n";
+        else if (type == BADRETURNERROR) finalOutput = "Runtime error: unexpected return.\n";
+
         if(exitImmediately)
         {
             cout << finalOutput;
@@ -98,6 +118,7 @@ struct typedValue
 
         return(finalOutput);
     }
+
 };
 
 #endif

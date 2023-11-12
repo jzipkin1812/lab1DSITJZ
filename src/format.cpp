@@ -10,7 +10,6 @@ using namespace std;
 int main()
 {
     Lexer myLexer = Lexer(true, true);
-    // myLexer.print();
     // for(vector<Token> line : myLexer.getTokens())
     // {
     //     for(Token t : line)

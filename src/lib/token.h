@@ -43,6 +43,10 @@ class Token
         {
             return (text == "<" || text == "<=" || text == ">" || text == "<=");
         }
+        bool isBrackets()
+        {
+            return (text == "]" || text == "[");
+        }
         bool isParenthesis()
         {
             return (text == ")" || text == "(");
@@ -54,11 +58,11 @@ class Token
         bool isVariable()
         {
             char first = text[0];
-            return (!(isEnd() || isStatement() || isBoolean()) && (isalpha(first) || first == '_'));
+            return (!(isEnd() || isStatement() || isNull() || isBoolean()) && (isalpha(first) || first == '_'));
         }
         bool isNumber()
         {
-            return (!(isBoolean() || isOperator() || isBrace() || isParenthesis() || isEnd() || isVariable() || isStatement()));
+            return (!(isBrackets() || isSemicolon() || isNull() || isComma() || isBoolean() || isOperator() || isBrace() || isParenthesis() || isEnd() || isVariable() || isStatement()));
         }
         bool isBoolean()
         {
@@ -66,15 +70,27 @@ class Token
         }
         bool isOperand()
         {
-            return(isBoolean() || isNumber() || isVariable());
+            return(isBoolean() || isNumber() || isVariable() || isNull());
         }
         bool isStatement()
         {
-            return(text == "while" || text == "if" || text == "else" || text == "print");
+            return(text == "return" || text == "def" || text == "while" || text == "if" || text == "else" || text == "print");
         }
         bool isBrace()
         {
             return(text == "{" || text == "}");
+        }
+        bool isComma()
+        {
+            return(text == ",");
+        }
+        bool isSemicolon()
+        {
+            return(text == ";");
+        }
+        bool isNull()
+        {
+            return(text == "null");
         }
         
         typedValue getValue()
@@ -84,7 +100,7 @@ class Token
 
             if(type == DOUBLE)
             {
-                // cout << "Calling stod on: " << text << endl;
+                //cout << "Calling stod on: " << text << endl;
                 result.data.doubleValue = stod(text);
             }
             else if(type == BOOLEAN)

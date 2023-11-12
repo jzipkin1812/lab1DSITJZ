@@ -10,7 +10,7 @@ using namespace std;
 class Lexer
 {
 public:
-    Lexer(bool addEnd = false, bool exitImmediately = false); // does all the complicated building slash lexing
+    Lexer(bool addEnd = false, bool exitImmediately = false, string fileName = ""); // does all the complicated building slash lexing
     void print();
     vector<vector<Token>> getTokens() { return (tokens); };
     void parseString(string expression, int lineNumber);
