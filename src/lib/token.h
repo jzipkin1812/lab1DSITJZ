@@ -100,7 +100,7 @@ class Token
 
             if(type == DOUBLE)
             {
-                cout << "Calling stod on: " << text << endl;
+                //cout << "Calling stod on: " << text << endl;
                 result.data.doubleValue = stod(text);
             }
             else if(type == BOOLEAN)
