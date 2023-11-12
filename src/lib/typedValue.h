@@ -21,6 +21,7 @@ enum TypeTag
     NOTFUNCTIONERROR, // Not a function e.g. 7(6, 2, 3) or true(9, 10)
     ARGCERROR, // Incorrect # of arguments passed to function 
     BADRETURNERROR, // Return at top-level, not inside function
+    ARRAY // [1, 2]
 };
 
 struct typedValue
