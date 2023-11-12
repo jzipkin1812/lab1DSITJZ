@@ -186,12 +186,43 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
     Node *root = nullptr;
     Node *child1 = nullptr;
     Node *child2 = nullptr;
+
+    // for (unsigned int i = 0; i < tokens.size(); i++)
+    // {
+    //     if (tokens[i].text == "=" && tokens[i-1].text != "=" && tokens[i+1].text)
+    // }
+
+
+
     if (tokens.size() == 0 || (tokens.size() == 1 && tokens[0].isEnd())) // handles case where expression is empty line
     {
         return nullptr;
     }
     for (unsigned int i = 0; i < tokens.size(); i++)
     {
+        // if (tokens[i].text == "[") // beginning of an array
+        // {
+        //     root = new Node{tokens[i], vector<Node*>(), nullptr};
+        //     vector<vector<Token>> elements; // each vector would be an element in the array
+        //     i++; // first token in the array
+        //     while (tokens[i].text != "]") // end of array
+        //     {
+        //         vector<Token> element; // current element
+        //         while (tokens[i].text != ",")
+        //         {
+        //             element.push_back(tokens[i]);
+        //             i++; // next token
+        //         }
+        //         elements.push_back(element);
+        //         i++; // next element
+        //     }
+        //     for (vector<Token> element : elements)
+        //     {
+        //         root->branches.push_back(constructAST(element));
+        //     }
+        //     return root;
+
+        // }
         if (tokens[i].text == "(") // signifies beginning of subtree
         {
             stringStack.push("(");
@@ -541,6 +572,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
     int lastIndex = expression.size() - 2;
     Token theEnd = expression.back();
     bool isFunctionCall = false;
+    int arrayBrackets = 0;
     int functionCallParentheses = 0;
     if (!theEnd.isEnd()) // make sure formatting of END is correct
     {
@@ -636,6 +668,10 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 return (true);
             }
         }
+
+        else if (t.text == "[") arrayBrackets++;
+        else if (t.text == "]") arrayBrackets--;
+
         // Operands are trickier.
         // To the left can be: Comma, Operator, (, start of expression. We don't need to check these cases; they're redundant with other parts of this function.
         // To the right can be: Comma, Operator, ), ;, END, or (, but the ( means we're looking at a function call.
@@ -671,11 +707,11 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 return(true);
             }
         }
-        // Commas should not appear outside function calls.
+        // Commas should not appear outside function calls or outside arrays
         // The right of a comma should be: An operand or a left parenthesis.
         else if(t.isComma())
         {
-            if(!isFunctionCall)
+            if(!isFunctionCall && brackets == 0)
             {
                 parseError(t, line);
                 return(true);
