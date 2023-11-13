@@ -48,11 +48,13 @@ Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complex
         if(fileName == "")
         {
             getline(cin, expression);
+            //cout << expression << endl;
             endOfFile = cin.eof();
         }
         else
         {
             getline(fileStream, expression);
+            //cout << expression << endl;
             endOfFile = fileStream.eof();
         }
     }
@@ -86,8 +88,9 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
             case '{':
             case '|':
             case '&':
+            case '[':
+            case ']':
             case '%':
-
                 if (currentString != "")
                 {
                     currentExpression.push_back(Token(lineNumber, i + 1 - currentString.length(), currentString));

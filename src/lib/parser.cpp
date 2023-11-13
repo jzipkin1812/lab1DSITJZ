@@ -556,6 +556,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
     }
 
     int parentheses = 0;
+    int brackets = 0;
     for (int i = 0; i <= lastIndex; i++)
     {
         Token t = expression[i];
@@ -578,7 +579,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 parseError(t, line);
                 return (true);
             }
-            else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "("))
+            else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["))
             {
                 parseError(expression[i + 1], line);
                 return (true);
@@ -588,9 +589,10 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         // Parentheses should be balanced.
         // After an open parentheses, we must see a number or an identifier or another open parenthesis.
         // There should never be an empty set of two parentheses unless we are in a function call.
-        else if (t.text == "(")
+        else if (t.text == "(" || t.text == "[")
         {
-            parentheses++;
+            if (t.text == "(") parentheses++;
+            else brackets++;
             if(isFunctionCall)
             {
                 functionCallParentheses++;
@@ -609,9 +611,10 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         }
         // Parentheses should be balanced.
         // After a closed parentheses, we must see: operator, comma, semicolon, end token.
-        else if (t.text == ")")
+        else if (t.text == ")" || t.text == "]")
         {
-            parentheses--;
+            if (t.text == ")") parentheses--;
+            else brackets--;
             // The following checks if we've reached the end of a function call or multiple nested function calls.
             if(isFunctionCall)
             {
@@ -621,7 +624,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                     isFunctionCall = false;
                 }
             }
-            if (parentheses < 0) // This also covers the case where i == 0.
+            if (parentheses < 0 || brackets < 0) // This also covers the case where i == 0.
             {
                 parseError(t, line);
                 return (true);
@@ -644,7 +647,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 isFunctionCall = true;
             }
             // Check right, if no function call exists.
-            else if (!(expression[i + 1].text == ")" || expression[i + 1].isOperator() || expression[i + 1].isComma() 
+            else if (!(expression[i + 1].text == ")" || expression[i+1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() 
                     || expression[i + 1].isSemicolon() || expression[i + 1].isEnd()))
             {
                 parseError(expression[i + 1], line);
