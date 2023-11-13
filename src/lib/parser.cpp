@@ -782,9 +782,10 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope, bool a
         globalFunctions.push_back(newFunction); // for memory clearing later
         newFunction->capturedVariables = b.capturedVariables;
         typedValue functionStorage; // Stores the new function in a typedValue.
-        newFunction->capturedVariables[b.functionName] = functionStorage; // For recursion, we need to store the function inside of its own captured variables.
         functionStorage.type = FUNCTION; // This typedvalue is of type FUNCTION.
         functionStorage.data.functionValue = newFunction; 
+        newFunction->capturedVariables[b.functionName] = functionStorage; // For recursion, we need to store the function inside of its own captured variables.
+        
         scope[b.functionName] = functionStorage; // Remember the function for later.
     }
     else if(b.statementType == "return")
