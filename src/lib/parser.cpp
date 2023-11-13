@@ -202,7 +202,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
     {
         if (tokens[i].text == "[") // beginning of an array
         {
-            root = new Node{tokens[i], vector<Node*>(), nullptr};
+            Node* array = new Node{tokens[i], vector<Node*>(), nullptr};
             vector<vector<Token>> elements; // each vector would be an element in the array
             i++; // first token in the array
             bool endOfArray = false;
@@ -248,12 +248,33 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
             for (vector<Token> element : elements)
             {
                 Node* elementRoot = constructAST(element);
-                root->branches.push_back(elementRoot);
+                array->branches.push_back(elementRoot);
             }
-            return root;
+            //cout << "pushing to nodestack: " << array->info.text << endl;
+            nodeStack.push(array);
+            //cout << i << " == " << tokens.size() - 1 << endl;
+            if (i == tokens.size() && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
+            {
+                while (!stringStack.empty() && stringStack.top() != "(")
+                {
+                    string currentString = stringStack.top();
+                    root = new Node{
+                        Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
+                    stringStack.pop();
+                    child1 = nodeStack.top();
+                    nodeStack.pop();
+                    child2 = nodeStack.top();
+                    nodeStack.pop();
+                    root->branches.push_back(child2);
+                    child2->parent = root;
+                    root->branches.push_back(child1);
+                    child1->parent = root;
+                    nodeStack.push(root);
+                }
+            }
 
         }
-        if (tokens[i].text == "(") // signifies beginning of subtree
+        else if (tokens[i].text == "(") // signifies beginning of subtree
         {
             stringStack.push("(");
         }
