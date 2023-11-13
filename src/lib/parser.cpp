@@ -209,22 +209,21 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
             while (!endOfArray)
             {
                 vector<Token> element; // current element
-                if (tokens[i].text == "[")
+                if (tokens[i].text == "[") // array inside array
                 {
+                    int brackets = 1;
                     //cout << tokens[i].text << endl;
                     element.push_back(tokens[i]);
                     i++; // first token
-                    while (tokens[i].text != "]")
+                    while (brackets > 0)
                     {
-                        //cout << tokens[i].text << endl;
+                        if (tokens[i].text == "[") brackets++;
+                        else if (tokens[i].text == "]") brackets--;
                         element.push_back(tokens[i]);
                         i++;
                     }
                     //cout << tokens[i].text << endl;
-                    element.push_back(tokens[i]);
-                    element.push_back(Token(0, 0, "END"));
-                    elements.push_back(element);
-                    i++;
+                    //element.push_back(tokens[i]);
                 }
                 else
                 {
@@ -233,15 +232,19 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                         element.push_back(tokens[i]);
                         i++; // next token
                     }
-                    if (tokens[i].text == "]") endOfArray = true;
-                    if (!element.empty())
-                    {
-                        element.push_back(Token(0, 0, "END"));
-                        elements.push_back(element);
-                    }
-                    i++; // next element
                 }
+                if (tokens[i].text == "]") endOfArray = true;
+                if (!element.empty())
+                {
+                    element.push_back(Token(0, 0, "END"));
+                    //cout << "About to push the element ";
+                    //for (Token token : element) cout << token.text << " ";
+                    //cout << endl;
+                    elements.push_back(element);
+                }
+                i++; // next element
             }
+            //cout << "All elements have been collected" << endl;
             for (vector<Token> element : elements)
             {
                 Node* elementRoot = constructAST(element);
@@ -397,6 +400,16 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
 
 typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
 {
+    // cout << "top = " << top->info.text << endl;
+    // for (Node* node : top->branches)
+    // {
+    //     cout << "kid of top = " << node->info.text << endl;
+    //     cout << "kids of " << node->info.text << " are: " << endl;
+    //     for (Node* kid : node->branches)
+    //     {
+    //         cout << kid->info.text << endl;
+    //     }
+    // }
     typedValue result = typedValue{DOUBLE, {0}, ""};
     if (!top)
     {
@@ -596,6 +609,8 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
 
 bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolons) // runs before we try evaluating
 {
+    // cout << "Expression: " << endl;
+    // for (Token token : expression) cout << token.text << endl;
     int lastIndex = expression.size() - 2;
     Token theEnd = expression.back();
     bool isFunctionCall = false;
@@ -766,6 +781,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
     }
     else
     {
+        cout << "brackets = " << brackets << endl;
         cout << "Error 13" << endl;
         parseError(theEnd, line);
         return (true);
