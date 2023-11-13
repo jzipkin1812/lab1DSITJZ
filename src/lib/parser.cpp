@@ -223,17 +223,24 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                     //cout << tokens[i].text << endl;
                     element.push_back(tokens[i]);
                     element.push_back(Token(0, 0, "END"));
-                    root->branches.push_back(constructAST(element));
+                    elements.push_back(element);
+                    i++;
                 }
-                while (tokens[i].text != "," && tokens[i].text != "]")
+                else
                 {
-                    element.push_back(tokens[i]);
-                    i++; // next token
+                    while (tokens[i].text != "," && tokens[i].text != "]")
+                    {
+                        element.push_back(tokens[i]);
+                        i++; // next token
+                    }
+                    if (tokens[i].text == "]") endOfArray = true;
+                    if (!element.empty())
+                    {
+                        element.push_back(Token(0, 0, "END"));
+                        elements.push_back(element);
+                    }
+                    i++; // next element
                 }
-                if (tokens[i].text == "]") endOfArray = true;
-                element.push_back(Token(0, 0, "END"));
-                elements.push_back(element);
-                i++; // next element
             }
             for (vector<Token> element : elements)
             {
