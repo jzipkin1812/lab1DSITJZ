@@ -280,7 +280,16 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
         }
         else if (tokens[i].isOperand()) // numbers and variables are treated the same at a base level
         {
-            if (i+1<tokens.size() && tokens[i+1].text == "(")  //condition to handle function calls
+            if (tokens[i].isVariable() && tokens[i + 1].text == "[") // accessing an element in an array
+            {
+                Node* array = new Node{tokens[i], vector<Node*>(), nullptr};
+                Node* bracket = new Node{tokens[i + 1], vector<Node*>(), array};
+                Node* index = new Node{tokens[i + 2], vector<Node*>(), bracket};
+                bracket->branches.push_back(index);
+                array->branches.push_back(bracket);
+                nodeStack.push(array);
+            }
+            else if (i+1<tokens.size() && tokens[i+1].text == "(")  //condition to handle function calls
             {
                 unsigned int originalIndex = i;
                 int parenCount = 0;
@@ -585,16 +594,26 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         }
         else
         {
-            if (top->branches.size() == 1) {
-                // cout << "searching...." << endl;
-                // int index = stoi(top->branches[0]->info.text);
-                // cout << "index = " << index << endl;
-                // cout << "size of array = ";
-                // cout << scopeMap[text].data.arrayValue->size() << endl;
-                // result = (*scopeMap[text].data.arrayValue)[index];
-            }
+            // bool arrayAccess = true;
+            // if (top->branches.size() != 1) arrayAccess = false;
+            // if (arrayAccess)
+            // {
+            //     string index = top->branches[0]->info.text;
+            //     for (int i = 0; i < strlen(str); i++)
+            //     {
+            //         if (!isdigit(str[i])) arrayAccess = false;
+            //     }
+            // }
+            // if (arrayAccess) {
+            //     // cout << "searching...." << endl;
+            //     // int index = stoi(top->branches[0]->info.text);
+            //     // cout << "index = " << index << endl;
+            //     // cout << "size of array = ";
+            //     // cout << scopeMap[text].data.arrayValue->size() << endl;
+            //     // result = (*scopeMap[text].data.arrayValue)[index];
+            // }
             // Gets a function pointer, array, boolean, null, or double
-            else result = scopeMap[text];
+            result = scopeMap[text];
             // But...if result is a function, we need to call the function.
             if(top->isFunctionCall)
             {
