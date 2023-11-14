@@ -47,24 +47,29 @@ struct typedValue
         }
         else if(tValue.type == DOUBLE)
         {
+            // cout << "A DOUBLE IS PRINTED" << endl;
             o << tValue.data.doubleValue;
         }
         else if(tValue.type == ARRAY)
         {
             o << "[";
-            // vector<typedValue> elements = *tValue.data.arrayValue;
-            // //cout << "size = " << elements.size() << endl;
-            // for (unsigned int i = 0 ; i < elements.size() ; i++)
-            // {
-            //     o << elements[i];
-            //     if (i != elements.size() - 1) o << ", ";
-            // }
+            //cout<<(tValue.data.arrayValue==NULL)<<endl;
+            vector<typedValue> elements = *tValue.data.arrayValue;
+            //o << "size = " << elements.size() << endl;
+            // for (typedValue element : elements) o << element << ", ";
+            for (unsigned int i = 0 ; i < elements.size() ; i++)
+            {
+                //o << "the type of element number " << i << " is " << elements[i].type << endl;
+                o << elements[i];
+                if (i != elements.size() - 1) o << ", ";
+            }
             o << "]";
         }
         else if(tValue.type == NONE)
         {
             o << "null";
         }
+        else o << tValue.data.doubleValue;
         return o;
     };
 

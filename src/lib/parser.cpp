@@ -430,28 +430,29 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
 
 typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
 {
-    // cout << "Size = " << scopeMap.size() << endl;
-    // cout << "top = " << top->info.text << endl;
-    // for (Node* node : top->branches)
-    // {
-    //     cout << "kid of top = " << node->info.text << endl;
-    //     if (node->branches.size() != 0) cout << "kids of " << node->info.text << " are: " << endl;
-    //     for (Node* kid : node->branches)
-    //     {
-    //         cout << kid->info.text << endl;
-    //         if (kid->branches.size() != 0) cout << "kids of " << kid->info.text << " are: " << endl;
-    //         for (Node* grandkid : kid->branches)
-    //         {
-    //             cout << grandkid->info.text << endl;
-    //             if (grandkid->branches.size() != 0) cout << "kids of " << grandkid->info.text << " are: " << endl;
-    //             for (Node* nin : grandkid->branches)
-    //             {
-    //                 cout << nin->info.text << endl;
-    //             }
-    //         }
-    //     }
-    // }
-    // cout << endl << endl;
+    //cout << "evaluating" << endl;
+    //cout << "Size = " << scopeMap.size() << endl;
+    cout << "top = " << top->info.text << endl;
+    for (Node* node : top->branches)
+    {
+        cout << "kid of top = " << node->info.text << endl;
+        if (node->branches.size() != 0) cout << "kids of " << node->info.text << " are: " << endl;
+        for (Node* kid : node->branches)
+        {
+            cout << kid->info.text << endl;
+            if (kid->branches.size() != 0) cout << "kids of " << kid->info.text << " are: " << endl;
+            for (Node* grandkid : kid->branches)
+            {
+                cout << grandkid->info.text << endl;
+                if (grandkid->branches.size() != 0) cout << "kids of " << grandkid->info.text << " are: " << endl;
+                for (Node* nin : grandkid->branches)
+                {
+                    cout << nin->info.text << endl;
+                }
+            }
+        }
+    }
+    cout << endl << endl;
     typedValue result = typedValue{DOUBLE, {0}, ""};
     if (!top)
     {
@@ -466,6 +467,8 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     {
         left = evaluate(top->branches[0], scopeMap);
         right = evaluate(top->branches[1], scopeMap);
+        cout << "right is an array of size " << (*right.data.arrayValue).size() << endl; 
+        cout << "right's type is " << right.type << endl;
         result.setType(left.type);
         result.setType(right.type);
     }
@@ -494,8 +497,6 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         // cout << "top = " << top->info.text << endl; 
         // cout << "result's type = " << result.type << endl;
         //cout << "ARRAY ASSIGNMENT??" << endl;
-        if (top->parent && (top->parent->info.text == "=" || top->parent->info.text == "["))
-        {
             //cout << "ARRAY ASSIGNMENT" << endl;
             vector<typedValue> array;
             for (Node* node : top->branches) {
@@ -507,11 +508,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             // for (typedValue element : array) cout << element << ", ";
             // cout << endl;
             result.data.arrayValue = &array;
-            // cout << "OUR VECTOR IS ";
-            // for (typedValue element : *result.data.arrayValue) cout << element << ", ";
-            //cout << "where the first element is a " << (*result.data.arrayValue)[0].type;
+            cout << "OUR VECTOR IS ";
+            for (typedValue element : *result.data.arrayValue) cout << element << ", ";
+            cout << "where the first element is a " << (*result.data.arrayValue)[0].type;
             cout << endl;
-        }
+            //cout << "about to return result. Right now, the vector's first element is " << (*result.data.arrayValue)[0] << endl;
     }
     else if (text == "-")
     {
@@ -564,7 +565,10 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             // There are no assignee errors at this point. Assign the variables.
             result = right;
             string key = top->branches[0]->info.text;
+            //cout << "key = "  << key << endl;
             scopeMap[key] = result;
+            cout << "assigned, " << (*result.data.arrayValue).size() << endl;
+
         }
         else
         {
@@ -594,6 +598,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         }
         else
         {
+            cout << "IDENTIFIED" << endl;
             // bool arrayAccess = true;
             // if (top->branches.size() != 1) arrayAccess = false;
             // if (arrayAccess)
@@ -614,6 +619,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             // }
             // Gets a function pointer, array, boolean, null, or double
             result = scopeMap[text];
+            cout << (*result.data.arrayValue).size() << endl;
             // But...if result is a function, we need to call the function.
             if(top->isFunctionCall)
             {
@@ -690,6 +696,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         result.setType(BOOLEAN);
         result.data.booleanValue = left.data.booleanValue != right.data.booleanValue;
     }
+    //cout << "about to return result. Right now, the vector's first element is " << (*result.data.arrayValue)[0] << endl;
     return (result);
 }
 
@@ -894,7 +901,9 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope, bool a
     noneReturn.type = NONE;
     if(b.statementType == "print")
     {
+        cout << "b.root = " << b.root->info.text << endl;
         typedValue printResult = evaluate(b.root, scope);
+        cout << (*printResult.data.arrayValue)[0] << endl;
         if(printResult.isError()) printResult.outputError(true);
         cout << printResult << endl;
     }
