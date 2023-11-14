@@ -421,13 +421,36 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
 
 typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
 {
+    // cout << "Size = " << scopeMap.size() << endl;
+    // cout << "top = " << top->info.text << endl;
+    // for (Node* node : top->branches)
+    // {
+    //     cout << "kid of top = " << node->info.text << endl;
+    //     if (node->branches.size() != 0) cout << "kids of " << node->info.text << " are: " << endl;
+    //     for (Node* kid : node->branches)
+    //     {
+    //         cout << kid->info.text << endl;
+    //         if (kid->branches.size() != 0) cout << "kids of " << kid->info.text << " are: " << endl;
+    //         for (Node* grandkid : kid->branches)
+    //         {
+    //             cout << grandkid->info.text << endl;
+    //             if (grandkid->branches.size() != 0) cout << "kids of " << grandkid->info.text << " are: " << endl;
+    //             for (Node* nin : grandkid->branches)
+    //             {
+    //                 cout << nin->info.text << endl;
+    //             }
+    //         }
+    //     }
+    // }
+    // cout << endl << endl;
     typedValue result = typedValue{DOUBLE, {0}, ""};
     if (!top)
     {
         return typedValue{NONE, {0}, ""};
     }
     Token t = top->info;
-    string text = top->info.text;
+    string text = t.text;
+    //cout << "top is " << text << endl;
     // TYPE MISMATCH ERROR
     typedValue left;
     typedValue right;
@@ -435,8 +458,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     {
         left = evaluate(top->branches[0], scopeMap);
         right = evaluate(top->branches[1], scopeMap);
+       // if (right.type == ARRAY) 
+        //cout << "first element is " << right.data.arrayValue[0].type << endl;
         result.setType(left.type);
         result.setType(right.type);
+        //cout << "TYPE = " << result.type << endl;
     }
     if(t.isOperator() && !(t.text == "="))
     {
@@ -455,6 +481,32 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     if (text == "+")
     {
         result.data.doubleValue = left.data.doubleValue + right.data.doubleValue;
+    }
+    else if (text == "[")
+    {
+        //cout << "ARRAY" << endl;
+        result.setType(ARRAY);
+        // cout << "top = " << top->info.text << endl; 
+        // cout << "result's type = " << result.type << endl;
+        //cout << "ARRAY ASSIGNMENT??" << endl;
+        if (top->parent && (top->parent->info.text == "=" || top->parent->info.text == "["))
+        {
+            //cout << "ARRAY ASSIGNMENT" << endl;
+            vector<typedValue> array;
+            for (Node* node : top->branches) {
+                typedValue newElement = evaluate(node, scopeMap);
+                // cout << "node = " << node->info.text << " and it's a " << newElement.type << endl;
+                array.push_back(newElement); // add elements to the array
+            }
+            // cout << "OUR VECTOR IS ";
+            // for (typedValue element : array) cout << element << ", ";
+            // cout << endl;
+            result.data.arrayValue = &array;
+            // cout << "OUR VECTOR IS ";
+            // for (typedValue element : *result.data.arrayValue) cout << element << ", ";
+            //cout << "where the first element is a " << (*result.data.arrayValue)[0].type;
+            cout << endl;
+        }
     }
     else if (text == "-")
     {
@@ -500,14 +552,18 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     // doASSIGNMENT
     else if (text == "=")
     {
+        //cout << "ASSIGNMENT" << endl;
         // Check for the invalid assignee runtime error
         Token assignee = top->branches[0]->info;
         if(assignee.isVariable())
         {
             // There are no assignee errors at this point. Assign the variables.
             result = right;
+            //cout << "RIGHT TYPE IS " << result.type << endl;
             string key = top->branches[0]->info.text;
+            //cout << "in assignment, " << key << " is a " << top->branches[0]->info.type << endl;
             scopeMap[key] = result;
+            //cout << "result = " << result << "." << endl;
         }
         else
         {
@@ -529,16 +585,27 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     else if (t.isVariable())
     {
         // Test for undefined identifier error
+        //cout << "Examining " << t.text << endl;
+        //cout << text << " was found in " << (scopeMap.size()) << endl;
         if (scopeMap.find(text) == scopeMap.end())
         {
+            //cout << "UNIDENTIFIED" << endl;
             result.type = IDERROR;
             result.unknownIDText = text;
             return (result);
         }
         else
         {
+            if (top->branches.size() == 1) {
+                // cout << "searching...." << endl;
+                int index = stoi(top->branches[0]->info.text);
+                // cout << "index = " << index << endl;
+                // cout << "size of array = ";
+                // cout << scopeMap[text].data.arrayValue->size() << endl;
+                result = (*scopeMap[text].data.arrayValue)[index];
+            }
             // Gets a function pointer, boolean, null, or double
-            result = scopeMap[text];
+            else result = scopeMap[text];
             // But...if result is a function, we need to call the function.
             if(top->isFunctionCall)
             {
