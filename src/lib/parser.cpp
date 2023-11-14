@@ -186,13 +186,95 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
     Node *root = nullptr;
     Node *child1 = nullptr;
     Node *child2 = nullptr;
+
+    // for (unsigned int i = 0; i < tokens.size(); i++)
+    // {
+    //     if (tokens[i].text == "=" && tokens[i-1].text != "=" && tokens[i+1].text)
+    // }
+
+
+
     if (tokens.size() == 0 || (tokens.size() == 1 && tokens[0].isEnd())) // handles case where expression is empty line
     {
         return nullptr;
     }
     for (unsigned int i = 0; i < tokens.size(); i++)
     {
-        if (tokens[i].text == "(") // signifies beginning of subtree
+        if (tokens[i].text == "[") // beginning of an array
+        {
+            Node* array = new Node{tokens[i], vector<Node*>(), nullptr};
+            vector<vector<Token>> elements; // each vector would be an element in the array
+            i++; // first token in the array
+            bool endOfArray = false;
+            while (!endOfArray)
+            {
+                vector<Token> element; // current element
+                if (tokens[i].text == "[") // array inside array
+                {
+                    int brackets = 1;
+                    //cout << tokens[i].text << endl;
+                    element.push_back(tokens[i]);
+                    i++; // first token
+                    while (brackets > 0)
+                    {
+                        if (tokens[i].text == "[") brackets++;
+                        else if (tokens[i].text == "]") brackets--;
+                        element.push_back(tokens[i]);
+                        i++;
+                    }
+                    //cout << tokens[i].text << endl;
+                    //element.push_back(tokens[i]);
+                }
+                else
+                {
+                    while (tokens[i].text != "," && tokens[i].text != "]")
+                    {
+                        element.push_back(tokens[i]);
+                        i++; // next token
+                    }
+                }
+                if (tokens[i].text == "]") endOfArray = true;
+                if (!element.empty())
+                {
+                    element.push_back(Token(0, 0, "END"));
+                    //cout << "About to push the element ";
+                    //for (Token token : element) cout << token.text << " ";
+                    //cout << endl;
+                    elements.push_back(element);
+                }
+                i++; // next element
+            }
+            //cout << "All elements have been collected" << endl;
+            for (vector<Token> element : elements)
+            {
+                Node* elementRoot = constructAST(element);
+                array->branches.push_back(elementRoot);
+            }
+            //cout << "pushing to nodestack: " << array->info.text << endl;
+            nodeStack.push(array);
+            //cout << i << " == " << tokens.size() - 1 << endl;
+            if (i == tokens.size() && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
+            {
+                while (!stringStack.empty() && stringStack.top() != "(")
+                {
+                    string currentString = stringStack.top();
+                    root = new Node{
+                        Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
+                    stringStack.pop();
+                    child1 = nodeStack.top();
+                    nodeStack.pop();
+                    child2 = nodeStack.top();
+                    nodeStack.pop();
+                    root->branches.push_back(child2);
+                    child2->parent = root;
+                    root->branches.push_back(child1);
+                    child1->parent = root;
+                    nodeStack.push(root);
+                }
+            }
+
+        }
+        else if (tokens[i].text == "(") // signifies beginning of subtree
         {
             stringStack.push("(");
         }
@@ -242,7 +324,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 nodeStack.push(root);
                 i = originalIndex;
             }
-            else{ nodeStack.push(new Node{tokens[i], vector<Node *>(), nullptr}); }
+            else nodeStack.push(new Node{tokens[i], vector<Node *>(), nullptr}); 
 
             if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
             {
