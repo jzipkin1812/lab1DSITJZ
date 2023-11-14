@@ -585,8 +585,16 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         }
         else
         {
-            // Gets a function pointer, boolean, null, or double
-            result = scopeMap[text];
+            if (top->branches.size() == 1) {
+                // cout << "searching...." << endl;
+                // int index = stoi(top->branches[0]->info.text);
+                // cout << "index = " << index << endl;
+                // cout << "size of array = ";
+                // cout << scopeMap[text].data.arrayValue->size() << endl;
+                // result = (*scopeMap[text].data.arrayValue)[index];
+            }
+            // Gets a function pointer, array, boolean, null, or double
+            else result = scopeMap[text];
             // But...if result is a function, we need to call the function.
             if(top->isFunctionCall)
             {
