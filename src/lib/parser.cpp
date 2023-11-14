@@ -449,8 +449,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         return typedValue{NONE, {0}, ""};
     }
     Token t = top->info;
-    string text = t.text;
-    //cout << "top is " << text << endl;
+    string text = top->info.text;
     // TYPE MISMATCH ERROR
     typedValue left;
     typedValue right;
@@ -458,11 +457,8 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     {
         left = evaluate(top->branches[0], scopeMap);
         right = evaluate(top->branches[1], scopeMap);
-       // if (right.type == ARRAY) 
-        //cout << "first element is " << right.data.arrayValue[0].type << endl;
         result.setType(left.type);
         result.setType(right.type);
-        //cout << "TYPE = " << result.type << endl;
     }
     if(t.isOperator() && !(t.text == "="))
     {
@@ -552,18 +548,14 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     // doASSIGNMENT
     else if (text == "=")
     {
-        //cout << "ASSIGNMENT" << endl;
         // Check for the invalid assignee runtime error
         Token assignee = top->branches[0]->info;
         if(assignee.isVariable())
         {
             // There are no assignee errors at this point. Assign the variables.
             result = right;
-            //cout << "RIGHT TYPE IS " << result.type << endl;
             string key = top->branches[0]->info.text;
-            //cout << "in assignment, " << key << " is a " << top->branches[0]->info.type << endl;
             scopeMap[key] = result;
-            //cout << "result = " << result << "." << endl;
         }
         else
         {
@@ -585,27 +577,16 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     else if (t.isVariable())
     {
         // Test for undefined identifier error
-        //cout << "Examining " << t.text << endl;
-        //cout << text << " was found in " << (scopeMap.size()) << endl;
         if (scopeMap.find(text) == scopeMap.end())
         {
-            //cout << "UNIDENTIFIED" << endl;
             result.type = IDERROR;
             result.unknownIDText = text;
             return (result);
         }
         else
         {
-            if (top->branches.size() == 1) {
-                // cout << "searching...." << endl;
-                int index = stoi(top->branches[0]->info.text);
-                // cout << "index = " << index << endl;
-                // cout << "size of array = ";
-                // cout << scopeMap[text].data.arrayValue->size() << endl;
-                result = (*scopeMap[text].data.arrayValue)[index];
-            }
             // Gets a function pointer, boolean, null, or double
-            else result = scopeMap[text];
+            result = scopeMap[text];
             // But...if result is a function, we need to call the function.
             if(top->isFunctionCall)
             {
