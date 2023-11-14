@@ -18,6 +18,7 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
     // Simple process of 1 expression per line used when statements are not present.
     if(!statements)
     {
+        cout << "SIZE = " << inputFromLexer.size() << endl;
         for (unsigned int line = 0; line < inputFromLexer.size(); line++)
         {
             outputPerExpression.push_back(stringstream());
@@ -62,7 +63,6 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             else if(!(beginning.isStatement() || beginning.isBrace()))
             {   
                 // cout << "Expression " << beginning.text << " going to parent with addy: " << targetParent << endl;
-                // if (line.size() > 0) cout << "So apparently the line that starts with " << line[0].text << " and ends with " << line[line.size() - 2].text << " is.." << endl;
                 (*target).push_back(Block(constructAST(line, i, true)));
             }
             // CASE 2: A print statement.
@@ -71,10 +71,6 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             else if(beginning.text == "print")
             {
                 line.erase(line.begin());
-                //cout << "Let us construct: " << endl;
-                //for (Token token : line) cout << token.text << " ";
-                //cout << endl;
-                //cout << "with i = " << i << endl;
                 (*target).push_back(Block(beginning.text, constructAST(line, i, true), targetParent));
             }
             else if(beginning.text == "return")
@@ -426,7 +422,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
 
 typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
 {
-    // cout << "Size = " << scopeMap.size() << endl;
+    cout << "Size = " << scopeMap.size() << endl;
     // cout << "top = " << top->info.text << endl;
     // for (Node* node : top->branches)
     // {
@@ -435,19 +431,8 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     //     for (Node* kid : node->branches)
     //     {
     //         cout << kid->info.text << endl;
-    //         if (kid->branches.size() != 0) cout << "kids of " << kid->info.text << " are: " << endl;
-    //         for (Node* grandkid : kid->branches)
-    //         {
-    //             cout << grandkid->info.text << endl;
-    //             if (grandkid->branches.size() != 0) cout << "kids of " << grandkid->info.text << " are: " << endl;
-    //             for (Node* nin : grandkid->branches)
-    //             {
-    //                 cout << nin->info.text << endl;
-    //             }
-    //         }
     //     }
     // }
-    // cout << endl << endl;
     typedValue result = typedValue{DOUBLE, {0}, ""};
     if (!top)
     {
@@ -455,7 +440,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     }
     Token t = top->info;
     string text = t.text;
-    //cout << "top is " << text << endl;
+    cout << "top is " << text << endl;
     // TYPE MISMATCH ERROR
     typedValue left;
     typedValue right;
@@ -491,8 +476,8 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     {
         //cout << "ARRAY" << endl;
         result.setType(ARRAY);
-        // cout << "top = " << top->info.text << endl; 
-        // cout << "result's type = " << result.type << endl;
+        cout << "top = " << top->info.text << endl; 
+        cout << "result's type = " << result.type << endl;
         //cout << "ARRAY ASSIGNMENT??" << endl;
         if (top->parent && (top->parent->info.text == "=" || top->parent->info.text == "["))
         {
@@ -500,17 +485,10 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             vector<typedValue> array;
             for (Node* node : top->branches) {
                 typedValue newElement = evaluate(node, scopeMap);
-                // cout << "node = " << node->info.text << " and it's a " << newElement.type << endl;
+                cout << "node = " << node->info.text << " and it's a " << newElement.type << endl;
                 array.push_back(newElement); // add elements to the array
             }
-            // cout << "OUR VECTOR IS ";
-            // for (typedValue element : array) cout << element << ", ";
-            // cout << endl;
             result.data.arrayValue = &array;
-            // cout << "OUR VECTOR IS ";
-            // for (typedValue element : *result.data.arrayValue) cout << element << ", ";
-            //cout << "where the first element is a " << (*result.data.arrayValue)[0].type;
-            cout << endl;
         }
     }
     else if (text == "-")
@@ -557,18 +535,18 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     // doASSIGNMENT
     else if (text == "=")
     {
-        //cout << "ASSIGNMENT" << endl;
+        cout << "ASSIGNMENT" << endl;
         // Check for the invalid assignee runtime error
         Token assignee = top->branches[0]->info;
         if(assignee.isVariable())
         {
             // There are no assignee errors at this point. Assign the variables.
             result = right;
-            //cout << "RIGHT TYPE IS " << result.type << endl;
+            cout << "RIGHT TYPE IS " << result.type << endl;
             string key = top->branches[0]->info.text;
-            //cout << "in assignment, " << key << " is a " << top->branches[0]->info.type << endl;
+            cout << "in assignment, " << key << " is a " << top->branches[0]->info.type << endl;
             scopeMap[key] = result;
-            //cout << "result = " << result << "." << endl;
+            cout << "result = " << result << "." << endl;
         }
         else
         {
@@ -590,27 +568,19 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     else if (t.isVariable())
     {
         // Test for undefined identifier error
-        //cout << "Examining " << t.text << endl;
-        //cout << text << " was found in " << (scopeMap.size()) << endl;
+        cout << "Examining " << t.text << endl;
+        cout << text << " was found in " << (scopeMap.size()) << endl;
         if (scopeMap.find(text) == scopeMap.end())
         {
-            //cout << "UNIDENTIFIED" << endl;
+            cout << "UNIDENTIFIED" << endl;
             result.type = IDERROR;
             result.unknownIDText = text;
             return (result);
         }
         else
         {
-            if (top->branches.size() == 1) {
-                // cout << "searching...." << endl;
-                int index = stoi(top->branches[0]->info.text);
-                // cout << "index = " << index << endl;
-                // cout << "size of array = ";
-                // cout << scopeMap[text].data.arrayValue->size() << endl;
-                result = (*scopeMap[text].data.arrayValue)[index];
-            }
             // Gets a function pointer, boolean, null, or double
-            else result = scopeMap[text];
+            result = scopeMap[text];
             // But...if result is a function, we need to call the function.
             if(top->isFunctionCall)
             {
@@ -689,9 +659,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     }
     return (result);
 }
-
+   
 bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolons) // runs before we try evaluating
 {
+    // cout << "Expression: " << endl;
+    // for (Token token : expression) cout << token.text << endl;
     int lastIndex = expression.size() - 2;
     Token theEnd = expression.back();
     bool isFunctionCall = false;
@@ -760,7 +732,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 parseError(theEnd, line);
                 return (true);
             }
-            if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["
+            if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" 
               || (expression[i + 1].text == ")" && isFunctionCall)))
             {
                 cout << "Error 5" << endl;
@@ -768,7 +740,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 return (true);
             }
         }
-        // Parentheses should be balanced.
+        // Parentheses and brackets should be balanced.
         // After a closed parentheses, we must see: operator, comma, semicolon, end token.
         else if (t.text == ")" || t.text == "]")
         {
@@ -790,27 +762,30 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 return (true);
             }
             if (!(expression[i + 1].isOperator() || expression[i + 1].text == ")" || expression[i + 1].isComma() 
-               || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "]"
-               || expression[i + 1].text == "["))
+               || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "]"))
             {
                 cout << "Error 7" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
         }
+
         // Operands are trickier.
         // To the left can be: Comma, Operator, (, start of expression. We don't need to check these cases; they're redundant with other parts of this function.
         // To the right can be: Comma, Operator, ), ;, END, or (, but the ( means we're looking at a function call.
         else if (t.isOperand())
         {
+            //if (t.isVariable() && variables[t.text].type == ARRAY && expression[i + 1].text == "[") cout << "true" << endl;
+            //else cout << "false" << endl;
             // Check for a function call.
+            if (t.isVariable()) cout << t.text << " is a " << t.type << " or a " << provisional[t.text].type << endl;
             if(expression[i + 1].text == "(")
             {
                 isFunctionCall = true;
             }
             // Check right, if no function call exists.
             else if (!(expression[i + 1].text == ")" || expression[i+1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() 
-                    || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || (t.isVariable() && expression[i+1].text == "[") ))
+                    || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || (t.isVariable() && provisional[t.text].type == ARRAY && expression[i + 1].text == "[")))
             {
                 cout << "Error 8" << endl;
                 parseError(expression[i + 1], line);
@@ -822,7 +797,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         {
             // Semicolons are unexpected if not required. 
             // Semicolons are also unexpected if there are remaining open parentheses.
-            if(!requireSemicolons || parentheses > 0)
+            if(!requireSemicolons || parentheses > 0 || brackets > 0)
             {
                 cout << "Error 9" << endl;
                 parseError(t, line);
@@ -836,8 +811,8 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 return(true);
             }
         }
-        // Commas should not appear outside function calls.
-        // The right of a comma should be: An operand or a left parenthesis.
+        // Commas should not appear outside function calls or outside arrays
+        // The right of a comma should be: An operand or a left parenthesis or an opening bracket.
         else if(t.isComma())
         {
             if(!isFunctionCall && brackets == 0)
@@ -868,7 +843,6 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
     }
 }
 
-
 void Parser::parseError(Token token, int line)
 {
     if(exitImmediately)
@@ -891,8 +865,6 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope, bool a
     noneReturn.type = NONE;
     if(b.statementType == "print")
     {
-        // cout << "b.root = " << b.root->info.text << endl;
-        //cout << "first element from executehelper is " << (*scope[b.root->info.text].data.arrayValue)[0] << endl;
         typedValue printResult = evaluate(b.root, scope);
         if(printResult.isError()) printResult.outputError(true);
         cout << printResult << endl;
@@ -977,7 +949,6 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope, bool a
     }
     else // Case for expression
     {
-        // cout << "Let's evaluate " << b.root->info.text << endl;
         typedValue expressionResult = evaluate(b.root, scope);
         // cout << expressionResult.type << endl;
         if(expressionResult.isError()) expressionResult.outputError(true);
@@ -1000,6 +971,7 @@ void Parser::format()
 void Parser::formatHelper(Block b, unsigned int indents)
 {
     string type = b.statementType;
+    cout << type << endl;
     // First, all the indents
     string whitespace = "";
     for(unsigned int i = 0; i < indents; i++)

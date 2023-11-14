@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cctype>
 #include <memory>
+#include <vector>
 using namespace std;
 
 enum TypeTag 
@@ -31,6 +32,7 @@ struct typedValue
     {
         double doubleValue;
         bool booleanValue;
+        vector<typedValue>* arrayValue;
         void * functionValue;
     };
 
@@ -46,6 +48,18 @@ struct typedValue
         else if(tValue.type == DOUBLE)
         {
             o << tValue.data.doubleValue;
+        }
+        else if(tValue.type == ARRAY)
+        {
+            o << "[";
+            // vector<typedValue> elements = *tValue.data.arrayValue;
+            // //cout << "size = " << elements.size() << endl;
+            // for (unsigned int i = 0 ; i < elements.size() ; i++)
+            // {
+            //     o << elements[i];
+            //     if (i != elements.size() - 1) o << ", ";
+            // }
+            o << "]";
         }
         else if(tValue.type == NONE)
         {
