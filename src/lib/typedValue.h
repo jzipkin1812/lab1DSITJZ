@@ -69,7 +69,7 @@ struct typedValue
         {
             o << "null";
         }
-        else o << tValue.data.doubleValue;
+        //else o << tValue.data.doubleValue;
         return o;
     };
 
