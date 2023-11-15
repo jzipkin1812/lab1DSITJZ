@@ -613,9 +613,15 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         }
         else if (top->branches.size() == 1 && top->branches[0]->info.text == "[") 
         {
-            int index = (int) evaluate(top->branches[0]->branches[0], scopeMap).data.doubleValue;
-            //int index = stoi(top->branches[0]->branches[0]->info.text);
-            result = result = scopeMap[text].data.arrayValue->at(index);
+            typedValue insideBrackets = evaluate(top->branches[0]->branches[0], scopeMap);
+            if (insideBrackets.type == DOUBLE)
+            {
+                int index = (int) insideBrackets.data.doubleValue;
+                //int index = stoi(top->branches[0]->branches[0]->info.text);
+                result = result = scopeMap[text].data.arrayValue->at(index);
+            } else {
+
+            }
         }
         else
         {
