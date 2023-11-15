@@ -903,9 +903,8 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope, bool a
     noneReturn.type = NONE;
     if(b.statementType == "print")
     {
-        cout << "b.root = " << b.root->info.text << endl;
         typedValue printResult = evaluate(b.root, scope);
-        cout << "after evaluating printResult, the first element is " << (*printResult.data.arrayValue)[0] << endl;
+        if (printResult.type == ARRAY) cout << "after evaluating printResult, the first element is " << (*printResult.data.arrayValue)[0] << endl;
         if(printResult.isError()) printResult.outputError(true);
         cout << printResult << endl;
     }
