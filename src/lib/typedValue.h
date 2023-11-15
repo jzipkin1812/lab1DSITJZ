@@ -47,6 +47,7 @@ struct typedValue
         }
         else if(tValue.type == DOUBLE)
         {
+            // cout << "A DOUBLE IS PRINTED" << endl;
             o << tValue.data.doubleValue;
         }
         else if(tValue.type == ARRAY)
@@ -64,6 +65,7 @@ struct typedValue
         {
             o << "null";
         }
+        else o << "DOES NOT EXIST";
         return o;
     };
 

@@ -232,14 +232,15 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                     }
                 }
                 if (tokens[i].text == "]") endOfArray = true;
-                if (!element.empty())
-                {
+                //if (!element.empty())
+                //{
                     element.push_back(Token(0, 0, "END"));
-                    //cout << "About to push the element ";
-                    //for (Token token : element) cout << token.text << " ";
-                    //cout << endl;
+                    // cout << "About to push the element ";
+                    // for (Token token : element) cout << token.text << " ";
+                    // cout << endl;
                     elements.push_back(element);
-                }
+                //}
+                //if (!endOfArray) 
                 i++; // next element
             }
             //cout << "All elements have been collected" << endl;
@@ -428,28 +429,31 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
 
 typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
 {
-    // cout << "Size = " << scopeMap.size() << endl;
-    // cout << "top = " << top->info.text << endl;
-    // for (Node* node : top->branches)
-    // {
-    //     cout << "kid of top = " << node->info.text << endl;
-    //     if (node->branches.size() != 0) cout << "kids of " << node->info.text << " are: " << endl;
-    //     for (Node* kid : node->branches)
-    //     {
-    //         cout << kid->info.text << endl;
-    //         if (kid->branches.size() != 0) cout << "kids of " << kid->info.text << " are: " << endl;
-    //         for (Node* grandkid : kid->branches)
-    //         {
-    //             cout << grandkid->info.text << endl;
-    //             if (grandkid->branches.size() != 0) cout << "kids of " << grandkid->info.text << " are: " << endl;
-    //             for (Node* nin : grandkid->branches)
-    //             {
-    //                 cout << nin->info.text << endl;
-    //             }
-    //         }
-    //     }
-    // }
-    // cout << endl << endl;
+    //cout << "evaluating" << endl;
+    //cout << "Size = " << scopeMap.size() << endl;
+    /*
+    cout << "top = " << top->info.text << endl;
+    for (Node* node : top->branches)
+    {
+        cout << "kid of top = " << node->info.text << endl;
+        if (node->branches.size() != 0) cout << "kids of " << node->info.text << " are: " << endl;
+        for (Node* kid : node->branches)
+        {
+            cout << kid->info.text << endl;
+            if (kid->branches.size() != 0) cout << "kids of " << kid->info.text << " are: " << endl;
+            for (Node* grandkid : kid->branches)
+            {
+                cout << grandkid->info.text << endl;
+                if (grandkid->branches.size() != 0) cout << "kids of " << grandkid->info.text << " are: " << endl;
+                for (Node* nin : grandkid->branches)
+                {
+                    cout << nin->info.text << endl;
+                }
+            }
+        }
+    }
+    cout << endl << endl;
+    */
     typedValue result = typedValue{DOUBLE, {0}, ""};
     if (!top)
     {
@@ -464,6 +468,8 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     {
         left = evaluate(top->branches[0], scopeMap);
         right = evaluate(top->branches[1], scopeMap);
+        // cout << "right is an array of size " << (*right.data.arrayValue).size() << endl; 
+        // cout << "right's type is " << right.type << endl;
         result.setType(left.type);
         result.setType(right.type);
     }
@@ -563,7 +569,10 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             // There are no assignee errors at this point. Assign the variables.
             result = right;
             string key = top->branches[0]->info.text;
+            //cout << "key = "  << key << endl;
             scopeMap[key] = result;
+           //  cout << "assigned, " << (*right.data.arrayValue).size() << endl;
+
         }
         else
         {
@@ -593,6 +602,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         }
         else
         {
+            //  << "IDENTIFIED" << endl;
             // bool arrayAccess = true;
             // if (top->branches.size() != 1) arrayAccess = false;
             // if (arrayAccess)
@@ -613,6 +623,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             // }
             // Gets a function pointer, array, boolean, null, or double
             result = scopeMap[text];
+            // cout << (*result.data.arrayValue).size() << endl;
             // But...if result is a function, we need to call the function.
             if(top->isFunctionCall)
             {
@@ -689,6 +700,8 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         result.setType(BOOLEAN);
         result.data.booleanValue = left.data.booleanValue != right.data.booleanValue;
     }
+    //if (result.type == ARRAY)
+    //cout << "about to return printResult. Right now, the vector's first element is " << (*result.data.arrayValue)[0] << endl;
     return (result);
 }
 
@@ -746,7 +759,8 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         }
         // Assignee errors are no longer caught until runtime.
         // Parentheses should be balanced.
-        // After an open parentheses, we must see a number or an identifier or another open parenthesis.
+        // After an open parentheses/bracket, we must see a number or an identifier or another open parenthesis.
+        // After an opening bracket, there can come a closing bracket
         // There should never be an empty set of two parentheses unless we are in a function call.
         else if (t.text == "(" || t.text == "[")
         {
@@ -763,7 +777,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 return (true);
             }
             if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["
-              || (expression[i + 1].text == ")" && isFunctionCall)))
+              || (expression[i + 1].text == ")" && isFunctionCall) || (t.text == "[" && expression[i + 1].text == "]")))
             {
                 cout << "Error 5" << endl;
                 parseError(expression[i + 1], line);
@@ -894,6 +908,7 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope, bool a
     if(b.statementType == "print")
     {
         typedValue printResult = evaluate(b.root, scope);
+       // if (printResult.type == ARRAY) cout << "after evaluating printResult, the first element is " << (*printResult.data.arrayValue)[0] << endl;
         if(printResult.isError()) printResult.outputError(true);
         cout << printResult << endl;
     }
