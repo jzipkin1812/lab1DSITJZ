@@ -508,6 +508,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             // for (typedValue element : array) cout << element << ", ";
             // cout << endl;
             result.data.arrayValue = &array;
+            cout << "Almost done evaluating printResult, and the first element is " << (*result.data.arrayValue)[0] << endl;
             // << "OUR VECTOR IS ";
             // for (typedValue element : *result.data.arrayValue) cout << element << ", ";
             // cout << "where the first element is a " << (*result.data.arrayValue)[0].type;
@@ -696,7 +697,8 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         result.setType(BOOLEAN);
         result.data.booleanValue = left.data.booleanValue != right.data.booleanValue;
     }
-    //cout << "about to return result. Right now, the vector's first element is " << (*result.data.arrayValue)[0] << endl;
+    if (result.type == ARRAY)
+    cout << "about to return printResult. Right now, the vector's first element is " << (*result.data.arrayValue)[0] << endl;
     return (result);
 }
 
@@ -901,9 +903,9 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope, bool a
     noneReturn.type = NONE;
     if(b.statementType == "print")
     {
-        //cout << "b.root = " << b.root->info.text << endl;
+        cout << "b.root = " << b.root->info.text << endl;
         typedValue printResult = evaluate(b.root, scope);
-        //cout << (*printResult.data.arrayValue)[0] << endl;
+        cout << "after evaluating printResult, the first element is " << (*printResult.data.arrayValue)[0] << endl;
         if(printResult.isError()) printResult.outputError(true);
         cout << printResult << endl;
     }
