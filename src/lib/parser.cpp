@@ -281,12 +281,22 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
         {
             if (tokens[i].isVariable() && tokens[i + 1].text == "[") // accessing an element in an array
             {
+                //cout << "searching.." << endl;
                 Node* array = new Node{tokens[i], vector<Node*>(), nullptr};
                 Node* bracket = new Node{tokens[i + 1], vector<Node*>(), array};
-                Node* index = new Node{tokens[i + 2], vector<Node*>(), bracket};
-                bracket->branches.push_back(index);
+                vector<Token> index;
+                int j = i + 2; // token after "["
+                while (tokens[j].text != "]")
+                {
+                    index.push_back(tokens[j]);
+                    j++;
+                }
+                index.push_back(Token(0, 0, "END"));
+                Node* indexNode = constructAST(index, 1, false, false);
+                bracket->branches.push_back(indexNode);
                 array->branches.push_back(bracket);
                 nodeStack.push(array);
+                i = j;
             }
             else if (i+1<tokens.size() && tokens[i+1].text == "(")  //condition to handle function calls
             {
@@ -424,6 +434,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
     {
         cout << "Runtime error: condition is not a bool." << endl;
     } */
+    //cout << "final root = " << finalRoot->info.text << endl;
     return finalRoot;
 }
 
@@ -431,29 +442,29 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
 {
     //cout << "evaluating" << endl;
     //cout << "Size = " << scopeMap.size() << endl;
-    /*
-    cout << "top = " << top->info.text << endl;
-    for (Node* node : top->branches)
-    {
-        cout << "kid of top = " << node->info.text << endl;
-        if (node->branches.size() != 0) cout << "kids of " << node->info.text << " are: " << endl;
-        for (Node* kid : node->branches)
-        {
-            cout << kid->info.text << endl;
-            if (kid->branches.size() != 0) cout << "kids of " << kid->info.text << " are: " << endl;
-            for (Node* grandkid : kid->branches)
-            {
-                cout << grandkid->info.text << endl;
-                if (grandkid->branches.size() != 0) cout << "kids of " << grandkid->info.text << " are: " << endl;
-                for (Node* nin : grandkid->branches)
-                {
-                    cout << nin->info.text << endl;
-                }
-            }
-        }
-    }
-    cout << endl << endl;
-    */
+    
+    // cout << "top = " << top->info.text << endl;
+    // for (Node* node : top->branches)
+    // {
+    //     cout << "kid of top = " << node->info.text << endl;
+    //     if (node->branches.size() != 0) cout << "kids of " << node->info.text << " are: " << endl;
+    //     for (Node* kid : node->branches)
+    //     {
+    //         cout << kid->info.text << endl;
+    //         if (kid->branches.size() != 0) cout << "kids of " << kid->info.text << " are: " << endl;
+    //         for (Node* grandkid : kid->branches)
+    //         {
+    //             cout << grandkid->info.text << endl;
+    //             if (grandkid->branches.size() != 0) cout << "kids of " << grandkid->info.text << " are: " << endl;
+    //             for (Node* nin : grandkid->branches)
+    //             {
+    //                 cout << nin->info.text << endl;
+    //             }
+    //         }
+    //     }
+    // }
+    // cout << endl << endl;
+    
     typedValue result = typedValue{DOUBLE, {0}, ""};
     if (!top)
     {
@@ -599,6 +610,12 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             result.type = IDERROR;
             result.unknownIDText = text;
             return (result);
+        }
+        else if (top->branches.size() == 1 && top->branches[0]->info.text == "[") 
+        {
+            int index = (int) evaluate(top->branches[0]->branches[0], scopeMap).data.doubleValue;
+            //int index = stoi(top->branches[0]->branches[0]->info.text);
+            result = result = scopeMap[text].data.arrayValue->at(index);
         }
         else
         {
@@ -907,6 +924,7 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope, bool a
     noneReturn.type = NONE;
     if(b.statementType == "print")
     {
+        //cout << "b.root = " << b.root->info.text << endl;
         typedValue printResult = evaluate(b.root, scope);
        // if (printResult.type == ARRAY) cout << "after evaluating printResult, the first element is " << (*printResult.data.arrayValue)[0] << endl;
         if(printResult.isError()) printResult.outputError(true);

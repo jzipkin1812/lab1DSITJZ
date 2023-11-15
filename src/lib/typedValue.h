@@ -65,7 +65,6 @@ struct typedValue
         {
             o << "null";
         }
-        else o << "DOES NOT EXIST";
         return o;
     };
 
