@@ -234,14 +234,15 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                     }
                 }
                 if (tokens[i].text == "]") endOfArray = true;
-                if (!element.empty())
-                {
+                //if (!element.empty())
+                //{
                     element.push_back(Token(0, 0, "END"));
-                    //cout << "About to push the element ";
-                    //for (Token token : element) cout << token.text << " ";
-                    //cout << endl;
+                    // cout << "About to push the element ";
+                    // for (Token token : element) cout << token.text << " ";
+                    // cout << endl;
                     elements.push_back(element);
-                }
+                //}
+                //if (!endOfArray) 
                 i++; // next element
             }
             //cout << "All elements have been collected" << endl;
@@ -432,27 +433,27 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
 {
     //cout << "evaluating" << endl;
     //cout << "Size = " << scopeMap.size() << endl;
-    // cout << "top = " << top->info.text << endl;
-    // for (Node* node : top->branches)
-    // {
-    //     cout << "kid of top = " << node->info.text << endl;
-    //     if (node->branches.size() != 0) cout << "kids of " << node->info.text << " are: " << endl;
-    //     for (Node* kid : node->branches)
-    //     {
-    //         cout << kid->info.text << endl;
-    //         if (kid->branches.size() != 0) cout << "kids of " << kid->info.text << " are: " << endl;
-    //         for (Node* grandkid : kid->branches)
-    //         {
-    //             cout << grandkid->info.text << endl;
-    //             if (grandkid->branches.size() != 0) cout << "kids of " << grandkid->info.text << " are: " << endl;
-    //             for (Node* nin : grandkid->branches)
-    //             {
-    //                 cout << nin->info.text << endl;
-    //             }
-    //         }
-    //     }
-    // }
-    // cout << endl << endl;
+    cout << "top = " << top->info.text << endl;
+    for (Node* node : top->branches)
+    {
+        cout << "kid of top = " << node->info.text << endl;
+        if (node->branches.size() != 0) cout << "kids of " << node->info.text << " are: " << endl;
+        for (Node* kid : node->branches)
+        {
+            cout << kid->info.text << endl;
+            if (kid->branches.size() != 0) cout << "kids of " << kid->info.text << " are: " << endl;
+            for (Node* grandkid : kid->branches)
+            {
+                cout << grandkid->info.text << endl;
+                if (grandkid->branches.size() != 0) cout << "kids of " << grandkid->info.text << " are: " << endl;
+                for (Node* nin : grandkid->branches)
+                {
+                    cout << nin->info.text << endl;
+                }
+            }
+        }
+    }
+    cout << endl << endl;
     typedValue result = typedValue{DOUBLE, {0}, ""};
     if (!top)
     {
@@ -756,7 +757,8 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         }
         // Assignee errors are no longer caught until runtime.
         // Parentheses should be balanced.
-        // After an open parentheses, we must see a number or an identifier or another open parenthesis.
+        // After an open parentheses/bracket, we must see a number or an identifier or another open parenthesis.
+        // After an opening bracket, there can come a closing bracket
         // There should never be an empty set of two parentheses unless we are in a function call.
         else if (t.text == "(" || t.text == "[")
         {
@@ -773,7 +775,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 return (true);
             }
             if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["
-              || (expression[i + 1].text == ")" && isFunctionCall)))
+              || (expression[i + 1].text == ")" && isFunctionCall) || (t.text == "[" && expression[i + 1].text == "]")))
             {
                 cout << "Error 5" << endl;
                 parseError(expression[i + 1], line);
