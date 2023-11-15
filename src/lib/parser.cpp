@@ -164,8 +164,6 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
 
 Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolons, bool ignoreErrors)
 {
-    // if (line == 90000) return nullptr;
-    
     // CHECK FOR ALL UNEXPECTED TOKEN ERRORS
     // The following function will print the error message on its own.
     // It returns true if there's an error detected.
@@ -494,24 +492,25 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         // cout << "top = " << top->info.text << endl; 
         // cout << "result's type = " << result.type << endl;
         //cout << "ARRAY ASSIGNMENT??" << endl;
-        if (top->parent && (top->parent->info.text == "=" || top->parent->info.text == "["))
-        {
+        //if (top->parent && (top->parent->info.text == "=" || top->parent->info.text == "["))
+        //{
             //cout << "ARRAY ASSIGNMENT" << endl;
-            vector<typedValue> array;
+            result.data.arrayValue = new vector<typedValue>();
             for (Node* node : top->branches) {
                 typedValue newElement = evaluate(node, scopeMap);
                 // cout << "node = " << node->info.text << " and it's a " << newElement.type << endl;
-                array.push_back(newElement); // add elements to the array
+                result.data.arrayValue->push_back(newElement); // add elements to the array
+                //cout<<newElement<<endl;
             }
-            // cout << "OUR VECTOR IS ";
-            // for (typedValue element : array) cout << element << ", ";
+             //cout << "OUR VECTOR IS ";
+             //for (typedValue element : *arr) cout << element << ", ";
             // cout << endl;
-            result.data.arrayValue = &array;
+            //result.data.arrayValue = &array;
             // cout << "OUR VECTOR IS ";
             // for (typedValue element : *result.data.arrayValue) cout << element << ", ";
             //cout << "where the first element is a " << (*result.data.arrayValue)[0].type;
-            cout << endl;
-        }
+           // cout << endl;
+       // }
     }
     else if (text == "-")
     {

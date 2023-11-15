@@ -52,13 +52,12 @@ struct typedValue
         else if(tValue.type == ARRAY)
         {
             o << "[";
-            // vector<typedValue> elements = *tValue.data.arrayValue;
-            // //cout << "size = " << elements.size() << endl;
-            // for (unsigned int i = 0 ; i < elements.size() ; i++)
-            // {
-            //     o << elements[i];
-            //     if (i != elements.size() - 1) o << ", ";
-            // }
+             //vector<typedValue> * arrPtr = tValue.data.arrayValue;
+             for (unsigned int i = 0 ; i < tValue.data.arrayValue->size(); i++)
+             {
+                 o << tValue.data.arrayValue->at(i);
+                 if (i != tValue.data.arrayValue->size() - 1) o << ", ";
+             }
             o << "]";
         }
         else if(tValue.type == NONE)
