@@ -38,23 +38,20 @@ int Parser::getPrecedence(string token) // Helper function for constructAST
 
 string Parser::printHelper(Node *top, bool lastChild)
 {
+    if (lastChild)
+    {
+
+    }
     string finalText = "";
     if (!top)
         return finalText;
-    bool last;
     if (top->info.isOperator())
     {
         finalText += "(";
-        for (unsigned int i = 0; i < top->branches.size(); i++)
-        {
-            last = (i == top->branches.size() - 1);
-            finalText += printHelper(top->branches[i], last);
-        }
+        finalText += printHelper(top->branches[0], false);
+        finalText += " " + top->info.text + " ";
+        finalText += printHelper(top->branches[1], true);
         finalText += ")";
-        if (!lastChild)
-        {
-            finalText += " " + top->parent->info.text + " ";
-        }
     }
     else if (top->info.isOperand() && top->isFunctionCall)
     {
@@ -62,7 +59,7 @@ string Parser::printHelper(Node *top, bool lastChild)
         for(unsigned int j = 0; j < top->branches.size(); j++)
         {
             Node * param = top->branches[j];
-            if(j < top->branches.size() - 1) finalText += printHelper(param, true) + ", ";
+            if(j < top->branches.size() - 1) finalText += printHelper(param, false) + ", ";
             else finalText += printHelper(param, true);
             
         }
@@ -80,11 +77,11 @@ string Parser::printHelper(Node *top, bool lastChild)
 
         finalText += converted;
 
-        if (!lastChild)
-        {
-            // Space, parent operator, space
-            finalText += " " + top->parent->info.text + " ";
-        }
+        // if (!lastChild)
+        // {
+        //     // Space, parent operator, space
+        //     finalText += " " + top->parent->info.text + " ";
+        // }
     }
     return (finalText);
 }

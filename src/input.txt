@@ -6,4 +6,4 @@ def factorial(num) {
     }
     return result;
 }
-print factorial(5);
+factorial(factorial(5, 5, 6, 7)) == factorial(25) ^ true;
