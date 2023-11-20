@@ -226,6 +226,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 {
                     while (tokens[i].text != "," && tokens[i].text != "]")
                     {
+                        //cout << "token = " << tokens[i].text << endl;
                         element.push_back(tokens[i]);
                         i++; // next token
                     }
@@ -234,11 +235,12 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                     endOfArray = true;
                 if (!element.empty())
                 {
-                element.push_back(Token(0, 0, "END"));
+                    //cout << "let's push" << endl;
+                    element.push_back(Token(0, 0, "END"));
                 // cout << "About to push the element ";
                 // for (Token token : element) cout << token.text << " ";
                 // cout << endl;
-                elements.push_back(element);
+                    elements.push_back(element);
                 }
                 // if (!endOfArray)
                 i++; // next element
@@ -524,7 +526,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         for (Node *node : top->branches)
         {
             typedValue newElement = evaluate(node, scopeMap);
-            // cout << "node = " << node->info.text << " and it's a " << newElement.type << endl;
+            //cout << "node = " << node->info.text << " and it's a " << newElement.type << endl;
             result.data.arrayValue->push_back(newElement); // add elements to the array
             // cout<<newElement<<endl;
         }
