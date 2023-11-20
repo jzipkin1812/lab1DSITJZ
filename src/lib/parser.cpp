@@ -624,7 +624,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             typedValue insideBrackets = evaluate(top->branches[0]->branches[0], scopeMap);
             int index = (int)insideBrackets.data.doubleValue;
             // int index = stoi(top->branches[0]->branches[0]->info.text);
-            result = result = scopeMap[text].data.arrayValue->at(index);
+            result = scopeMap[text].data.arrayValue->at(index);
         }
         else
         {
