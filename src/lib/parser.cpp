@@ -249,6 +249,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
             for (vector<Token> element : elements)
             {
                 Node *elementRoot = constructAST(element);
+                //root->branches.push_back(elementRoot);
                 array->branches.push_back(elementRoot);
             }
             // cout << "pushing to nodestack: " << array->info.text << endl;
@@ -474,7 +475,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     //         }
     //     }
     // }
-    // cout << endl;
+    // cout << endl
     //      << endl;
 
     typedValue result = typedValue{DOUBLE, {0}};
