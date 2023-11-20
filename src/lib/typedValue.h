@@ -57,7 +57,7 @@ struct typedValue
             // vector<typedValue> * arrPtr = tValue.data.arrayValue;
             for (unsigned int i = 0; i < tValue.data.arrayValue->size(); i++)
             {
-                if (tValue.data.arrayValue->at(i).type != NONE)
+                if (!(tValue.data.arrayValue->at(i).type == NONE && tValue.data.arrayValue->size() == 1))
                     o << tValue.data.arrayValue->at(i);
                 if (i != tValue.data.arrayValue->size() - 1)
                     o << ", ";
