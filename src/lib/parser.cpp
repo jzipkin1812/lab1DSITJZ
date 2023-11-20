@@ -232,14 +232,14 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 }
                 if (tokens[i].text == "]")
                     endOfArray = true;
-                // if (!element.empty())
-                //{
+                if (!element.empty())
+                {
                 element.push_back(Token(0, 0, "END"));
                 // cout << "About to push the element ";
                 // for (Token token : element) cout << token.text << " ";
                 // cout << endl;
                 elements.push_back(element);
-                //}
+                }
                 // if (!endOfArray)
                 i++; // next element
             }
@@ -472,7 +472,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     //         }
     //     }
     // }
-    // cout << endl
+    // cout << endl;
     //      << endl;
 
     typedValue result = typedValue{DOUBLE, {0}};
@@ -519,6 +519,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         // if (top->parent && (top->parent->info.text == "=" || top->parent->info.text == "["))
         //{
         // cout << "ARRAY ASSIGNMENT" << endl;
+        //cout << "size = " << endl;
         result.data.arrayValue = new vector<typedValue>();
         for (Node *node : top->branches)
         {
