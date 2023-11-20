@@ -124,7 +124,7 @@ struct typedValue
         else if (type == DIVZEROERROR)
             finalOutput = "Runtime error: division by zero.\n";
         else if (type == IDERROR)
-            finalOutput = "Runtime error: unknown identifier" + "\n";
+            finalOutput = "Runtime error: unknown identifier\n";
         else if (type == ASSIGNEEERROR)
             finalOutput = "Runtime error: invalid assignee.\n";
         else if (type == NOCONDITIONERROR)
