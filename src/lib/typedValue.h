@@ -58,7 +58,7 @@ struct typedValue
             for (unsigned int i = 0; i < tValue.data.arrayValue->size(); i++)
             {
                 //if (!(tValue.data.arrayValue->at(i).type == NONE))
-                    o << tValue.data.arrayValue->at(i);
+                o << tValue.data.arrayValue->at(i);
                 if (i != tValue.data.arrayValue->size() - 1)
                     o << ", ";
             }
