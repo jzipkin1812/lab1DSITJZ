@@ -762,7 +762,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         else if (t.isOperator() || t.isOrderComparison())
         {
             if (i == 0 ||
-                !(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
+                !(expression[i - 1].isOperand() || expression[i - 1].text == ")" || expression[i - 1].text == "]"))
             {
                 //cout << "Error 2" << endl;
                 parseError(t, line);

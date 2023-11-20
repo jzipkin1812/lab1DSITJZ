@@ -38,11 +38,23 @@ int Parser::getPrecedence(string token) // Helper function for constructAST
 
 string Parser::printHelper(Node *top, bool lastChild)
 {
+    //cout << "top = " << top->info.text << endl;
     string finalText = "";
     if (!top)
         return finalText;
     bool last;
-    if (top->info.isOperator())
+    if (top->info.text == "[") // array
+    {
+        finalText += "[";
+        vector<Node*> elements = top->branches;
+        for (unsigned int i = 0 ; i < elements.size() ; i++)
+        {
+            finalText += printHelper(elements[i], true);
+            if (i < elements.size() - 1) finalText += ", ";
+        }
+        finalText += "]";
+    }
+    else if (top->info.isOperator())
     {
         finalText += "(";
         for (unsigned int i = 0; i < top->branches.size(); i++)
@@ -68,6 +80,11 @@ string Parser::printHelper(Node *top, bool lastChild)
         }
         finalText += ")";
     }
+    // else if (top->info.isVariable() && top->branches.size() == 1 && top->branches[0]->info.text == "[") 
+    // {
+    //     finalText += top->info.text;
+    //     finalText += printHelper(top->branches[0], false);
+    // }
     else
     {
         string converted = top->info.text;
@@ -79,6 +96,11 @@ string Parser::printHelper(Node *top, bool lastChild)
         }
 
         finalText += converted;
+
+        if (top->branches.size() == 1 && top->branches[0]->info.text == "[")
+        {
+            finalText += printHelper(top->branches[0], false);
+        }
 
         if (!lastChild)
         {
