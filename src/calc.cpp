@@ -6,7 +6,6 @@
 #include "lib/lex.h"
 #include "lib/typedValue.h"
 
-
 using namespace std;
 
 int main()
@@ -20,7 +19,7 @@ int main()
     //     }
     //     cout << endl;
     // }
-    Parser myParser = Parser(myLexer.getTokens());
+    Parser myParser = Parser(myLexer.getTokens(), false);
     myParser.print(); // calls evaluate() internally.
     return 0;
 }

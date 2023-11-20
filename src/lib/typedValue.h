@@ -25,6 +25,8 @@ enum TypeTag
     ARRAY             // [1, 2]
 };
 
+static string unknownIDText;
+
 struct typedValue
 {
     TypeTag type;
@@ -37,7 +39,6 @@ struct typedValue
     };
 
     d data;
-    string unknownIDText;
 
     friend ostream &operator<<(ostream &o, const typedValue &tValue)
     {
@@ -124,7 +125,10 @@ struct typedValue
         else if (type == DIVZEROERROR)
             finalOutput = "Runtime error: division by zero.\n";
         else if (type == IDERROR)
+        {
+            //cout << "ID :" << unknownIDText << endl;
             finalOutput = "Runtime error: unknown identifier " + unknownIDText + "\n";
+        }
         else if (type == ASSIGNEEERROR)
             finalOutput = "Runtime error: invalid assignee.\n";
         else if (type == NOCONDITIONERROR)
