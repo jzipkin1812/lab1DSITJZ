@@ -1438,6 +1438,7 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue> &scope, bool a
         // If the scope passed in was Parser's provisional, we don't expect any return statements.
         if (!allowReturns)
         {
+            evaluate(b.root, scope);
             typedValue returnError;
             returnError.type = BADRETURNERROR;
             returnError.outputError(true);
