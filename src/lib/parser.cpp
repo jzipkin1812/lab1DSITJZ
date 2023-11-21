@@ -1147,7 +1147,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         // Statements should NEVER show up inside an expression. They're not part of ASTs. Same with curly braces.
         if (t.isStatement() || t.isBrace())
         {
-            cout << "error 1" << endl;
+            //cout << "error 1" << endl;
             parseError(t, line);
             return (true);
         }
@@ -1160,13 +1160,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             if (i == 0 ||
                 !(expression[i - 1].isOperand() || expression[i - 1].text == ")" || expression[i - 1].text == "]"))
             {
-                cout << "error 2" << endl;
+                //cout << "error 2" << endl;
                 parseError(t, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["))
             {
-                cout << "error 3" << endl;
+                //cout << "error 3" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1219,13 +1219,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // cout << "brackets = " << brackets << " and " << t.text << endl;
             if (parentheses < 0 || brackets < 0) // This also covers the case where i == 0.
             {
-                cout << "error 6" << endl;
+                //cout << "error 6" << endl;
                 parseError(t, line);
                 return (true);
             }
             if (!(expression[i + 1].isOperator() || expression[i + 1].text == ")" || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "]" || expression[i + 1].text == "["))
             {
-                cout << "error 7" << endl;
+                //cout << "error 7" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1243,7 +1243,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // Check right, if no function call exists.
             else if (!(expression[i + 1].text == ")" || expression[i + 1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "["))
             {
-                cout << "error 8" << endl;
+                //cout << "error 8" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1255,14 +1255,14 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // Semicolons are also unexpected if there are remaining open parentheses.
             if (!requireSemicolons || parentheses > 0)
             {
-                cout << "error 9" << endl;
+                //cout << "error 9" << endl;
                 parseError(t, line);
                 return (true);
             }
             // The token AFTER a semicolon is always unexpected if it's not the END of the expression.
             else if (!(expression[i + 1].isEnd()))
             {
-                cout << "error 10" << endl;
+                //cout << "error 10" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1273,13 +1273,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         {
             if (!isFunctionCall && brackets == 0)
             {
-                cout << "error 11" << endl;
+                //cout << "error 11" << endl;
                 parseError(t, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["))
             {
-                cout << "error 12" << endl;
+                //cout << "error 12" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1297,7 +1297,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
     }
     else
     {
-        cout << "error 13" << endl;
+        //cout << "error 13" << endl;
         parseError(theEnd, line);
         return (true);
     }
