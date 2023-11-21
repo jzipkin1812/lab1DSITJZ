@@ -761,7 +761,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         }
         else
         {
-            result.setType(NONE);
+            result = evaluate(top->branches[0], scopeMap).data.arrayValue->back();
             evaluate(top->branches[0], scopeMap).data.arrayValue->pop_back();
         }
     }
