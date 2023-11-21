@@ -295,9 +295,34 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 //root->branches.push_back(elementRoot);
                 array->branches.push_back(elementRoot);
             }
+            if (tokens[i + 1].text == "[")
+            {
+                Node* search = new Node{Token{0, 0, "[.]"}, vector<Node*>(), nullptr};
+                vector<Token> index; // index inside second []
+                int brackets = 1;
+                i += 2; // first index element
+                while (brackets > 0) 
+                {
+                    if (tokens[i].text == "[") brackets++;
+                    if (tokens[i].text == "]") brackets--;
+                    index.push_back(tokens[i]);
+                    i++;
+                }
+                index.pop_back();
+                index.push_back(Token(0, 0, "END"));
+                Node* indexNode = constructAST(index, 0, false, false);
+                search->branches.push_back(array);
+                search->branches.push_back(indexNode);
+                indexNode->parent = search;
+                array->parent = search;
+                nodeStack.push(search);
+                i--;
+            }
             // cout << "pushing to nodestack: " << array->info.text << endl;
+            else 
             nodeStack.push(array);
-            // cout << i << " == " << tokens.size() - 1 << endl;
+            //cout << "now, tokens[i] = " << tokens[i].text << endl;
+            //cout << i << " == " << tokens.size() - 1 << endl;
             if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
             {
                 while (!stringStack.empty() && stringStack.top() != "(")
@@ -585,6 +610,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         // cout << endl;
         // }
     }
+    else if (text == "[.]")
+    {
+        int index = (int) evaluate(top->branches[1], scopeMap).data.doubleValue;
+        result = evaluate(top->branches[0], scopeMap).data.arrayValue->at(index);
+    }
     else if (text == "-")
     {
         result.data.doubleValue = left.data.doubleValue - right.data.doubleValue;
@@ -642,6 +672,15 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             {
                 int index = (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue;
                 scopeMap[key].data.arrayValue->at(index) = result;
+            }
+            else if (top->branches[1]->info.text == "[.]")
+            {
+                //cout << "ok lets do it!!!!!!!!!!!!!!!!" << endl;
+                int index = (int) evaluate(top->branches[1]->branches[1], scopeMap).data.doubleValue;
+                //cout << "ok lets do it??????" << endl;
+                result = evaluate(top->branches[1]->branches[0], scopeMap).data.arrayValue->at(index);
+                scopeMap[key] = result;
+                //cout << "did it!!!" << endl;
             }
             else scopeMap[key] = result;
             // cout << "TEXT: " << unknownIDText << endl;
@@ -786,6 +825,12 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
 
 bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolons) // runs before we try evaluating
 {
+    // cout << "expression = ";
+    // for (Token token : expression)
+    // {
+    //     cout << token.text << " ";
+    // }
+    // cout << endl;
     int lastIndex = expression.size() - 2;
     Token theEnd = expression.back();
     bool isFunctionCall = false;
@@ -812,7 +857,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         // Statements should NEVER show up inside an expression. They're not part of ASTs. Same with curly braces.
         if (t.isStatement() || t.isBrace())
         {
-            //cout << "error 1" << endl;
+            cout << "error 1" << endl;
             parseError(t, line);
             return (true);
         }
@@ -825,13 +870,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             if (i == 0 ||
                 !(expression[i - 1].isOperand() || expression[i - 1].text == ")" || expression[i - 1].text == "]"))
             {
-                //cout << "error 2" << endl;
+                cout << "error 2" << endl;
                 parseError(t, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["))
             {
-                //cout << "error 3" << endl;
+                cout << "error 3" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -853,13 +898,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             }
             if (i == lastIndex)
             {
-                //cout << "error 4" << endl;
+                cout << "error 4" << endl;
                 parseError(theEnd, line);
                 return (true);
             }
             if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "[" || (expression[i + 1].text == ")" && isFunctionCall) || (t.text == "[" && expression[i + 1].text == "]")))
             {
-                //cout << "error 5" << endl;
+                cout << "error 5" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -881,15 +926,16 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                     isFunctionCall = false;
                 }
             }
+            //cout << "brackets = " << brackets << " and " << t.text << endl;
             if (parentheses < 0 || brackets < 0) // This also covers the case where i == 0.
             {
-                //cout << "error 6" << endl;
+                cout << "error 6" << endl;
                 parseError(t, line);
                 return (true);
             }
             if (!(expression[i + 1].isOperator() || expression[i + 1].text == ")" || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "]" || expression[i + 1].text == "["))
             {
-                //cout << "error 7" << endl;
+                cout << "error 7" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -907,7 +953,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // Check right, if no function call exists.
             else if (!(expression[i + 1].text == ")" || expression[i + 1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || (t.isVariable() && expression[i + 1].text == "[")))
             {
-                //cout << "error 8" << endl;
+                cout << "error 8" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -919,14 +965,14 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // Semicolons are also unexpected if there are remaining open parentheses.
             if (!requireSemicolons || parentheses > 0)
             {
-                //cout << "error 9" << endl;
+                cout << "error 9" << endl;
                 parseError(t, line);
                 return (true);
             }
             // The token AFTER a semicolon is always unexpected if it's not the END of the expression.
             else if (!(expression[i + 1].isEnd()))
             {
-                //cout << "error 10" << endl;
+                cout << "error 10" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -937,13 +983,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         {
             if (!isFunctionCall && brackets == 0)
             {
-                //cout << "error 11" << endl;
+                cout << "error 11" << endl;
                 parseError(t, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["))
             {
-                //cout << "error 12" << endl;
+                cout << "error 12" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -961,7 +1007,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
     }
     else
     {
-        //cout << "error 13" << endl;
+        cout << "error 13" << endl;
         parseError(theEnd, line);
         return (true);
     }
