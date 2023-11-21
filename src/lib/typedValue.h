@@ -6,6 +6,7 @@
 #include <cctype>
 #include <memory>
 #include <vector>
+#include <iomanip>
 using namespace std;
 
 enum TypeTag
@@ -23,6 +24,7 @@ enum TypeTag
     ARGCERROR,        // Incorrect # of arguments passed to function
     BADRETURNERROR,   // Return at top-level, not inside function
     INDEXNOTNUMBERERROR, // [1, 2][true]
+    INDEXNOTINTEGERERROR, // [1, 2][0.2]
     ARRAY             // [1, 2]
 };
 
@@ -60,7 +62,7 @@ struct typedValue
         }
         else if (tValue.type == DOUBLE)
         {
-            // cout << "A DOUBLE IS PRINTED" << endl;
+            cout << scientific << setprecision(2);
             o << tValue.data.doubleValue;
         }
         else if (tValue.type == ARRAY)
@@ -134,7 +136,7 @@ struct typedValue
 
     bool isError()
     {
-        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR || type == INDEXNOTNUMBERERROR);
+        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR || type == INDEXNOTNUMBERERROR || type == INDEXNOTINTEGERERROR);
     }
 
     string outputError(bool exitImmediately = false)
@@ -142,6 +144,13 @@ struct typedValue
         string finalOutput = "";
         if (!isError())
             return finalOutput;
+<<<<<<< HEAD
+=======
+        else if (type == SYNTAXERROR)
+            finalOutput = "Syntax error on line .\n";
+        else if (type == INDEXNOTINTEGERERROR)
+            finalOutput += "Runtime error: index is not an integer.\n";
+>>>>>>> 3afb75a (Index must be integer)
         else if (type == INDEXNOTNUMBERERROR)
             finalOutput = "Runtime error: index is not a number.\n";
         else if (type == TYPEERROR)

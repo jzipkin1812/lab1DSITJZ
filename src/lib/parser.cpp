@@ -620,6 +620,10 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             result.setType(INDEXNOTNUMBERERROR);
             // exit(2);
         }
+        else if (to_string(evaluate(top->branches[1], scopeMap).data.doubleValue).find('.') != string::npos)
+        {
+            result.setType(INDEXNOTINTEGERERROR);
+        }
         else
         {
             int index = (int)evaluate(top->branches[1], scopeMap).data.doubleValue;
@@ -686,6 +690,10 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                     // cout << "error!2" << endl;
                     result.setType(INDEXNOTNUMBERERROR);
                 }
+                else if (to_string(evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue).find('.') != string::npos)
+                {
+                    result.setType(INDEXNOTINTEGERERROR);
+                }
                 else
                 {
                     int index = (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue;
@@ -715,7 +723,15 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 result.setType(INDEXNOTNUMBERERROR);
                 // exit(2);
             }
+<<<<<<< HEAD
             else
+=======
+            else if (to_string(evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue).find('.') != string::npos)
+            {
+                result.setType(INDEXNOTINTEGERERROR);
+            }
+            else 
+>>>>>>> 3afb75a (Index must be integer)
             {
                 int index = (int)evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue;
                 evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->at(index) = result;
@@ -756,7 +772,15 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 // cout << "error!2" << endl;
                 result.setType(INDEXNOTNUMBERERROR);
             }
+<<<<<<< HEAD
             else
+=======
+            else if (to_string(insideBrackets.data.doubleValue).find('.') != string::npos)
+            {
+                result.setType(INDEXNOTINTEGERERROR);
+            }
+            else 
+>>>>>>> 3afb75a (Index must be integer)
             {
                 int index = (int)insideBrackets.data.doubleValue;
                 // int index = stoi(top->branches[0]->branches[0]->info.text);
