@@ -63,7 +63,8 @@ struct typedValue
         }
         else if (tValue.type == DOUBLE)
         {
-            //cout << scientific << setprecision(2);
+            // if (tValue.data.doubleValue < 1e-6)
+            //     o << scientific << setprecision(2);
             o << tValue.data.doubleValue;
         }
         else if (tValue.type == ARRAY)
