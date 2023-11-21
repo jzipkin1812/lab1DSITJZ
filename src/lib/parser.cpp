@@ -212,6 +212,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                     parenthesis++;
                 else if (tokens[i].text == ")")
                     parenthesis--;
+                if (tokens[i].text == ",") exit(2);
                 array.push_back(tokens[i]);
                 i++;
             }
