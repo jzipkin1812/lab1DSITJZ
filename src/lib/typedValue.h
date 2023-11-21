@@ -40,6 +40,17 @@ struct typedValue
 
     d data;
 
+    // ~typedValue()
+    // {
+    //     if (data.arrayValue != nullptr)
+    //     {
+    //         //delete data.arrayValue;
+    //         //data.arrayValue = nullptr;  // Set to nullptr after deletion
+    //         cout << "deleted" << endl;
+    //     }
+    // }
+
+
     friend ostream &operator<<(ostream &o, const typedValue &tValue)
     {
         if (tValue.type == BOOLEAN)

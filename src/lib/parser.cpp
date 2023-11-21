@@ -594,7 +594,12 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             result = right;
             string key = top->branches[0]->info.text;
             // cout << "key = "  << key << endl;
-            scopeMap[key] = result;
+            if (top->branches[0]->branches.size() == 1 && top->branches[0]->branches[0]->info.text == "[")
+            {
+                int index = (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue;
+                scopeMap[key].data.arrayValue->at(index) = result;
+            }
+            else scopeMap[key] = result;
             // cout << "TEXT: " << unknownIDText << endl;
             //   cout << "assigned, " << (*right.data.arrayValue).size() << endl;
         }
