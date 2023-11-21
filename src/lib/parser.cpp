@@ -612,6 +612,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     }
     else if (text == "[.]")
     {
+        if (evaluate(top->branches[1], scopeMap).type != DOUBLE)
+        {
+            cout << "Runtime error: index is not a number." << endl;
+            exit(2);
+        }
         int index = (int) evaluate(top->branches[1], scopeMap).data.doubleValue;
         result = evaluate(top->branches[0], scopeMap).data.arrayValue->at(index);
     }
@@ -689,6 +694,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         else if (assignee.text == "[.]")
         {
             result = right;
+            if (evaluate(top->branches[0]->branches[1], scopeMap).type != DOUBLE)
+            {
+                cout << "Runtime error: index is not a number." << endl;
+                exit(2);
+            }
             int index = (int) evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue;
             evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->at(index) = result;
         }
