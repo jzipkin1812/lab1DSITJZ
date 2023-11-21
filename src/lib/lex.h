@@ -7,6 +7,7 @@
 #include "token.h"
 #include "typedValue.h"
 using namespace std;
+
 class Lexer
 {
 public:
@@ -14,7 +15,7 @@ public:
     void print();
     vector<vector<Token>> getTokens() { return (tokens); };
     void parseString(string expression, int lineNumber);
-    void turnOnPushEnds() {pushEnds = true;};
+    void turnOnPushEnds() { pushEnds = true; };
 
 private:
     vector<vector<Token>> tokens;

@@ -13,7 +13,6 @@
 #include "parse.h"
 using namespace std;
 
-
 int Parser::getPrecedence(string token) // Helper function for constructAST
 {
     if (token == "=")
@@ -30,7 +29,7 @@ int Parser::getPrecedence(string token) // Helper function for constructAST
         return (6);
     else if (token == "+" || token == "-")
         return (7);
-    else if (token == "*" || token == "/"  || token == "%")
+    else if (token == "*" || token == "/" || token == "%")
         return (8);
     else
         return (9);
@@ -38,7 +37,7 @@ int Parser::getPrecedence(string token) // Helper function for constructAST
 
 string Parser::printHelper(Node *top, bool lastChild)
 {
-    //cout << "top = " << top->info.text << endl;
+    // cout << "top = " << top->info.text << endl;
     string finalText = "";
     if (!top)
         return finalText;
@@ -46,11 +45,12 @@ string Parser::printHelper(Node *top, bool lastChild)
     if (top->info.text == "[") // array
     {
         finalText += "[";
-        vector<Node*> elements = top->branches;
-        for (unsigned int i = 0 ; i < elements.size() ; i++)
+        vector<Node *> elements = top->branches;
+        for (unsigned int i = 0; i < elements.size(); i++)
         {
             finalText += printHelper(elements[i], true);
-            if (i < elements.size() - 1) finalText += ", ";
+            if (i < elements.size() - 1)
+                finalText += ", ";
         }
         finalText += "]";
     }
@@ -71,16 +71,17 @@ string Parser::printHelper(Node *top, bool lastChild)
     else if (top->info.isOperand() && top->isFunctionCall)
     {
         finalText += top->info.text + "(";
-        for(unsigned int j = 0; j < top->branches.size(); j++)
+        for (unsigned int j = 0; j < top->branches.size(); j++)
         {
-            Node * param = top->branches[j];
-            if(j < top->branches.size() - 1) finalText += printHelper(param, true) + ", ";
-            else finalText += printHelper(param, true);
-            
+            Node *param = top->branches[j];
+            if (j < top->branches.size() - 1)
+                finalText += printHelper(param, true) + ", ";
+            else
+                finalText += printHelper(param, true);
         }
         finalText += ")";
     }
-    // else if (top->info.isVariable() && top->branches.size() == 1 && top->branches[0]->info.text == "[") 
+    // else if (top->info.isVariable() && top->branches.size() == 1 && top->branches[0]->info.text == "[")
     // {
     //     finalText += top->info.text;
     //     finalText += printHelper(top->branches[0], false);
@@ -113,16 +114,15 @@ string Parser::printHelper(Node *top, bool lastChild)
 
 Parser::~Parser()
 {
-    
+
     for (Block block : blocks)
     {
         clearBlock(block);
     }
-    for(Func * funcPtr : globalFunctions)
+    for (Func *funcPtr : globalFunctions)
     {
         delete funcPtr;
     }
-    
 }
 
 void Parser::clearNode(Node *top)
@@ -142,12 +142,12 @@ void Parser::clearBlock(Block b)
 {
     clearNode(b.condition);
     clearNode(b.root);
-    if(b.elseStatement)
+    if (b.elseStatement)
     {
         clearBlock(*(b.elseStatement));
         delete b.elseStatement;
     }
-    for(Block g : b.nestedStatements)
+    for (Block g : b.nestedStatements)
     {
         clearBlock(g);
     }
@@ -155,7 +155,7 @@ void Parser::clearBlock(Block b)
 
 void Parser::execute()
 {
-    for(Block b : blocks)
+    for (Block b : blocks)
     {
         executeHelper(b, provisional, false);
     }
@@ -170,24 +170,26 @@ void Parser::execute()
     //         cout << variablePair.first << " is a function with this information:\n";
     //         cout << converted->argc << " arguments, " << converted->nestedStatements.size() << " nested blocks, and the name " << converted->functionName << endl;
     //     }
-        
+
     // }
 }
 
 bool Parser::containsOpen(vector<Token> line)
 {
-    for(Token t : line)
+    for (Token t : line)
     {
-        if(t.text == "{") return true;
+        if (t.text == "{")
+            return true;
     }
     return (false);
 }
 
 bool Parser::containsClose(vector<Token> line)
 {
-    for(Token t : line)
+    for (Token t : line)
     {
-        if(t.text == "}") return true;
+        if (t.text == "}")
+            return true;
     }
     return (false);
 }
@@ -195,85 +197,85 @@ bool Parser::containsClose(vector<Token> line)
 unsigned int Parser::nextClose(vector<vector<Token>> program, unsigned int lineNum)
 {
     int brackets = 0;
-    for(; lineNum < program.size(); lineNum++)
+    for (; lineNum < program.size(); lineNum++)
     {
         vector<Token> line = program[lineNum];
-        if(containsOpen(line))
+        if (containsOpen(line))
         {
             brackets++;
         }
-        if(containsClose(line))
+        if (containsClose(line))
         {
             brackets--;
-            if(brackets == 0)
+            if (brackets == 0)
             {
-                return(lineNum);
+                return (lineNum);
             }
         }
     }
-    return(0);
+    return (0);
 }
 
 unsigned int Parser::chainEndIndex(vector<vector<Token>> program, unsigned int lineNum)
 {
     int brackets = 0;
-    for(; lineNum < program.size(); lineNum++)
+    for (; lineNum < program.size(); lineNum++)
     {
         vector<Token> line = program[lineNum];
         Token first = *line.begin();
-        if(first.text == "else" || (lineNum < program.size() - 1 && program[lineNum + 1][0].text == "else"))
+        if (first.text == "else" || (lineNum < program.size() - 1 && program[lineNum + 1][0].text == "else"))
         {
             continue;
         }
-        if(containsOpen(line))
+        if (containsOpen(line))
         {
             brackets++;
         }
-        if(containsClose(line))
+        if (containsClose(line))
         {
             brackets--;
-            if(brackets == 0)
+            if (brackets == 0)
             {
-                return(lineNum);
+                return (lineNum);
             }
         }
     }
-    return(0);
+    return (0);
 }
 vector<vector<Token>> Parser::cleanInput(vector<vector<Token>> inputFromLexer)
 {
     vector<Token> &lastLine = inputFromLexer[inputFromLexer.size() - 1];
     vector<Token> line;
-    
+
     stack<unsigned int> closingLines;
 
-    if((lastLine.size() >= 2) && lastLine[lastLine.size() - 2].isEnd())
+    if ((lastLine.size() >= 2) && lastLine[lastLine.size() - 2].isEnd())
     {
         lastLine.erase(lastLine.end() - 1);
     }
     // Get rid of any pure whitespace lines
-    for(unsigned int i = 0; i < inputFromLexer.size(); i++)
+    for (unsigned int i = 0; i < inputFromLexer.size(); i++)
     {
-        if((*inputFromLexer[i].begin()).isEnd())
+        if ((*inputFromLexer[i].begin()).isEnd())
         {
             inputFromLexer.erase(inputFromLexer.begin() + i);
             i--;
         }
     }
     // Convert any else-if statements to else THEN if statements
-    for(unsigned int i = 0; i < inputFromLexer.size(); i++)
+    for (unsigned int i = 0; i < inputFromLexer.size(); i++)
     {
         line = inputFromLexer[i];
         Token beginning = line[0];
         Token second = line[1];
         // cout << "\t " << i << endl;
-        if(beginning.text == "if")
+        if (beginning.text == "if")
         {
             // cout << "closing line: ";
             closingLines.push(chainEndIndex(inputFromLexer, i));
             // cout << closingLines.top() << endl;
         }
-        else if(beginning.text == "else" && second.text == "if")
+        else if (beginning.text == "else" && second.text == "if")
         {
             // cout << "elif at " << i << flush;
             vector<Token> ifStatement = vector<Token>(line.begin() + 1, line.end());
@@ -281,16 +283,16 @@ vector<vector<Token>> Parser::cleanInput(vector<vector<Token>> inputFromLexer)
             inputFromLexer[i].erase(inputFromLexer[i].begin() + 1, inputFromLexer[i].end());
             // cout << " erased " << flush;
             inputFromLexer[i].push_back(Token(0, 0, "{"));
-            inputFromLexer.insert(inputFromLexer.begin() + i + 1, ifStatement);\
-            // cout << " inserted back in " << flush;
+            inputFromLexer.insert(inputFromLexer.begin() + i + 1, ifStatement); // cout << " inserted back in " << flush;
             vector<Token> oneBracket = {Token(0, 0, "}"), Token(0, 0, "END")};
             inputFromLexer.insert(inputFromLexer.begin() + closingLines.top() + 1, oneBracket);
             // cout << " bracketed " << flush;
             // cout << " is DONE" << endl;
         }
-        else 
+        else
         {
-            if(!closingLines.empty() && i == closingLines.top()) closingLines.pop();
+            if (!closingLines.empty() && i == closingLines.top())
+                closingLines.pop();
         }
     }
     // for(auto myLine : inputFromLexer)
@@ -301,20 +303,19 @@ vector<vector<Token>> Parser::cleanInput(vector<vector<Token>> inputFromLexer)
     //     }
     //     cout << endl;
     // }
-    return(inputFromLexer);
-    
+    return (inputFromLexer);
 }
 
 vector<vector<Token>> Parser::separateLines(vector<vector<Token>> input)
 {
     vector<vector<Token>> result;
     vector<Token> dividedLine;
-    for(auto line : input)
+    for (auto line : input)
     {
-        for(Token t : line)
+        for (Token t : line)
         {
             dividedLine.push_back(t);
-            if(t.isBrace() || t.isSemicolon()) // these are the only way to end lines.
+            if (t.isBrace() || t.isSemicolon()) // these are the only way to end lines.
             {
                 result.push_back(dividedLine);
                 dividedLine.clear();
@@ -322,7 +323,7 @@ vector<vector<Token>> Parser::separateLines(vector<vector<Token>> input)
         }
     }
     // Once more at the end, in case of a parse error where semicolons/braces were not used at all.
-    if(dividedLine.size() > 0)
+    if (dividedLine.size() > 0)
     {
         result.push_back(dividedLine);
         dividedLine.clear();
@@ -330,23 +331,23 @@ vector<vector<Token>> Parser::separateLines(vector<vector<Token>> input)
 
     // Now it's time to make sure all our END tokens are normal. End tokens in the middle of the expression should be removed,
     // and lines without end tokens should be given one.
-    for(unsigned int line = 0; line < result.size(); line++)
+    for (unsigned int line = 0; line < result.size(); line++)
     {
-        for(unsigned int col = 0; col < result[line].size(); col++)
+        for (unsigned int col = 0; col < result[line].size(); col++)
         {
             Token t = result[line][col];
-            if(t.isEnd() && col < result[line].size() - 1) // Excess END!
+            if (t.isEnd() && col < result[line].size() - 1) // Excess END!
             {
                 result[line].erase(result[line].begin() + col);
                 col--;
             }
-            else if(!t.isEnd() && col == result[line].size() - 1) // Oops, we need another END!
+            else if (!t.isEnd() && col == result[line].size() - 1) // Oops, we need another END!
             {
                 result[line].push_back(Token(line, t.column + 1, "END"));
             }
         }
     }
-    return(result);
+    return (result);
 }
 
 void Parser::print() // Infix, no statements, no semicolons
@@ -354,7 +355,7 @@ void Parser::print() // Infix, no statements, no semicolons
     for (unsigned int i = 0; i < blocks.size(); i++)
     {
         Block oneBlock = blocks[i];
-        if(oneBlock.root == nullptr)
+        if (oneBlock.root == nullptr)
         {
             continue;
         }
@@ -367,7 +368,7 @@ void Parser::print() // Infix, no statements, no semicolons
         // cout << finalValue.type << "\n";
         string finalInfix = printHelper(oneBlock.root, true);
         outputPerExpression[i] << finalInfix << "\n";
-        if(finalValue.isError())
+        if (finalValue.isError())
         {
             outputPerExpression[i] << finalValue.outputError(false);
         }
@@ -380,7 +381,7 @@ void Parser::print() // Infix, no statements, no semicolons
             outputPerExpression[i] << finalValue << "\n";
         }
     }
-    for(unsigned int i = 0; i < outputPerExpression.size(); i++)
+    for (unsigned int i = 0; i < outputPerExpression.size(); i++)
     {
         cout << outputPerExpression[i].str();
     }

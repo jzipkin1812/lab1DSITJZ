@@ -17,6 +17,7 @@ enum TypeTag
     IDERROR,          // Unknown identifier. e.g. b + 3 but b was never declared.
     ASSIGNEEERROR,    // Invalid assignee, e.g. 3 = 4 or (1 * 2) = a
     NOCONDITIONERROR, // A condition for a statement wasn't a boolean e.g. while(3 + 3) {
+    SYNTAXERROR,
     NONE,
     FUNCTION,
     NOTFUNCTIONERROR, // Not a function e.g. 7(6, 2, 3) or true(9, 10)
@@ -120,15 +121,14 @@ struct typedValue
         string finalOutput = "";
         if (!isError())
             return finalOutput;
+        else if (type == SYNTAXERROR)
+            finalOutput = "Syntax error on line .\n";
         else if (type == TYPEERROR)
             finalOutput = "Runtime error: invalid operand type.\n";
         else if (type == DIVZEROERROR)
             finalOutput = "Runtime error: division by zero.\n";
         else if (type == IDERROR)
-        {
-            //cout << "ID :" << unknownIDText << endl;
             finalOutput = "Runtime error: unknown identifier " + unknownIDText + "\n";
-        }
         else if (type == ASSIGNEEERROR)
             finalOutput = "Runtime error: invalid assignee.\n";
         else if (type == NOCONDITIONERROR)

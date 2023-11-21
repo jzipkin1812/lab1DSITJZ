@@ -11,7 +11,6 @@
 #include "lex.h"
 #include "parse.h"
 using namespace std;
-
 Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
 {
     exitImmediately = allowStatements = statements;
@@ -195,6 +194,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
     }
     for (unsigned int i = 0; i < tokens.size(); i++)
     {
+        // cout << tokens[i].text << endl;
         if (tokens[i].text == "[") // beginning of an array
         {
             Node *array = new Node{tokens[i], vector<Node *>(), nullptr};
@@ -489,8 +489,6 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     {
         left = evaluate(top->branches[0], scopeMap);
         right = evaluate(top->branches[1], scopeMap);
-        // cout << "right is an array of size " << (*right.data.arrayValue).size() << endl;
-        // cout << "right's type is " << right.type << endl;
         result.setType(left.type);
         result.setType(right.type);
     }
@@ -919,8 +917,16 @@ void Parser::parseError(Token token, int line)
     }
     else
     {
-        token.line = 1;
-        outputPerExpression[line] << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n";
+        if (token.text == "")
+        {
+            token.line = 1;
+            outputPerExpression[line] << "Syntax error at line " << token.line << " column " << token.column << ".\n";
+        }
+        else
+        {
+            token.line = 1;
+            outputPerExpression[line] << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n";
+        }
     }
     return;
 }
