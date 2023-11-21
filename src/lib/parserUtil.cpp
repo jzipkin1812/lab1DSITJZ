@@ -63,7 +63,7 @@ string Parser::printHelper(Node *top, bool lastChild)
     else if (top->info.isOperator())
     {
         finalText += "(";
-        cout << "top = " << top->info.text << " and size = " << top->branches.size() << endl;
+        //cout << "top = " << top->info.text << " and size = " << top->branches.size() << endl;
         for (unsigned int i = 0; i < top->branches.size(); i++)
         {
             last = (i == top->branches.size() - 1);
