@@ -659,7 +659,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         {
             //cout << "here?" << endl;
             int index = (int)evaluate(top->branches[1], scopeMap).data.doubleValue;
-            if (index > evaluate(top->branches[0], scopeMap).data.arrayValue->size() - 1)
+            if (index > (int) evaluate(top->branches[0], scopeMap).data.arrayValue->size() - 1)
             {
 
             }
@@ -741,7 +741,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 else
                 {
                     int index = (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue;
-                    if (index > scopeMap[key].data.arrayValue->size() - 1) 
+                    if (index > (int) scopeMap[key].data.arrayValue->size() - 1) 
                     {
 
                     }
@@ -782,7 +782,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             else 
             {
                 int index = (int)evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue;
-                if (index > evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->size() - 1)
+                if (index > (int) evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->size() - 1)
                 {
 
                 }
@@ -839,7 +839,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 //cout << "type = " << t.type << endl;
                 int index = (int)insideBrackets.data.doubleValue;
                 // int index = stoi(top->branches[0]->branches[0]->info.text);
-                if (index > scopeMap[text].data.arrayValue->size() - 1)
+                if (index > (int) scopeMap[text].data.arrayValue->size() - 1)
                 {
                     
                 }
