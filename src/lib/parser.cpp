@@ -352,7 +352,33 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
         }
         else if (tokens[i].isOperand()) // numbers and variables are treated the same at a base level
         {
-            if (tokens[i].isVariable() && tokens[i + 1].text == "[") // accessing an element in an array
+            if (!tokens[i].isVariable() && tokens[i + 1].text == "[")
+            {
+                Node *array = new Node{tokens[i], vector<Node *>(), nullptr};
+                Node *search = new Node{Token{0, 0, "[.]"}, vector<Node *>(), nullptr};
+                vector<Token> index; // index inside second []
+                int brackets = 1;
+                i += 2; // first index element
+                while (brackets > 0)
+                {
+                    if (tokens[i].text == "[")
+                        brackets++;
+                    if (tokens[i].text == "]")
+                        brackets--;
+                    index.push_back(tokens[i]);
+                    i++;
+                }
+                index.pop_back();
+                index.push_back(Token(0, 0, "END"));
+                Node *indexNode = constructAST(index, 0, false, false);
+                search->branches.push_back(array);
+                search->branches.push_back(indexNode);
+                indexNode->parent = search;
+                array->parent = search;
+                nodeStack.push(search);
+                i--;
+            }
+            else if (tokens[i].isVariable() && tokens[i + 1].text == "[") // accessing an element in an array
             {
                 // cout << "searching.." << endl;
                 Node *array = new Node{tokens[i], vector<Node *>(), nullptr};
@@ -613,9 +639,14 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     }
     else if (text == "[.]")
     {
-        if (evaluate(top->branches[1], scopeMap).type != DOUBLE)
+        if (evaluate(top->branches[0], scopeMap).type != ARRAY)
         {
-            // cout << "error!" << endl;
+            //cout << top->branches[0]->info.text << " is not an array..." << endl;
+            result.setType(NOTARRAYERROR);
+        }
+        else if (evaluate(top->branches[1], scopeMap).type != DOUBLE)
+        {
+            //cout << "error!" << endl;
             // cout << "Runtime error: index is not a number." << endl;
             result.setType(INDEXNOTNUMBERERROR);
             // exit(2);
@@ -626,6 +657,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         }
         else
         {
+            //cout << "here?" << endl;
             int index = (int)evaluate(top->branches[1], scopeMap).data.doubleValue;
             result = evaluate(top->branches[0], scopeMap).data.arrayValue->at(index);
         }
@@ -685,7 +717,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             // cout << "key = "  << key << endl;
             if (top->branches[0]->branches.size() == 1 && top->branches[0]->branches[0]->info.text == "[")
             {
-                if (evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).type != DOUBLE)
+                if (top->branches[0]->info.type != ARRAY)
+                {
+                    result.setType(NOTARRAYERROR);
+                }
+                else if (evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).type != DOUBLE)
                 {
                     // cout << "error!2" << endl;
                     result.setType(INDEXNOTNUMBERERROR);
@@ -717,7 +753,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         else if (assignee.text == "[.]")
         {
             result = right;
-            if (evaluate(top->branches[0]->branches[1], scopeMap).type != DOUBLE)
+            if (evaluate(top->branches[0]->branches[0], scopeMap).type != ARRAY)
+            {
+                result.setType(NOTARRAYERROR);
+            }
+            else if (evaluate(top->branches[0]->branches[1], scopeMap).type != DOUBLE)
             {
                 // cout << "Runtime error: index is not a number." << endl;
                 result.setType(INDEXNOTNUMBERERROR);
@@ -763,10 +803,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             // cout << "is index a number?" << endl;
             typedValue insideBrackets = evaluate(top->branches[0]->branches[0], scopeMap);
             // cout << "but here, where " << top->branches[0]->branches[0]->info.text << ", type = " << insideBrackets.type << endl;
-            if (t.type != ARRAY)
+            if (scopeMap[text].type != ARRAY)
             {
-                cout << "issue" << endl;
-                exit(2);
+                //cout << "issue, type = " << t.type << endl;
+                //exit(2);
+                result.setType(NOTARRAYERROR);
             }
             else if (insideBrackets.type != DOUBLE)
             {
@@ -779,6 +820,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             }
             else 
             {
+                //cout << "type = " << t.type << endl;
                 int index = (int)insideBrackets.data.doubleValue;
                 // int index = stoi(top->branches[0]->branches[0]->info.text);
                 result = scopeMap[text].data.arrayValue->at(index);
@@ -888,6 +930,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     // if (result.type == ARRAY)
     // cout << "about to return printResult. Right now, the vector's first element is " << (*result.data.arrayValue)[0] << endl;
     // cout << "type = " << result.type << endl;
+    //cout << "let's return" << endl;
     return (result);
 }
 
@@ -1019,7 +1062,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 isFunctionCall = true;
             }
             // Check right, if no function call exists.
-            else if (!(expression[i + 1].text == ")" || expression[i + 1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || (t.isVariable() && expression[i + 1].text == "[")))
+            else if (!(expression[i + 1].text == ")" || expression[i + 1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "["))
             {
                 cout << "error 8" << endl;
                 parseError(expression[i + 1], line);

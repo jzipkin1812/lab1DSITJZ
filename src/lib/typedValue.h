@@ -26,6 +26,7 @@ enum TypeTag
     INDEXNOTNUMBERERROR, // [1, 2][true]
     INDEXNOTINTEGERERROR, // [1, 2][0.2]
     SYNTAXERROR,
+    NOTARRAYERROR,
     ARRAY             // [1, 2]
 };
 
@@ -138,7 +139,7 @@ struct typedValue
 
     bool isError()
     {
-        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR || type == INDEXNOTNUMBERERROR || type == INDEXNOTINTEGERERROR);
+        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR || type == INDEXNOTNUMBERERROR || type == INDEXNOTINTEGERERROR || type == NOTARRAYERROR);
     }
 
     string outputError(bool exitImmediately = false)
@@ -154,6 +155,8 @@ struct typedValue
             finalOutput = "Runtime error: index is not a number.\n";
         else if (type == TYPEERROR)
             finalOutput = "Runtime error: invalid operand type.\n";
+        else if (type == NOTARRAYERROR)
+            finalOutput += "Runtime error: not an array.\n";
         else if (type == DIVZEROERROR)
             finalOutput = "Runtime error: division by zero.\n";
         else if (type == IDERROR)
