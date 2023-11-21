@@ -27,6 +27,7 @@ enum TypeTag
     INDEXNOTINTEGERERROR, // [1, 2][0.2]
     SYNTAXERROR,
     NOTARRAYERROR,
+    OUTOFBOUNDS,
     ARRAY             // [1, 2]
 };
 
@@ -139,7 +140,7 @@ struct typedValue
 
     bool isError()
     {
-        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR || type == INDEXNOTNUMBERERROR || type == INDEXNOTINTEGERERROR || type == NOTARRAYERROR);
+        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR || type == INDEXNOTNUMBERERROR || type == INDEXNOTINTEGERERROR || type == NOTARRAYERROR || type == OUTOFBOUNDS);
     }
 
     string outputError(bool exitImmediately = false)
@@ -153,6 +154,8 @@ struct typedValue
             finalOutput += "Runtime error: index is not an integer.\n";
         else if (type == INDEXNOTNUMBERERROR)
             finalOutput = "Runtime error: index is not a number.\n";
+        else if (type == OUTOFBOUNDS)
+            finalOutput = "Runtime error: index out of bounds.\n";
         else if (type == TYPEERROR)
             finalOutput = "Runtime error: invalid operand type.\n";
         else if (type == NOTARRAYERROR)

@@ -651,7 +651,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             result.setType(INDEXNOTNUMBERERROR);
             // exit(2);
         }
-        else if (abs(evaluate(top->branches[1], scopeMap).data.doubleValue) - (int)evaluate(top->branches[1], scopeMap).data.doubleValue >= 1e-10)
+        else if (abs(evaluate(top->branches[1], scopeMap).data.doubleValue - (int)evaluate(top->branches[1], scopeMap).data.doubleValue) >= 1e-10)
         {
             result.setType(INDEXNOTINTEGERERROR);
         }
@@ -659,9 +659,9 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         {
             //cout << "here?" << endl;
             int index = (int)evaluate(top->branches[1], scopeMap).data.doubleValue;
-            if (index > (int) evaluate(top->branches[0], scopeMap).data.arrayValue->size() - 1)
+            if (index < 0 || index > (int) evaluate(top->branches[0], scopeMap).data.arrayValue->size() - 1)
             {
-
+                result.setType(OUTOFBOUNDS);
             }
             else result = evaluate(top->branches[0], scopeMap).data.arrayValue->at(index);
         }
@@ -734,16 +734,16 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                     // cout << "error!2" << endl;
                     result.setType(INDEXNOTNUMBERERROR);
                 }
-                else if (abs(evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue) - (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue >= 1e-10)
+                else if (abs(evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue - (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue) >= 1e-10)
                 {
                     result.setType(INDEXNOTINTEGERERROR);
                 }
                 else
                 {
                     int index = (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue;
-                    if (index > (int) scopeMap[key].data.arrayValue->size() - 1) 
+                    if (index < 0 || index > (int) scopeMap[key].data.arrayValue->size() - 1) 
                     {
-
+                        result.setType(OUTOFBOUNDS);
                     }
                     else scopeMap[key].data.arrayValue->at(index) = result;
                 }
@@ -775,16 +775,16 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 result.setType(INDEXNOTNUMBERERROR);
                 // exit(2);
             }
-            else if (abs(evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue) - (int)evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue >= 1e-10)
+            else if (abs(evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue - (int)evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue) >= 1e-10)
             {
                 result.setType(INDEXNOTINTEGERERROR);
             }
             else 
             {
                 int index = (int)evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue;
-                if (index > (int) evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->size() - 1)
+                if (index < 0 || index > (int) evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->size() - 1)
                 {
-
+                    result.setType(OUTOFBOUNDS);
                 }
                 else evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->at(index) = result;
             }
@@ -830,7 +830,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 // cout << "error!2" << endl;
                 result.setType(INDEXNOTNUMBERERROR);
             }
-            else if (abs(insideBrackets.data.doubleValue) - (int)insideBrackets.data.doubleValue >= 1e-10)
+            else if (abs(insideBrackets.data.doubleValue - (int)insideBrackets.data.doubleValue) >= 1e-10)
             {
                 result.setType(INDEXNOTINTEGERERROR);
             }
@@ -839,10 +839,10 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 //cout << "type = " << t.type << endl;
                 int index = (int)insideBrackets.data.doubleValue;
                 // int index = stoi(top->branches[0]->branches[0]->info.text);
-                if (index > (int) scopeMap[text].data.arrayValue->size() - 1)
+                if (index < 0 || index > (int) scopeMap[text].data.arrayValue->size() - 1)
                 {
-                    
-                }
+                    result.setType(OUTOFBOUNDS);
+                }   
                 else result = scopeMap[text].data.arrayValue->at(index);
             }
         }
