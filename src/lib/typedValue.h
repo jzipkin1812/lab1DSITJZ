@@ -17,7 +17,6 @@ enum TypeTag
     IDERROR,          // Unknown identifier. e.g. b + 3 but b was never declared.
     ASSIGNEEERROR,    // Invalid assignee, e.g. 3 = 4 or (1 * 2) = a
     NOCONDITIONERROR, // A condition for a statement wasn't a boolean e.g. while(3 + 3) {
-    SYNTAXERROR,
     NONE,
     FUNCTION,
     NOTFUNCTIONERROR, // Not a function e.g. 7(6, 2, 3) or true(9, 10)
@@ -143,8 +142,6 @@ struct typedValue
         string finalOutput = "";
         if (!isError())
             return finalOutput;
-        else if (type == SYNTAXERROR)
-            finalOutput = "Syntax error on line .\n";
         else if (type == INDEXNOTNUMBERERROR)
             finalOutput = "Runtime error: index is not a number.\n";
         else if (type == TYPEERROR)
