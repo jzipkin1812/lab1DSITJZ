@@ -29,6 +29,7 @@ private:
     map<string, typedValue> variables;
     // This map is used to set the variables before checking for runtime errors. If there are no runtime errors by the end of evaluation, provisional is transfered to variables.
     map<string, typedValue> provisional;
+    vector<vector<typedValue>*> arrays; 
     vector<vector<Token>> tokens;
     vector<Block> blocks;
     string printHelper(Node * top, bool lastChild);

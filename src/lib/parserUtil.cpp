@@ -167,6 +167,22 @@ Parser::~Parser()
     {
         delete funcPtr;
     }
+    // for (const auto &pair : variables)
+    // {
+    //     //cout << "remove variable" << pair.second << endl;
+    //     if (pair.second.data.arrayValue != nullptr)
+    //         delete pair.second.data.arrayValue;
+    // }
+    // for (const auto &pair : provisional)
+    // {
+    //     //cout << "remove provisional" << pair.second << endl;
+    //     if (pair.second.data.arrayValue != nullptr)
+    //         delete pair.second.data.arrayValue;
+    // }
+    for (vector<typedValue>* array : arrays)
+    {
+        if (array != nullptr) delete array;
+    }
 }
 
 void Parser::clearNode(Node *top)
