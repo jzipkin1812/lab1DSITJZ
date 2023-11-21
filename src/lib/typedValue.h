@@ -63,7 +63,7 @@ struct typedValue
         }
         else if (tValue.type == DOUBLE)
         {
-            cout << scientific << setprecision(2);
+            //cout << scientific << setprecision(2);
             o << tValue.data.doubleValue;
         }
         else if (tValue.type == ARRAY)
