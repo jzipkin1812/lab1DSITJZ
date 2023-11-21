@@ -109,12 +109,25 @@ string Parser::printHelper(Node *top, bool lastChild)
     else
     {
         string converted = top->info.text;
+        //cout << "text = \"" << converted << "\"" << endl;
         // Formatting removes trailing 0s
         if (converted != "0" && converted.find('.') != string::npos)
         {
-            converted.erase(converted.find_last_not_of('0') + 1, std::string::npos);
-            converted.erase(converted.find_last_not_of('.') + 1, std::string::npos);
+            //cout << "converting..." << endl;
+            // converted = converted.erase(converted.find_last_not_of('0') + 1, std::string::npos);
+            // converted = converted.erase(converted.find_last_not_of('.') + 1, std::string::npos);
+            ostringstream oss;
+            oss << scientific << setprecision(0) << stod(converted);
+
+            // Get the string representation
+            converted = oss.str();
         }
+        //cout << "text after = " << converted << endl;
+
+        // if (top->info.type == DOUBLE && stod(converted) < 1e-6)
+        // {
+        //     converted
+        // }
 
         finalText += converted;
 
