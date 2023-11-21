@@ -612,11 +612,16 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     {
         if (evaluate(top->branches[1], scopeMap).type != DOUBLE)
         {
-            cout << "Runtime error: index is not a number." << endl;
-            exit(2);
+            //cout << "error!" << endl;
+            //cout << "Runtime error: index is not a number." << endl;
+            result.setType(INDEXNOTNUMBERERROR);
+            //exit(2);
         }
-        int index = (int) evaluate(top->branches[1], scopeMap).data.doubleValue;
-        result = evaluate(top->branches[0], scopeMap).data.arrayValue->at(index);
+        else
+        {
+            int index = (int) evaluate(top->branches[1], scopeMap).data.doubleValue;
+            result = evaluate(top->branches[0], scopeMap).data.arrayValue->at(index);   
+        }
     }
     else if (text == "-")
     {
@@ -673,8 +678,16 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             // cout << "key = "  << key << endl;
             if (top->branches[0]->branches.size() == 1 && top->branches[0]->branches[0]->info.text == "[")
             {
-                int index = (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue;
-                scopeMap[key].data.arrayValue->at(index) = result;
+                if (evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).type != DOUBLE)
+                {  
+                    //cout << "error!2" << endl;
+                    result.setType(INDEXNOTNUMBERERROR);
+                }
+                else
+                {
+                    int index = (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue;
+                    scopeMap[key].data.arrayValue->at(index) = result;
+                }
             }
             // else if (top->branches[1]->info.text == "[.]")
             // {
@@ -694,11 +707,15 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             result = right;
             if (evaluate(top->branches[0]->branches[1], scopeMap).type != DOUBLE)
             {
-                cout << "Runtime error: index is not a number." << endl;
-                exit(2);
+                //cout << "Runtime error: index is not a number." << endl;
+                result.setType(INDEXNOTNUMBERERROR);
+                //exit(2);
             }
-            int index = (int) evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue;
-            evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->at(index) = result;
+            else 
+            {
+                int index = (int) evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue;
+                evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->at(index) = result;
+            }
         }
         else
         {
@@ -727,10 +744,20 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         }
         else if (top->branches.size() == 1 && top->branches[0]->info.text == "[")
         {
+            //cout << "is index a number?" << endl;
             typedValue insideBrackets = evaluate(top->branches[0]->branches[0], scopeMap);
-            int index = (int)insideBrackets.data.doubleValue;
-            // int index = stoi(top->branches[0]->branches[0]->info.text);
-            result = scopeMap[text].data.arrayValue->at(index);
+            //cout << "but here, where " << top->branches[0]->branches[0]->info.text << ", type = " << insideBrackets.type << endl;
+            if (insideBrackets.type != DOUBLE)
+            {
+                //cout << "error!2" << endl;
+                result.setType(INDEXNOTNUMBERERROR);
+            }
+            else 
+            {
+                int index = (int)insideBrackets.data.doubleValue;
+                // int index = stoi(top->branches[0]->branches[0]->info.text);
+                result = scopeMap[text].data.arrayValue->at(index);
+            }
         }
         else
         {
@@ -779,6 +806,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     }
     else if (t.isBoolean())
     {
+
         result.setType(BOOLEAN);
         result.data.booleanValue = t.getValue().data.booleanValue;
     }
@@ -834,6 +862,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     }
     // if (result.type == ARRAY)
     // cout << "about to return printResult. Right now, the vector's first element is " << (*result.data.arrayValue)[0] << endl;
+    // cout << "type = " << result.type << endl;
     return (result);
 }
 

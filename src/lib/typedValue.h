@@ -23,6 +23,7 @@ enum TypeTag
     NOTFUNCTIONERROR, // Not a function e.g. 7(6, 2, 3) or true(9, 10)
     ARGCERROR,        // Incorrect # of arguments passed to function
     BADRETURNERROR,   // Return at top-level, not inside function
+    INDEXNOTNUMBERERROR, // [1, 2][true]
     ARRAY             // [1, 2]
 };
 
@@ -134,7 +135,7 @@ struct typedValue
 
     bool isError()
     {
-        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR);
+        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR || type == INDEXNOTNUMBERERROR);
     }
 
     string outputError(bool exitImmediately = false)
@@ -144,6 +145,8 @@ struct typedValue
             return finalOutput;
         else if (type == SYNTAXERROR)
             finalOutput = "Syntax error on line .\n";
+        else if (type == INDEXNOTNUMBERERROR)
+            finalOutput = "Runtime error: index is not a number.\n";
         else if (type == TYPEERROR)
             finalOutput = "Runtime error: invalid operand type.\n";
         else if (type == DIVZEROERROR)
