@@ -242,7 +242,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 i++; // next element
             }
             i--;
-            //cout << "done with arrays, now " << tokens[i].text << endl;
+            cout << "done with arrays, now " << tokens[i].text << endl;
 
             // while (!endOfArray)
             // {
@@ -416,7 +416,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 }
             }
         }
-        else if (tokens[i].text != ")") // operator case
+        else if (tokens[i].text != ")" && tokens[i].text != "]") // operator case
         {
             //cout << "token is "  << tokens[i].text << " and " << stringStack.empty() << endl;
             while (!stringStack.empty() &&
