@@ -717,7 +717,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             // cout << "key = "  << key << endl;
             if (top->branches[0]->branches.size() == 1 && top->branches[0]->branches[0]->info.text == "[")
             {
-                if (top->branches[0]->info.type != ARRAY)
+                // if (top->branches[0]->info.type != ARRAY)
+                // {
+                //     result.setType(NOTARRAYERROR);
+                // }
+                if (scopeMap[assignee.text].type != ARRAY)
                 {
                     result.setType(NOTARRAYERROR);
                 }
