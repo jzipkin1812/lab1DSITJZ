@@ -60,6 +60,13 @@ string Parser::printHelper(Node *top, bool lastChild)
             finalText += " " + top->parent->info.text + " ";
         }
     }
+    else if (top->info.text == "[.]")
+    {
+        finalText += printHelper(top->branches[0], true);
+        finalText += "[";
+        finalText += printHelper(top->branches[1], true);
+        finalText += "]";
+    }
     else if (top->info.isOperator())
     {
         finalText += "(";
