@@ -61,9 +61,10 @@ string Parser::printHelper(Node *top, bool lastChild)
             finalText += " " + top->parent->info.text + " ";
         }
     }
-    else if (top->info.text == "len")
+    else if (top->info.text == "len" || top->info.text == "pop")
     {
-        finalText += "len(";
+        finalText += top->info.text;
+        finalText += "(";
         finalText += printHelper(top->branches[0], true);
         finalText += ")";
     }

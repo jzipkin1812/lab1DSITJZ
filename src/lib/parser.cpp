@@ -291,6 +291,30 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
             root->branches.push_back(newElementNode);
             return(root);
         }
+        else if (tokens[i].text == "pop")
+        {
+            root = new Node{tokens[i], vector<Node *>(), nullptr};
+            i += 2; // inside parenthesis
+            int brackets = 0;
+            int parenthesis = 0;
+            bool endOfArgument = false;
+            vector<Token> array;
+            while (!endOfArgument)
+            {
+                if (tokens[i].text == "[") brackets++;
+                else if (tokens[i].text == "]") brackets--;
+                if (tokens[i].text == "(") parenthesis++;
+                else if (tokens[i].text == ")") parenthesis--;
+                array.push_back(tokens[i]);
+                i++;
+                if (tokens[i].text == ")" && brackets == 0 && parenthesis == 0) endOfArgument = true;
+            }
+            array.push_back(Token(0, 0, "END"));
+            Node* arrayNode = constructAST(array, 0, false, false);
+            root->branches.push_back(arrayNode);
+            arrayNode->parent = root;
+            return(root);
+        }
         else if (tokens[i].text == "[") // beginning of an array
         {
             Node *array = new Node{tokens[i], vector<Node *>(), nullptr};
@@ -727,6 +751,18 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             typedValue newElement = evaluate(top->branches[1], scopeMap);
             //Node* newElementNode = new Node{Token(0, 0, newElement.toString()), vector<Node*>(), nullptr};
             evaluate(top->branches[0], scopeMap).data.arrayValue->push_back(newElement);
+        }
+    }
+    else if (text == "pop")
+    {
+        if (evaluate(top->branches[0], scopeMap).type != ARRAY)
+        {
+            result.setType(NOTARRAYERROR);
+        }
+        else
+        {
+            result.setType(NONE);
+            evaluate(top->branches[0], scopeMap).data.arrayValue->pop_back();
         }
     }
     else if (text == "[")
