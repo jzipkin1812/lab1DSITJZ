@@ -37,7 +37,7 @@ int Parser::getPrecedence(string token) // Helper function for constructAST
 
 string Parser::printHelper(Node *top, bool lastChild)
 {
-    cout << "???????" << endl;
+    //cout << "???????" << endl;
     // cout << "top = " << top->info.text << endl;
     string finalText = "";
     if (!top)
