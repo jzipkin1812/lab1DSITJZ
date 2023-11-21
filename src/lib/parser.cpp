@@ -220,42 +220,6 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
             arrayNode->parent = len;
             nodeStack.push(len);
         }
-        else if (tokens[i].text == "push")
-        {
-            root = new Node{tokens[i], vector<Node *>(), nullptr};
-            i+= 2; // inside parenthesis
-            int brackets = 0;
-            bool endOfArray = false;
-            vector<Token> array;
-            while (!endOfArray)
-            {
-                if (tokens[i].text == "[") brackets++;
-                else if (tokens[i].text == "]") brackets--;
-                array.push_back(tokens[i]);
-                i++;
-                if (tokens[i].text == "," && brackets == 0) endOfArray = true;
-            }
-            array.push_back(Token(0, 0, "END"));
-            Node* arrayNode = constructAST(array, 0, false, false);
-            i++; // after comma
-            vector<Token> newElement;
-            int parenthesis = 1;
-            while (parenthesis > 0)
-            {
-                if (tokens[i].text == "(") parenthesis++;
-                else if (tokens[i].text == ")") parenthesis--;
-                newElement.push_back(tokens[i]);
-                i++;
-            }
-            newElement.pop_back();
-            newElement.push_back(Token(0, 0, "END"));
-            Node* newElementNode = constructAST(newElement, 0, false, false);
-            root->branches.push_back(arrayNode);
-            root->branches.push_back(newElementNode);
-            arrayNode->parent = root;
-            newElementNode->parent = root;
-            return root;
-        }
         else if (tokens[i].text == "[") // beginning of an array
         {
             Node *array = new Node{tokens[i], vector<Node *>(), nullptr};
@@ -679,10 +643,6 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         {
             result.data.doubleValue = evaluate(top->branches[0], scopeMap).data.arrayValue->size();
         }
-    }
-    else if (text == "push")
-    {
-        
     }
     else if (text == "[")
     {
