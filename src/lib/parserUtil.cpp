@@ -61,6 +61,12 @@ string Parser::printHelper(Node *top, bool lastChild)
             finalText += " " + top->parent->info.text + " ";
         }
     }
+    else if (top->info.text == "len")
+    {
+        finalText += "len(";
+        finalText += printHelper(top->branches[0], true);
+        finalText += ")";
+    }
     else if (top->info.text == "[.]")
     {
         finalText += printHelper(top->branches[0], true);

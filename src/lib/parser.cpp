@@ -202,7 +202,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
         // cout << tokens[i].text << endl;
         if (tokens[i].text == "len")
         {
-            Node* root = new Node{tokens[i], vector<Node *>(), nullptr};
+            Node* len = new Node{tokens[i], vector<Node *>(), nullptr};
             i+=2; // inside parenthesis
             int parenthesis = 1;
             vector<Token> array;
@@ -216,9 +216,9 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
             array.pop_back();
             array.push_back(Token(0, 0, "END"));
             Node* arrayNode = constructAST(array, 0, false, false);
-            root->branches.push_back(arrayNode);
-            arrayNode->parent = root;
-            return root;
+            len->branches.push_back(arrayNode);
+            arrayNode->parent = len;
+            nodeStack.push(len);
         }
         else if (tokens[i].text == "[") // beginning of an array
         {
@@ -575,31 +575,31 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     // cout << "evaluating" << endl;
     // cout << "Size = " << scopeMap.size() << endl;
 
-    cout << "top = " << top->info.text << endl;
-    for (Node *node : top->branches)
-    {
-        cout << "kid of top = " << node->info.text << endl;
-        if (node->branches.size() != 0)
-            cout << "kids of " << node->info.text << " are: " << endl;
-        for (Node *kid : node->branches)
-        {
-            cout << kid->info.text << endl;
-            if (kid->branches.size() != 0)
-                cout << "kids of " << kid->info.text << " are: " << endl;
-            for (Node *grandkid : kid->branches)
-            {
-                cout << grandkid->info.text << endl;
-                if (grandkid->branches.size() != 0)
-                    cout << "kids of " << grandkid->info.text << " are: " << endl;
-                for (Node *nin : grandkid->branches)
-                {
-                    cout << nin->info.text << endl;
-                }
-            }
-        }
-    }
-    cout << endl
-         << endl;
+    // cout << "top = " << top->info.text << endl;
+    // for (Node *node : top->branches)
+    // {
+    //     cout << "kid of top = " << node->info.text << endl;
+    //     if (node->branches.size() != 0)
+    //         cout << "kids of " << node->info.text << " are: " << endl;
+    //     for (Node *kid : node->branches)
+    //     {
+    //         cout << kid->info.text << endl;
+    //         if (kid->branches.size() != 0)
+    //             cout << "kids of " << kid->info.text << " are: " << endl;
+    //         for (Node *grandkid : kid->branches)
+    //         {
+    //             cout << grandkid->info.text << endl;
+    //             if (grandkid->branches.size() != 0)
+    //                 cout << "kids of " << grandkid->info.text << " are: " << endl;
+    //             for (Node *nin : grandkid->branches)
+    //             {
+    //                 cout << nin->info.text << endl;
+    //             }
+    //         }
+    //     }
+    // }
+    // cout << endl
+    //      << endl;
 
     typedValue result = typedValue{DOUBLE, {0}};
     if (!top)
@@ -632,6 +632,17 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     if (text == "+")
     {
         result.data.doubleValue = left.data.doubleValue + right.data.doubleValue;
+    }
+    else if (text == "len")
+    {
+        if (evaluate(top->branches[0], scopeMap).type != ARRAY)
+        {
+            result.setType(NOTARRAYERROR);
+        }
+        else
+        {
+            result.data.doubleValue = evaluate(top->branches[0], scopeMap).data.arrayValue->size();
+        }
     }
     else if (text == "[")
     {
