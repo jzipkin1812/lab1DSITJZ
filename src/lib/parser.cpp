@@ -1062,7 +1062,7 @@ void Parser::parseError(Token token, int line)
 {
     if (exitImmediately)
     {
-        cout << "Unexpected token on line " << token.line << " column " << token.column << ": " << token.text << "\n";
+        cout << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n";
         exit(2);
     }
     else
@@ -1075,7 +1075,7 @@ void Parser::parseError(Token token, int line)
         else
         {
             token.line = 1;
-            outputPerExpression[line] << "Unexpected token on line " << token.line << " column " << token.column << ": " << token.text << "\n";
+            outputPerExpression[line] << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n";
         }
     }
     return;
