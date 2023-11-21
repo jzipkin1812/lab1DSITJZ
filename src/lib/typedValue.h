@@ -144,13 +144,10 @@ struct typedValue
         string finalOutput = "";
         if (!isError())
             return finalOutput;
-<<<<<<< HEAD
-=======
         else if (type == SYNTAXERROR)
             finalOutput = "Syntax error on line .\n";
         else if (type == INDEXNOTINTEGERERROR)
             finalOutput += "Runtime error: index is not an integer.\n";
->>>>>>> 3afb75a (Index must be integer)
         else if (type == INDEXNOTNUMBERERROR)
             finalOutput = "Runtime error: index is not a number.\n";
         else if (type == TYPEERROR)
