@@ -763,7 +763,12 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             // cout << "is index a number?" << endl;
             typedValue insideBrackets = evaluate(top->branches[0]->branches[0], scopeMap);
             // cout << "but here, where " << top->branches[0]->branches[0]->info.text << ", type = " << insideBrackets.type << endl;
-            if (insideBrackets.type != DOUBLE)
+            if (t.type != ARRAY)
+            {
+                cout << "issue" << endl;
+                exit(2);
+            }
+            else if (insideBrackets.type != DOUBLE)
             {
                 // cout << "error!2" << endl;
                 result.setType(INDEXNOTNUMBERERROR);
@@ -939,6 +944,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["))
             {
+                cout << "error 3" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1015,6 +1021,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // Check right, if no function call exists.
             else if (!(expression[i + 1].text == ")" || expression[i + 1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || (t.isVariable() && expression[i + 1].text == "[")))
             {
+                cout << "error 8" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
