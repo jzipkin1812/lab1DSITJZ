@@ -538,6 +538,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
             {
                 unsigned int originalIndex = i;
                 int parenCount = 0;
+                int brackets = 0;
                 vector<Token> argument;
                 root = new Node{tokens[i], vector<Node *>(), nullptr};
                 root->isFunctionCall = true;
@@ -548,6 +549,10 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                         parenCount++;
                     if (tokens[i].text == ")")
                         parenCount--;
+                    if (tokens[i].text == "[")
+                        brackets++;
+                    if (tokens[i].text == "]")
+                        brackets--;
                     // Note that the following recursive calls to constructAST() pass "true" for ignoreErrors, which means that checkError will not be called again.
                     // This is because such errors would have already been caught by the top-level call to checkError() and another call would be redundant.
                     if (parenCount < 0) // checks if the end of the function call has been reached
@@ -563,7 +568,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                         argument.clear();
                         break;
                     }
-                    else if (tokens[i].text == "," && parenCount == 0) // checks if the end of argument (could be an expression) has been reached
+                    else if (tokens[i].text == "," && parenCount == 0 && brackets == 0) // checks if the end of argument (could be an expression) has been reached
                     {
                         argument.push_back(Token(0, 0, ")"));
                         argument.push_back(Token(0, 0, ";"));
