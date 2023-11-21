@@ -25,6 +25,7 @@ enum TypeTag
     BADRETURNERROR,   // Return at top-level, not inside function
     INDEXNOTNUMBERERROR, // [1, 2][true]
     INDEXNOTINTEGERERROR, // [1, 2][0.2]
+    SYNTAXERROR,
     ARRAY             // [1, 2]
 };
 
