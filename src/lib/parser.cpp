@@ -620,7 +620,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             result.setType(INDEXNOTNUMBERERROR);
             // exit(2);
         }
-        else if (to_string(evaluate(top->branches[1], scopeMap).data.doubleValue).find('.') != string::npos)
+        else if (abs(evaluate(top->branches[1], scopeMap).data.doubleValue) - (int)evaluate(top->branches[1], scopeMap).data.doubleValue >= 1e-10)
         {
             result.setType(INDEXNOTINTEGERERROR);
         }
@@ -690,7 +690,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                     // cout << "error!2" << endl;
                     result.setType(INDEXNOTNUMBERERROR);
                 }
-                else if (to_string(evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue).find('.') != string::npos)
+                else if (abs(evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue) - (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue >= 1e-10)
                 {
                     result.setType(INDEXNOTINTEGERERROR);
                 }
@@ -723,7 +723,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 result.setType(INDEXNOTNUMBERERROR);
                 // exit(2);
             }
-            else if (to_string(evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue).find('.') != string::npos)
+            else if (abs(evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue) - (int)evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue >= 1e-10)
             {
                 result.setType(INDEXNOTINTEGERERROR);
             }
@@ -768,7 +768,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 // cout << "error!2" << endl;
                 result.setType(INDEXNOTNUMBERERROR);
             }
-            else if (to_string(insideBrackets.data.doubleValue).find('.') != string::npos)
+            else if (abs(insideBrackets.data.doubleValue) - (int)insideBrackets.data.doubleValue >= 1e-10)
             {
                 result.setType(INDEXNOTINTEGERERROR);
             }
