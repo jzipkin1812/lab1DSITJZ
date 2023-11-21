@@ -446,11 +446,7 @@ void Parser::print() // Infix, no statements, no semicolons
             {
                 variables[s.first] = provisional[s.first];
             }
-            if (finalValue.type != NONE)
-            {
-                outputPerExpression[i] << finalValue << "\n";
-            }
-            //outputPerExpression[i] << finalValue << "\n";
+            outputPerExpression[i] << finalValue << "\n";
         }
     }
     for (unsigned int i = 0; i < outputPerExpression.size(); i++)
