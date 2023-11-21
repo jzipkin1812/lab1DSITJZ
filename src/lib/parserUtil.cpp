@@ -45,6 +45,7 @@ string Parser::printHelper(Node *top, bool lastChild)
     bool last;
     if (top->info.text == "[") // array
     {
+        //cout << "last = " << lastChild << endl;
         finalText += "[";
         vector<Node*> elements = top->branches;
         for (unsigned int i = 0 ; i < elements.size() ; i++)
@@ -53,10 +54,16 @@ string Parser::printHelper(Node *top, bool lastChild)
             if (i < elements.size() - 1) finalText += ", ";
         }
         finalText += "]";
+        if (!lastChild)
+        {
+            // Space, parent operator, space
+            finalText += " " + top->parent->info.text + " ";
+        }
     }
     else if (top->info.isOperator())
     {
         finalText += "(";
+        cout << "top = " << top->info.text << " and size = " << top->branches.size() << endl;
         for (unsigned int i = 0; i < top->branches.size(); i++)
         {
             last = (i == top->branches.size() - 1);

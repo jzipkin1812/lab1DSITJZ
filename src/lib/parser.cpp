@@ -241,6 +241,8 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 // if (!endOfArray)
                 i++; // next element
             }
+            i--;
+            //cout << "done with arrays, now " << tokens[i].text << endl;
 
             // while (!endOfArray)
             // {
@@ -296,7 +298,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
             // cout << "pushing to nodestack: " << array->info.text << endl;
             nodeStack.push(array);
             // cout << i << " == " << tokens.size() - 1 << endl;
-            if (i == tokens.size() && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
+            if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
             {
                 while (!stringStack.empty() && stringStack.top() != "(")
                 {
@@ -416,6 +418,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
         }
         else if (tokens[i].text != ")") // operator case
         {
+            //cout << "token is "  << tokens[i].text << " and " << stringStack.empty() << endl;
             while (!stringStack.empty() &&
                    stringStack.top() != "(" &&
                    ((tokens[i].text != "=" && getPrecedence(stringStack.top()) >= getPrecedence(tokens[i].text)) || (tokens[i].text == "=" && getPrecedence(stringStack.top()) > getPrecedence(tokens[i].text))))
