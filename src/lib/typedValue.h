@@ -95,6 +95,15 @@ struct typedValue
         {
             result = (other.data.doubleValue == data.doubleValue);
         }
+        else if (type == ARRAY)
+        {
+            result = true;
+            if (other.data.arrayValue->size() != data.arrayValue->size()) return false;
+            for (unsigned int i = 0 ; i < other.data.arrayValue->size() ; i++)
+            {
+                if (other.data.arrayValue->at(i) != data.arrayValue->at(i)) result = false;
+            }
+        }
         return (result);
     }
 
