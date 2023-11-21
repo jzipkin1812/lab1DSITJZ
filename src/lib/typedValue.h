@@ -41,6 +41,17 @@ struct typedValue
 
     d data;
 
+    // ~typedValue()
+    // {
+    //     if (data.arrayValue != nullptr)
+    //     {
+    //         //delete data.arrayValue;
+    //         //data.arrayValue = nullptr;  // Set to nullptr after deletion
+    //         cout << "deleted" << endl;
+    //     }
+    // }
+
+
     friend ostream &operator<<(ostream &o, const typedValue &tValue)
     {
         if (tValue.type == BOOLEAN)
@@ -58,6 +69,7 @@ struct typedValue
             // vector<typedValue> * arrPtr = tValue.data.arrayValue;
             for (unsigned int i = 0; i < tValue.data.arrayValue->size(); i++)
             {
+                //if (!(tValue.data.arrayValue->at(i).type == NONE))
                 o << tValue.data.arrayValue->at(i);
                 if (i != tValue.data.arrayValue->size() - 1)
                     o << ", ";
@@ -83,6 +95,15 @@ struct typedValue
         else if (type == DOUBLE)
         {
             result = (other.data.doubleValue == data.doubleValue);
+        }
+        else if (type == ARRAY)
+        {
+            result = true;
+            if (other.data.arrayValue->size() != data.arrayValue->size()) return false;
+            for (unsigned int i = 0 ; i < other.data.arrayValue->size() ; i++)
+            {
+                if (other.data.arrayValue->at(i) != data.arrayValue->at(i)) result = false;
+            }
         }
         return (result);
     }
