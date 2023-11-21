@@ -114,13 +114,18 @@ string Parser::printHelper(Node *top, bool lastChild)
         if (converted != "0" && converted.find('.') != string::npos)
         {
             //cout << "converting..." << endl;
-            // converted = converted.erase(converted.find_last_not_of('0') + 1, std::string::npos);
-            // converted = converted.erase(converted.find_last_not_of('.') + 1, std::string::npos);
-            ostringstream oss;
-            oss << scientific << setprecision(0) << stod(converted);
+            if (stod(converted) < 1e-06)
+            {
+                ostringstream oss;
+                oss << scientific << setprecision(0) << stod(converted);
 
-            // Get the string representation
-            converted = oss.str();
+                // Get the string representation
+                converted = oss.str();
+            }
+            else{
+                converted.erase(converted.find_last_not_of('0') + 1, std::string::npos);
+                converted.erase(converted.find_last_not_of('.') + 1, std::string::npos);
+            }
         }
         //cout << "text after = " << converted << endl;
 
