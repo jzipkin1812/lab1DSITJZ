@@ -659,7 +659,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         {
             //cout << "here?" << endl;
             int index = (int)evaluate(top->branches[1], scopeMap).data.doubleValue;
-            result = evaluate(top->branches[0], scopeMap).data.arrayValue->at(index);
+            if (index > evaluate(top->branches[0], scopeMap).data.arrayValue->size() - 1)
+            {
+
+            }
+            else result = evaluate(top->branches[0], scopeMap).data.arrayValue->at(index);
         }
     }
     else if (text == "-")
@@ -737,7 +741,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 else
                 {
                     int index = (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue;
-                    scopeMap[key].data.arrayValue->at(index) = result;
+                    if (index > scopeMap[key].data.arrayValue->size() - 1) 
+                    {
+
+                    }
+                    else scopeMap[key].data.arrayValue->at(index) = result;
                 }
             }
             // else if (top->branches[1]->info.text == "[.]")
@@ -774,7 +782,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             else 
             {
                 int index = (int)evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue;
-                evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->at(index) = result;
+                if (index > evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->size() - 1)
+                {
+
+                }
+                else evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->at(index) = result;
             }
         }
         else
@@ -827,7 +839,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 //cout << "type = " << t.type << endl;
                 int index = (int)insideBrackets.data.doubleValue;
                 // int index = stoi(top->branches[0]->branches[0]->info.text);
-                result = scopeMap[text].data.arrayValue->at(index);
+                if (index > scopeMap[text].data.arrayValue->size() - 1)
+                {
+                    
+                }
+                else result = scopeMap[text].data.arrayValue->at(index);
             }
         }
         else
