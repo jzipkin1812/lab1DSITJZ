@@ -66,6 +66,11 @@ string Parser::printHelper(Node *top, bool lastChild)
         finalText += "[";
         finalText += printHelper(top->branches[1], true);
         finalText += "]";
+        if (!lastChild && top->parent && top->parent->info.isOperator())
+        {
+            // Space, parent operator, space
+            finalText += " " + top->parent->info.text + " ";
+        }
     }
     else if (top->info.isOperator())
     {

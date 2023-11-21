@@ -673,18 +673,24 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 int index = (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue;
                 scopeMap[key].data.arrayValue->at(index) = result;
             }
-            else if (top->branches[1]->info.text == "[.]")
-            {
-                //cout << "ok lets do it!!!!!!!!!!!!!!!!" << endl;
-                int index = (int) evaluate(top->branches[1]->branches[1], scopeMap).data.doubleValue;
-                //cout << "ok lets do it??????" << endl;
-                result = evaluate(top->branches[1]->branches[0], scopeMap).data.arrayValue->at(index);
-                scopeMap[key] = result;
-                //cout << "did it!!!" << endl;
-            }
+            // else if (top->branches[1]->info.text == "[.]")
+            // {
+            //     //cout << "ok lets do it!!!!!!!!!!!!!!!!" << endl;
+            //     int index = (int) evaluate(top->branches[1]->branches[1], scopeMap).data.doubleValue;
+            //     //cout << "ok lets do it??????" << endl;
+            //     result = evaluate(top->branches[1]->branches[0], scopeMap).data.arrayValue->at(index);
+            //     scopeMap[key] = result;
+            //     //cout << "did it!!!" << endl;
+            // }
             else scopeMap[key] = result;
             // cout << "TEXT: " << unknownIDText << endl;
             //   cout << "assigned, " << (*right.data.arrayValue).size() << endl;
+        }
+        else if (assignee.text == "[.]")
+        {
+            result = right;
+            int index = (int) evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue;
+            evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->at(index) = result;
         }
         else
         {
