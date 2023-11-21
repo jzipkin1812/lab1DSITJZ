@@ -54,7 +54,7 @@ string Parser::printHelper(Node *top, bool lastChild)
             if (i < elements.size() - 1) finalText += ", ";
         }
         finalText += "]";
-        if (!lastChild)
+        if (!lastChild && top->parent && top->parent->info.isVariable())
         {
             // Space, parent operator, space
             finalText += " " + top->parent->info.text + " ";
