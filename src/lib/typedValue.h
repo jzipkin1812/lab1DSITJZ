@@ -56,6 +56,35 @@ struct typedValue
     //     }
     // }
 
+    string toString()
+    {
+        string result = "";
+        if (type == BOOLEAN)
+        {
+            if (data.booleanValue == true) result += "true";
+            else result += "false";
+        }
+        else if (type == DOUBLE)
+        {
+            result += data.doubleValue;
+        }
+        else if (type == ARRAY)
+        {
+            result += "[";
+            for (unsigned int i = 0 ; i < data.arrayValue->size() ; i++)
+            {
+                result += data.arrayValue->at(i).toString();
+                if (i != data.arrayValue->size() - 1)
+                    result += ", ";
+            }
+            result += "]";
+        }
+        else if (type == NONE)
+        {
+            result += "null";
+        }
+        return(result);
+    }
 
     friend ostream &operator<<(ostream &o, const typedValue &tValue)
     {

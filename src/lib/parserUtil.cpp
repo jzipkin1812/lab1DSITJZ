@@ -67,6 +67,14 @@ string Parser::printHelper(Node *top, bool lastChild)
         finalText += printHelper(top->branches[0], true);
         finalText += ")";
     }
+    else if (top->info.text == "push")
+    {
+        finalText += "push(";
+        finalText += printHelper(top->branches[0], true);
+        finalText += ", ";
+        finalText += printHelper(top->branches[1], true);
+        finalText += ")";
+    }
     else if (top->info.text == "[.]")
     {
         finalText += printHelper(top->branches[0], true);
@@ -438,7 +446,11 @@ void Parser::print() // Infix, no statements, no semicolons
             {
                 variables[s.first] = provisional[s.first];
             }
-            outputPerExpression[i] << finalValue << "\n";
+            if (finalValue.type != NONE)
+            {
+                outputPerExpression[i] << finalValue << "\n";
+            }
+            //outputPerExpression[i] << finalValue << "\n";
         }
     }
     for (unsigned int i = 0; i < outputPerExpression.size(); i++)
