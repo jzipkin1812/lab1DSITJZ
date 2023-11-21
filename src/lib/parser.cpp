@@ -39,6 +39,11 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
         for (unsigned int i = 0; i < inputFromLexer.size(); i++)
         {
             line = inputFromLexer[i];
+            // for (Token token : line)
+            // {
+            //     cout << token.text << " ";
+            // }
+            // cout << endl;
             beginning = line[0];
             // Find the correct block vector to push things into. If parent is nullptr, that means we're not nested in anything and it should just be blocks.
             if (!targetParent)
@@ -195,7 +200,27 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
     for (unsigned int i = 0; i < tokens.size(); i++)
     {
         // cout << tokens[i].text << endl;
-        if (tokens[i].text == "[") // beginning of an array
+        if (tokens[i].text == "len")
+        {
+            Node* root = new Node{tokens[i], vector<Node *>(), nullptr};
+            i+=2; // inside parenthesis
+            int parenthesis = 1;
+            vector<Token> array;
+            while (parenthesis > 0)
+            {
+                if (tokens[i].text == "(") parenthesis++;
+                else if (tokens[i].text == ")") parenthesis--;
+                array.push_back(tokens[i]);
+                i++;
+            }
+            array.pop_back();
+            array.push_back(Token(0, 0, "END"));
+            Node* arrayNode = constructAST(array, 0, false, false);
+            root->branches.push_back(arrayNode);
+            arrayNode->parent = root;
+            return root;
+        }
+        else if (tokens[i].text == "[") // beginning of an array
         {
             Node *array = new Node{tokens[i], vector<Node *>(), nullptr};
             vector<vector<Token>> elements; // each vector would be an element in the array
@@ -550,31 +575,31 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     // cout << "evaluating" << endl;
     // cout << "Size = " << scopeMap.size() << endl;
 
-    // cout << "top = " << top->info.text << endl;
-    // for (Node *node : top->branches)
-    // {
-    //     cout << "kid of top = " << node->info.text << endl;
-    //     if (node->branches.size() != 0)
-    //         cout << "kids of " << node->info.text << " are: " << endl;
-    //     for (Node *kid : node->branches)
-    //     {
-    //         cout << kid->info.text << endl;
-    //         if (kid->branches.size() != 0)
-    //             cout << "kids of " << kid->info.text << " are: " << endl;
-    //         for (Node *grandkid : kid->branches)
-    //         {
-    //             cout << grandkid->info.text << endl;
-    //             if (grandkid->branches.size() != 0)
-    //                 cout << "kids of " << grandkid->info.text << " are: " << endl;
-    //             for (Node *nin : grandkid->branches)
-    //             {
-    //                 cout << nin->info.text << endl;
-    //             }
-    //         }
-    //     }
-    // }
-    // cout << endl
-    //      << endl;
+    cout << "top = " << top->info.text << endl;
+    for (Node *node : top->branches)
+    {
+        cout << "kid of top = " << node->info.text << endl;
+        if (node->branches.size() != 0)
+            cout << "kids of " << node->info.text << " are: " << endl;
+        for (Node *kid : node->branches)
+        {
+            cout << kid->info.text << endl;
+            if (kid->branches.size() != 0)
+                cout << "kids of " << kid->info.text << " are: " << endl;
+            for (Node *grandkid : kid->branches)
+            {
+                cout << grandkid->info.text << endl;
+                if (grandkid->branches.size() != 0)
+                    cout << "kids of " << grandkid->info.text << " are: " << endl;
+                for (Node *nin : grandkid->branches)
+                {
+                    cout << nin->info.text << endl;
+                }
+            }
+        }
+    }
+    cout << endl
+         << endl;
 
     typedValue result = typedValue{DOUBLE, {0}};
     if (!top)
