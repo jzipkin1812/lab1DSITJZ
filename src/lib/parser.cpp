@@ -789,7 +789,8 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     }
     Token t = top->info;
     string text = top->info.text;
-    // TYPE MISMATCH ERROR
+    // cout << "text: " << text << endl;
+    //  TYPE MISMATCH ERROR
     typedValue left;
     typedValue right;
     if (t.isOperator())
@@ -1021,7 +1022,10 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             //     //cout << "did it!!!" << endl;
             // }
             else
+            {
                 scopeMap[key] = result;
+            }
+
             // cout << "TEXT: " << unknownIDText << endl;
             //   cout << "assigned, " << (*right.data.arrayValue).size() << endl;
         }
@@ -1115,18 +1119,23 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         {
             // Gets a function pointer, array, boolean, null, or double
             result = scopeMap[text];
-            // cout << (*result.data.arrayValue).size() << endl;
-            // But...if result is a function, we need to call the function.
+            // for (auto &[key, value] : scopeMap)
+            //{
+            //  cout << "scope: " << key << " " << value.toString() << endl;
+            // }
+            // cout << "result: " << result.toString() << endl;
+            //  cout << (*result.data.arrayValue).size() << endl;
+            //  But...if result is a function, we need to call the function.
             if (top->isFunctionCall)
             {
                 // cout << "top = " << top->info.text << endl;
-                //  NOT A FUNCTION ERROR (CASE 2 OF 2)
-                //  Sometimes the function call node IS a variable but DOESN'T refer to a function. This is a runtime error.
-                // cout << "type = " << result.type << endl;
-                //cout << "result:" << result.type << endl;
+                //   NOT A FUNCTION ERROR (CASE 2 OF 2)
+                //   Sometimes the function call node IS a variable but DOESN'T refer to a function. This is a runtime error.
+                //  cout << "type = " << result.type << endl;
+                // cout << "result:" << result.type << endl;
                 if (result.type != FUNCTION)
                 {
-                    //cout << "t.top: " << top->info.text << "t: " << t.text << endl;
+                    cout << "t.top: " << top->info.text << "t: " << t.text << endl;
                     result.type = NOTFUNCTIONERROR;
                     return (result);
                 }
@@ -1503,11 +1512,11 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue> &scope, bool a
         globalFunctions.push_back(newFunction); // for memory clearing later
         // cout << "after, type = " << newFunction->info.type << endl;
         newFunction->capturedVariables = b.capturedVariables;
-        typedValue functionStorage;                                       // Stores the new function in a typedValue.
-        newFunction->capturedVariables[b.functionName] = functionStorage; // For recursion, we need to store the function inside of its own captured variables.
-        functionStorage.type = FUNCTION;                                  // This typedvalue is of type FUNCTION.
+        typedValue functionStorage;      // Stores the new function in a typedValue.
+        functionStorage.type = FUNCTION; // This typedvalue is of type FUNCTION.
         functionStorage.data.functionValue = newFunction;
-        scope[b.functionName] = functionStorage; // Remember the function for later.
+        scope[b.functionName] = functionStorage;                          // Remember the function for later.
+        newFunction->capturedVariables[b.functionName] = functionStorage; // For recursion, we need to store the function inside of its own captured variables.
     }
     else if (b.statementType == "return")
     {
@@ -1619,6 +1628,10 @@ typedValue Parser::callFunction(Func givenFunction, vector<typedValue> arguments
 
     // Stop using capturedVariables (which is only useful in a def statement) and start using Variables (which belongs to this specific function call)
     givenFunction.variables = givenFunction.capturedVariables;
+    // for (auto &[key, value] : givenFunction.variables)
+    //{
+    //    cout << "scope: " << key << " " << value.toString() << endl;
+    //}
 
     // Argument count incorrect error
     if (arguments.size() != givenFunction.argumentNames.size())

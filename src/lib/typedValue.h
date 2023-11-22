@@ -86,6 +86,8 @@ struct typedValue
         else if (type == NONE)
         {
             result += "null";
+        }else if(type == FUNCTION){
+            result+="FUNC";
         }
         return (result);
     }
