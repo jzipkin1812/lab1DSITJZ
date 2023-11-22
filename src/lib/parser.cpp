@@ -238,7 +238,8 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
             if (type == "len")
             {
                 nodeStack.push(arrayFunction);
-                if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
+                i -= 2;
+                if (i == tokens.size() - 1&& !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
                 {
                     while (!stringStack.empty() && stringStack.top() != "(")
                     {
