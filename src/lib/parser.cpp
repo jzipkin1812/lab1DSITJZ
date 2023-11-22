@@ -1135,7 +1135,6 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 // cout << "result:" << result.type << endl;
                 if (result.type != FUNCTION)
                 {
-                    cout << "t.top: " << top->info.text << "t: " << t.text << endl;
                     result.type = NOTFUNCTIONERROR;
                     return (result);
                 }
