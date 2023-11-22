@@ -61,21 +61,32 @@ string Parser::printHelper(Node *top, bool lastChild)
             finalText += " " + top->parent->info.text + " ";
         }
     }
-    else if (top->info.text == "len" || top->info.text == "pop")
+    else if (top->info.text == "len" || top->info.text == "pop" || top->info.text == "push")
     {
         finalText += top->info.text;
         finalText += "(";
-        finalText += printHelper(top->branches[0], true);
+        for(unsigned int i = 0 ; i < top->branches.size() ; i++)
+        {
+            finalText += printHelper(top->branches[i], true);
+            if (i < top->branches.size() - 1) finalText += ", ";
+        }
         finalText += ")";
     }
-    else if (top->info.text == "push")
-    {
-        finalText += "push(";
-        finalText += printHelper(top->branches[0], true);
-        finalText += ", ";
-        finalText += printHelper(top->branches[1], true);
-        finalText += ")";
-    }
+    // else if (top->info.text == "len" || top->info.text == "pop")
+    // {
+    //     finalText += top->info.text;
+    //     finalText += "(";
+    //     finalText += printHelper(top->branches[0], true);
+    //     finalText += ")";
+    // }
+    // else if (top->info.text == "push")
+    // {
+    //     finalText += "push(";
+    //     finalText += printHelper(top->branches[0], true);
+    //     finalText += ", ";
+    //     finalText += printHelper(top->branches[1], true);
+    //     finalText += ")";
+    // }
     else if (top->info.text == "[.]")
     {
         finalText += printHelper(top->branches[0], true);

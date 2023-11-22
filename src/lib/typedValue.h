@@ -28,6 +28,8 @@ enum TypeTag
     SYNTAXERROR,
     NOTARRAYERROR,
     OUTOFBOUNDS,
+    INCORRECTARGUMENTCOUNT,
+    UNDERFLOW,
     ARRAY             // [1, 2]
 };
 
@@ -169,7 +171,7 @@ struct typedValue
 
     bool isError()
     {
-        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR || type == INDEXNOTNUMBERERROR || type == INDEXNOTINTEGERERROR || type == NOTARRAYERROR || type == OUTOFBOUNDS);
+        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR || type == INDEXNOTNUMBERERROR || type == INDEXNOTINTEGERERROR || type == NOTARRAYERROR || type == OUTOFBOUNDS || type == INCORRECTARGUMENTCOUNT || type == UNDERFLOW);
     }
 
     string outputError(bool exitImmediately = false)
@@ -179,6 +181,10 @@ struct typedValue
             return finalOutput;
         else if (type == SYNTAXERROR)
             finalOutput = "Syntax error on line .\n";
+        else if (type == UNDERFLOW)
+            finalOutput = "Runtime error: underflow.\n";
+        else if (type == INCORRECTARGUMENTCOUNT)
+            finalOutput = "Runtime error: incorrect argument count.\n";
         else if (type == INDEXNOTINTEGERERROR)
             finalOutput += "Runtime error: index is not an integer.\n";
         else if (type == INDEXNOTNUMBERERROR)

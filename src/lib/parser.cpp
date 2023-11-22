@@ -200,136 +200,198 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
     for (unsigned int i = 0; i < tokens.size(); i++)
     {
         // cout << tokens[i].text << endl;
-        if (tokens[i].text == "len")
+        if (tokens[i].text == "len" || tokens[i].text == "push" || tokens[i].text == "pop")
         {
-            Node *len = new Node{tokens[i], vector<Node *>(), nullptr};
+            string type = tokens[i].text;
+            Node *arrayFunction = new Node{tokens[i], vector<Node *>(), nullptr};
             i += 2; // inside parenthesis
             int parenthesis = 1;
-            vector<Token> array;
-            while (parenthesis > 0)
+            if (tokens[i].text == ")") parenthesis = 0; //empty function, no arguments
+            while (parenthesis != 0)
             {
-                if (tokens[i].text == "(")
-                    parenthesis++;
-                else if (tokens[i].text == ")")
-                    parenthesis--;
-                array.push_back(tokens[i]);
-                i++;
-            }
-            array.pop_back();
-            array.push_back(Token(0, 0, "END"));
-            Node *arrayNode = constructAST(array, 0, false, false);
-            len->branches.push_back(arrayNode);
-            arrayNode->parent = len;
-            nodeStack.push(len);
-            i--;
-            cout << "tokens = " << tokens[i].text << endl;
-            if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
-            {
-                while (!stringStack.empty() && stringStack.top() != "(")
+                vector<Token> argument;
+                bool endOfArgument = false;
+                int brackets = 0;
+                while (!endOfArgument)
                 {
-                    string currentString = stringStack.top();
-                    root = new Node{
-                        Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
-                    stringStack.pop();
-                    child1 = nodeStack.top();
-                    nodeStack.pop();
-                    child2 = nodeStack.top();
-                    nodeStack.pop();
-                    root->branches.push_back(child2);
-                    child2->parent = root;
-                    root->branches.push_back(child1);
-                    child1->parent = root;
-                    nodeStack.push(root);
+                    if (tokens[i].text == "(") parenthesis++;
+                    if (tokens[i].text == ")") parenthesis--;
+                    if (tokens[i].text == "[") brackets++;
+                    if (tokens[i].text == "]") brackets--;
+                    argument.push_back(tokens[i]);
+                    i++;
+                    if (parenthesis == 0 || (tokens[i].text == "," && parenthesis == 1 && brackets == 0))
+                    {
+                        endOfArgument = true;
+                        if (parenthesis == 0) argument.pop_back(); // pop the last ")"
+                        argument.push_back(Token(0, 0 , "END"));
+                        // cout << "argument = ";
+                        // for (Token token : argument) cout << token.text << " ";
+                        // cout << endl;
+                        Node* argNode = constructAST(argument, 1, false, false);
+                        argNode->parent = arrayFunction;
+                        arrayFunction->branches.push_back(argNode);
+                        i++; // next element
+                    }
                 }
             }
-        }
-        else if (tokens[i].text == "push")
-        {
-            root = new Node{tokens[i], vector<Node *>(), nullptr};
-            i += 2; // inside parenthesis
-            int brackets = 0;
-            int parenthesis = 0;
-            bool endOfArgument = false;
-            vector<Token> array;
-            while (!endOfArgument)
+            if (type == "len")
             {
-                if (tokens[i].text == "[")
-                    brackets++;
-                else if (tokens[i].text == "]")
-                    brackets--;
-                if (tokens[i].text == "(")
-                    parenthesis++;
-                else if (tokens[i].text == ")")
-                    parenthesis--;
-                array.push_back(tokens[i]);
-                i++;
-                if (tokens[i].text == "," && brackets == 0 && parenthesis == 0)
-                    endOfArgument = true;
+                nodeStack.push(arrayFunction);
+                if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
+                {
+                    while (!stringStack.empty() && stringStack.top() != "(")
+                    {
+                        string currentString = stringStack.top();
+                        root = new Node{
+                            Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
+                        stringStack.pop();
+                        child1 = nodeStack.top();
+                        nodeStack.pop();
+                        child2 = nodeStack.top();
+                        nodeStack.pop();
+                        root->branches.push_back(child2);
+                        child2->parent = root;
+                        root->branches.push_back(child1);
+                        child1->parent = root;
+                        nodeStack.push(root);
+                    }
+                }
             }
-            array.push_back(Token(0, 0, "END"));
-            i++; // skip comma
-            vector<Token> newElement;
-            brackets = 0;
-            parenthesis = 0;
-            endOfArgument = false;
-            // cout << "starting at " << tokens[i].text << endl;
-            while (!endOfArgument)
+            else
             {
-                if (tokens[i].text == "[")
-                    brackets++;
-                else if (tokens[i].text == "]")
-                    brackets--;
-                if (tokens[i].text == "(")
-                    parenthesis++;
-                else if (tokens[i].text == ")")
-                    parenthesis--;
-                newElement.push_back(tokens[i]);
-                i++;
-                if (tokens[i].text == ")" && brackets == 0 && parenthesis == 0)
-                    endOfArgument = true;
+                root = arrayFunction;
+                return root;
             }
-            newElement.push_back(Token(0, 0, "END"));
-            // cout << "newElement = ";
-            // for (Token token : newElement) cout << token.text << " ";
-            // cout << endl;
-            i++;
-            Node *arrayNode = constructAST(array, 1, false, false);
-            Node *newElementNode = constructAST(newElement, 1, false, false);
-            arrayNode->parent = root;
-            newElementNode->parent = root;
-            root->branches.push_back(arrayNode);
-            root->branches.push_back(newElementNode);
-            return (root);
+
+
+
+
+            // vector<Token> array;
+            // while (parenthesis > 0)
+            // {
+            //     if (tokens[i].text == "(")
+            //         parenthesis++;
+            //     else if (tokens[i].text == ")")
+            //         parenthesis--;
+            //     array.push_back(tokens[i]);
+            //     i++;
+            // }
+            // array.pop_back();
+            // array.push_back(Token(0, 0, "END"));
+            // Node *arrayNode = constructAST(array, 0, false, false);
+            // len->branches.push_back(arrayNode);
+            // arrayNode->parent = len;
+            // nodeStack.push(len);
+            // i--;
+            // cout << "tokens = " << tokens[i].text << endl;
+            // if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
+            // {
+            //     while (!stringStack.empty() && stringStack.top() != "(")
+            //     {
+            //         string currentString = stringStack.top();
+            //         root = new Node{
+            //             Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
+            //         stringStack.pop();
+            //         child1 = nodeStack.top();
+            //         nodeStack.pop();
+            //         child2 = nodeStack.top();
+            //         nodeStack.pop();
+            //         root->branches.push_back(child2);
+            //         child2->parent = root;
+            //         root->branches.push_back(child1);
+            //         child1->parent = root;
+            //         nodeStack.push(root);
+            //     }
+            // }
         }
-        else if (tokens[i].text == "pop")
-        {
-            root = new Node{tokens[i], vector<Node *>(), nullptr};
-            i += 2; // inside parenthesis
-            int brackets = 0;
-            int parenthesis = 0;
-            bool endOfArgument = false;
-            vector<Token> array;
-            while (!endOfArgument)
-            {
-                if (tokens[i].text == "[")
-                    brackets++;
-                else if (tokens[i].text == "]")
-                    brackets--;
-                if (tokens[i].text == "(")
-                    parenthesis++;
-                else if (tokens[i].text == ")")
-                    parenthesis--;
-                array.push_back(tokens[i]);
-                i++;
-                if (tokens[i].text == ")" && brackets == 0 && parenthesis == 0)
-                    endOfArgument = true;
-            }
-            array.push_back(Token(0, 0, "END"));
-            Node *arrayNode = constructAST(array, 0, false, false);
-            root->branches.push_back(arrayNode);
-            arrayNode->parent = root;
-            return (root);
-        }
+        // else if (tokens[i].text == "push")
+        // {
+        //     root = new Node{tokens[i], vector<Node *>(), nullptr};
+        //     i += 2; // inside parenthesis
+        //     int brackets = 0;
+        //     int parenthesis = 0;
+        //     bool endOfArgument = false;
+        //     vector<Token> array;
+        //     while (!endOfArgument)
+        //     {
+        //         if (tokens[i].text == "[")
+        //             brackets++;
+        //         else if (tokens[i].text == "]")
+        //             brackets--;
+        //         if (tokens[i].text == "(")
+        //             parenthesis++;
+        //         else if (tokens[i].text == ")")
+        //             parenthesis--;
+        //         array.push_back(tokens[i]);
+        //         i++;
+        //         if (tokens[i].text == "," && brackets == 0 && parenthesis == 0)
+        //             endOfArgument = true;
+        //     }
+        //     array.push_back(Token(0, 0, "END"));
+        //     i++; // skip comma
+        //     vector<Token> newElement;
+        //     brackets = 0;
+        //     parenthesis = 0;
+        //     endOfArgument = false;
+        //     // cout << "starting at " << tokens[i].text << endl;
+        //     while (!endOfArgument)
+        //     {
+        //         if (tokens[i].text == "[")
+        //             brackets++;
+        //         else if (tokens[i].text == "]")
+        //             brackets--;
+        //         if (tokens[i].text == "(")
+        //             parenthesis++;
+        //         else if (tokens[i].text == ")")
+        //             parenthesis--;
+        //         newElement.push_back(tokens[i]);
+        //         i++;
+        //         if (tokens[i].text == ")" && brackets == 0 && parenthesis == 0)
+        //             endOfArgument = true;
+        //     }
+        //     newElement.push_back(Token(0, 0, "END"));
+        //     // cout << "newElement = ";
+        //     // for (Token token : newElement) cout << token.text << " ";
+        //     // cout << endl;
+        //     i++;
+        //     Node *arrayNode = constructAST(array, 1, false, false);
+        //     Node *newElementNode = constructAST(newElement, 1, false, false);
+        //     arrayNode->parent = root;
+        //     newElementNode->parent = root;
+        //     root->branches.push_back(arrayNode);
+        //     root->branches.push_back(newElementNode);
+        //     return (root);
+        // }
+        // else if (tokens[i].text == "pop")
+        // {
+        //     root = new Node{tokens[i], vector<Node *>(), nullptr};
+        //     i += 2; // inside parenthesis
+        //     int brackets = 0;
+        //     int parenthesis = 0;
+        //     bool endOfArgument = false;
+        //     vector<Token> array;
+        //     while (!endOfArgument)
+        //     {
+        //         if (tokens[i].text == "[")
+        //             brackets++;
+        //         else if (tokens[i].text == "]")
+        //             brackets--;
+        //         if (tokens[i].text == "(")
+        //             parenthesis++;
+        //         else if (tokens[i].text == ")")
+        //             parenthesis--;
+        //         array.push_back(tokens[i]);
+        //         i++;
+        //         if (tokens[i].text == ")" && brackets == 0 && parenthesis == 0)
+        //             endOfArgument = true;
+        //     }
+        //     array.push_back(Token(0, 0, "END"));
+        //     Node *arrayNode = constructAST(array, 0, false, false);
+        //     root->branches.push_back(arrayNode);
+        //     arrayNode->parent = root;
+        //     return (root);
+        // }
         else if (tokens[i].text == "[") // beginning of an array
         {
             Node *array = new Node{tokens[i], vector<Node *>(), nullptr};
@@ -750,7 +812,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     }
     else if (text == "len")
     {
-        if (evaluate(top->branches[0], scopeMap).type != ARRAY)
+        if (top->branches.size() != 1)
+        {
+            result.setType(INCORRECTARGUMENTCOUNT);
+        }
+        else if (evaluate(top->branches[0], scopeMap).type != ARRAY)
         {
             result.setType(NOTARRAYERROR);
         }
@@ -761,7 +827,11 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     }
     else if (text == "push")
     {
-        if (evaluate(top->branches[0], scopeMap).type != ARRAY)
+        if (top->branches.size() != 2)
+        {
+            result.setType(INCORRECTARGUMENTCOUNT);
+        }
+        else if (evaluate(top->branches[0], scopeMap).type != ARRAY)
         {
             result.setType(NOTARRAYERROR);
         }
@@ -775,9 +845,17 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
     }
     else if (text == "pop")
     {
-        if (evaluate(top->branches[0], scopeMap).type != ARRAY)
+        if (top->branches.size() != 1)
+        {
+            result.setType(INCORRECTARGUMENTCOUNT);
+        }
+        else if (evaluate(top->branches[0], scopeMap).type != ARRAY)
         {
             result.setType(NOTARRAYERROR);
+        }
+        else if (evaluate(top->branches[0], scopeMap).data.arrayValue->size() == 0)
+        {
+            result.setType(UNDERFLOW);
         }
         else
         {
@@ -1171,7 +1249,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         // Statements should NEVER show up inside an expression. They're not part of ASTs. Same with curly braces.
         if (t.isStatement() || t.isBrace())
         {
-            cout << "error 1" << endl;
+            //cout << "error 1" << endl;
             parseError(t, line);
             return (true);
         }
@@ -1185,13 +1263,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             if (i == 0 ||
                 !(expression[i - 1].isOperand() || expression[i - 1].text == ")" || expression[i - 1].text == "]"))
             {
-                cout << "error 2" << endl;
+                //cout << "error 2" << endl;
                 parseError(t, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["))
             {
-                cout << "error 3" << endl;
+                //cout << "error 3" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1213,13 +1291,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             }
             if (i == lastIndex)
             {
-                cout << "error 4" << endl;
+                //cout << "error 4" << endl;
                 parseError(theEnd, line);
                 return (true);
             }
             if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "[" || (expression[i + 1].text == ")" && isFunctionCall) || (t.text == "[" && expression[i + 1].text == "]")))
             {
-                cout << "error 5" << endl;
+                //cout << "error 5" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1244,13 +1322,15 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // cout << "brackets = " << brackets << " and " << t.text << endl;
             if (parentheses < 0 || brackets < 0) // This also covers the case where i == 0.
             {
-                cout << "error 6" << endl;
+                // for (Token token : expression) cout << token.text << " ";
+                // cout << endl;
+                //cout << "error 6" << endl;
                 parseError(t, line);
                 return (true);
             }
             if (!(expression[i + 1].isOperator() || expression[i + 1].text == ")" || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "]" || expression[i + 1].text == "["))
             {
-                cout << "error 7" << endl;
+                //cout << "error 7" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1268,7 +1348,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // Check right, if no function call exists.
             else if (!(expression[i + 1].text == ")" || expression[i + 1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "["))
             {
-                cout << "error 8" << endl;
+                //cout << "error 8" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1280,14 +1360,14 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // Semicolons are also unexpected if there are remaining open parentheses.
             if (!requireSemicolons || parentheses > 0)
             {
-                cout << "error 9" << endl;
+                //cout << "error 9" << endl;
                 parseError(t, line);
                 return (true);
             }
             // The token AFTER a semicolon is always unexpected if it's not the END of the expression.
             else if (!(expression[i + 1].isEnd()))
             {
-                cout << "error 10" << endl;
+                //cout << "error 10" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1298,13 +1378,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         {
             if (!isFunctionCall && brackets == 0)
             {
-                cout << "error 11" << endl;
+                //cout << "error 11" << endl;
                 parseError(t, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["))
             {
-                cout << "error 12" << endl;
+                //cout << "error 12" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1322,7 +1402,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
     }
     else
     {
-        cout << "error 13" << endl;
+        //cout << "error 13" << endl;
         parseError(theEnd, line);
         return (true);
     }
