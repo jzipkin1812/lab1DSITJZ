@@ -62,7 +62,7 @@ Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complex
     }
     lineNumber++;
     parseString(expression, lineNumber);                                        // parseString runs one more time after cin.eof() in the case of an eof being located on the same line as an expression
-    parseString("", lineNumber + 1);
+    //parseString("", lineNumber + 1);
     tokens.back().push_back(Token(lineNumber, expression.length() + 1, "END")); // tokens: vector of vectors, each vector contains a new expression
     fileStream.close();
 }
