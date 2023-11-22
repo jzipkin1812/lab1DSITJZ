@@ -20,17 +20,17 @@ enum TypeTag
     NOCONDITIONERROR, // A condition for a statement wasn't a boolean e.g. while(3 + 3) {
     NONE,
     FUNCTION,
-    NOTFUNCTIONERROR, // Not a function e.g. 7(6, 2, 3) or true(9, 10)
-    ARGCERROR,        // Incorrect # of arguments passed to function
-    BADRETURNERROR,   // Return at top-level, not inside function
-    INDEXNOTNUMBERERROR, // [1, 2][true]
+    NOTFUNCTIONERROR,     // Not a function e.g. 7(6, 2, 3) or true(9, 10)
+    ARGCERROR,            // Incorrect # of arguments passed to function
+    BADRETURNERROR,       // Return at top-level, not inside function
+    INDEXNOTNUMBERERROR,  // [1, 2][true]
     INDEXNOTINTEGERERROR, // [1, 2][0.2]
     SYNTAXERROR,
     NOTARRAYERROR,
     OUTOFBOUNDS,
     INCORRECTARGUMENTCOUNT,
-    UNDERFLOW,
-    ARRAY             // [1, 2]
+    UNDERFLOWERROR,
+    ARRAY // [1, 2]
 };
 
 static string unknownIDText;
@@ -63,8 +63,10 @@ struct typedValue
         string result = "";
         if (type == BOOLEAN)
         {
-            if (data.booleanValue == true) result += "true";
-            else result += "false";
+            if (data.booleanValue == true)
+                result += "true";
+            else
+                result += "false";
         }
         else if (type == DOUBLE)
         {
@@ -73,7 +75,7 @@ struct typedValue
         else if (type == ARRAY)
         {
             result += "[";
-            for (unsigned int i = 0 ; i < data.arrayValue->size() ; i++)
+            for (unsigned int i = 0; i < data.arrayValue->size(); i++)
             {
                 result += data.arrayValue->at(i).toString();
                 if (i != data.arrayValue->size() - 1)
@@ -85,7 +87,7 @@ struct typedValue
         {
             result += "null";
         }
-        return(result);
+        return (result);
     }
 
     friend ostream &operator<<(ostream &o, const typedValue &tValue)
@@ -106,7 +108,7 @@ struct typedValue
             // vector<typedValue> * arrPtr = tValue.data.arrayValue;
             for (unsigned int i = 0; i < tValue.data.arrayValue->size(); i++)
             {
-                //if (!(tValue.data.arrayValue->at(i).type == NONE))
+                // if (!(tValue.data.arrayValue->at(i).type == NONE))
                 o << tValue.data.arrayValue->at(i);
                 if (i != tValue.data.arrayValue->size() - 1)
                     o << ", ";
@@ -136,10 +138,12 @@ struct typedValue
         else if (type == ARRAY)
         {
             result = true;
-            if (other.data.arrayValue->size() != data.arrayValue->size()) return false;
-            for (unsigned int i = 0 ; i < other.data.arrayValue->size() ; i++)
+            if (other.data.arrayValue->size() != data.arrayValue->size())
+                return false;
+            for (unsigned int i = 0; i < other.data.arrayValue->size(); i++)
             {
-                if (other.data.arrayValue->at(i) != data.arrayValue->at(i)) result = false;
+                if (other.data.arrayValue->at(i) != data.arrayValue->at(i))
+                    result = false;
             }
         }
         return (result);
@@ -171,7 +175,7 @@ struct typedValue
 
     bool isError()
     {
-        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR || type == INDEXNOTNUMBERERROR || type == INDEXNOTINTEGERERROR || type == NOTARRAYERROR || type == OUTOFBOUNDS || type == INCORRECTARGUMENTCOUNT || type == UNDERFLOW);
+        return (type == ARGCERROR || type == BADRETURNERROR || type == TYPEERROR || type == NOTFUNCTIONERROR || type == DIVZEROERROR || type == IDERROR || type == ASSIGNEEERROR || type == NOCONDITIONERROR || type == INDEXNOTNUMBERERROR || type == INDEXNOTINTEGERERROR || type == NOTARRAYERROR || type == OUTOFBOUNDS || type == INCORRECTARGUMENTCOUNT || type == UNDERFLOWERROR);
     }
 
     string outputError(bool exitImmediately = false)
@@ -181,7 +185,7 @@ struct typedValue
             return finalOutput;
         else if (type == SYNTAXERROR)
             finalOutput = "Syntax error on line .\n";
-        else if (type == UNDERFLOW)
+        else if (type == UNDERFLOWERROR)
             finalOutput = "Runtime error: underflow.\n";
         else if (type == INCORRECTARGUMENTCOUNT)
             finalOutput = "Runtime error: incorrect argument count.\n";

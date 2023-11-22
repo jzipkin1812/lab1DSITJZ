@@ -206,7 +206,8 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
             Node *arrayFunction = new Node{tokens[i], vector<Node *>(), nullptr};
             i += 2; // inside parenthesis
             int parenthesis = 1;
-            if (tokens[i].text == ")") parenthesis = 0; //empty function, no arguments
+            if (tokens[i].text == ")")
+                parenthesis = 0; // empty function, no arguments
             while (parenthesis != 0)
             {
                 vector<Token> argument;
@@ -214,21 +215,26 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 int brackets = 0;
                 while (!endOfArgument)
                 {
-                    if (tokens[i].text == "(") parenthesis++;
-                    if (tokens[i].text == ")") parenthesis--;
-                    if (tokens[i].text == "[") brackets++;
-                    if (tokens[i].text == "]") brackets--;
+                    if (tokens[i].text == "(")
+                        parenthesis++;
+                    if (tokens[i].text == ")")
+                        parenthesis--;
+                    if (tokens[i].text == "[")
+                        brackets++;
+                    if (tokens[i].text == "]")
+                        brackets--;
                     argument.push_back(tokens[i]);
                     i++;
                     if (parenthesis == 0 || (tokens[i].text == "," && parenthesis == 1 && brackets == 0))
                     {
                         endOfArgument = true;
-                        if (parenthesis == 0) argument.pop_back(); // pop the last ")"
-                        argument.push_back(Token(0, 0 , "END"));
+                        if (parenthesis == 0)
+                            argument.pop_back(); // pop the last ")"
+                        argument.push_back(Token(0, 0, "END"));
                         // cout << "argument = ";
                         // for (Token token : argument) cout << token.text << " ";
                         // cout << endl;
-                        Node* argNode = constructAST(argument, 1, false, false);
+                        Node *argNode = constructAST(argument, 1, false, false);
                         argNode->parent = arrayFunction;
                         arrayFunction->branches.push_back(argNode);
                         i++; // next element
@@ -239,7 +245,7 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
             {
                 nodeStack.push(arrayFunction);
                 i -= 2;
-                if (i == tokens.size() - 1&& !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
+                if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
                 {
                     while (!stringStack.empty() && stringStack.top() != "(")
                     {
@@ -264,9 +270,6 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 root = arrayFunction;
                 return root;
             }
-
-
-
 
             // vector<Token> array;
             // while (parenthesis > 0)
@@ -856,7 +859,7 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
         }
         else if (evaluate(top->branches[0], scopeMap).data.arrayValue->size() == 0)
         {
-            result.setType(UNDERFLOW);
+            result.setType(UNDERFLOWERROR);
         }
         else
         {
@@ -1109,17 +1112,17 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             }
         }
         else
-        {     
+        {
             // Gets a function pointer, array, boolean, null, or double
             result = scopeMap[text];
             // cout << (*result.data.arrayValue).size() << endl;
             // But...if result is a function, we need to call the function.
             if (top->isFunctionCall)
             {
-                //cout << "top = " << top->info.text << endl;
-                // NOT A FUNCTION ERROR (CASE 2 OF 2)
-                // Sometimes the function call node IS a variable but DOESN'T refer to a function. This is a runtime error.
-                //cout << "type = " << result.type << endl;
+                // cout << "top = " << top->info.text << endl;
+                //  NOT A FUNCTION ERROR (CASE 2 OF 2)
+                //  Sometimes the function call node IS a variable but DOESN'T refer to a function. This is a runtime error.
+                // cout << "type = " << result.type << endl;
                 if (result.type != FUNCTION)
                 {
                     result.type = NOTFUNCTIONERROR;
@@ -1233,11 +1236,12 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         // Statements should NEVER show up inside an expression. They're not part of ASTs. Same with curly braces.
         if (t.isStatement() || t.isBrace())
         {
-            //cout << "error 1" << endl;
+            // cout << "error 1" << endl;
             parseError(t, line);
             return (true);
         }
-        if (t.text == "len" || t.text == "push" || t.text == "pop") isFunctionCall = true;
+        if (t.text == "len" || t.text == "push" || t.text == "pop")
+            isFunctionCall = true;
         // Operators should have two operands between them.
         // The left can be a RIGHT parenthesis or a number or an identifier.
         // The right can be a LEFT parenthesis or a number or an identifier.
@@ -1247,13 +1251,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             if (i == 0 ||
                 !(expression[i - 1].isOperand() || expression[i - 1].text == ")" || expression[i - 1].text == "]"))
             {
-                //cout << "error 2" << endl;
+                // cout << "error 2" << endl;
                 parseError(t, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["))
             {
-                //cout << "error 3" << endl;
+                // cout << "error 3" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1275,13 +1279,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             }
             if (i == lastIndex)
             {
-                //cout << "error 4" << endl;
+                // cout << "error 4" << endl;
                 parseError(theEnd, line);
                 return (true);
             }
             if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "[" || (expression[i + 1].text == ")" && isFunctionCall) || (t.text == "[" && expression[i + 1].text == "]")))
             {
-                //cout << "error 5" << endl;
+                // cout << "error 5" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1308,13 +1312,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             {
                 // for (Token token : expression) cout << token.text << " ";
                 // cout << endl;
-                //cout << "error 6" << endl;
+                // cout << "error 6" << endl;
                 parseError(t, line);
                 return (true);
             }
             if (!(expression[i + 1].isOperator() || expression[i + 1].text == ")" || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "]" || expression[i + 1].text == "["))
             {
-                //cout << "error 7" << endl;
+                // cout << "error 7" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1332,7 +1336,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // Check right, if no function call exists.
             else if (!(expression[i + 1].text == ")" || expression[i + 1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "["))
             {
-                //cout << "error 8" << endl;
+                // cout << "error 8" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1344,14 +1348,14 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // Semicolons are also unexpected if there are remaining open parentheses.
             if (!requireSemicolons || parentheses > 0)
             {
-                //cout << "error 9" << endl;
+                // cout << "error 9" << endl;
                 parseError(t, line);
                 return (true);
             }
             // The token AFTER a semicolon is always unexpected if it's not the END of the expression.
             else if (!(expression[i + 1].isEnd()))
             {
-                //cout << "error 10" << endl;
+                // cout << "error 10" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1362,13 +1366,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         {
             if (!isFunctionCall && brackets == 0)
             {
-                //cout << "error 11" << endl;
+                // cout << "error 11" << endl;
                 parseError(t, line);
                 return (true);
             }
             else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["))
             {
-                //cout << "error 12" << endl;
+                // cout << "error 12" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
@@ -1386,7 +1390,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
     }
     else
     {
-        //cout << "error 13" << endl;
+        // cout << "error 13" << endl;
         parseError(theEnd, line);
         return (true);
     }
@@ -1493,9 +1497,9 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue> &scope, bool a
         b.capturedVariables = scope;
         // cout << "New captured variables has address " << &b.capturedVariables << " and is capturing from address " << &scope << endl;
         Func *newFunction = new Func(b, b.capturedVariables);
-        //cout << "before, type = " << newFunction->info.type << endl;
+        // cout << "before, type = " << newFunction->info.type << endl;
         globalFunctions.push_back(newFunction); // for memory clearing later
-        //cout << "after, type = " << newFunction->info.type << endl;
+        // cout << "after, type = " << newFunction->info.type << endl;
         newFunction->capturedVariables = b.capturedVariables;
         typedValue functionStorage;                                       // Stores the new function in a typedValue.
         newFunction->capturedVariables[b.functionName] = functionStorage; // For recursion, we need to store the function inside of its own captured variables.
