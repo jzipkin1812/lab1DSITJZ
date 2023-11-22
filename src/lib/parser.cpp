@@ -1123,8 +1123,10 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
                 //  NOT A FUNCTION ERROR (CASE 2 OF 2)
                 //  Sometimes the function call node IS a variable but DOESN'T refer to a function. This is a runtime error.
                 // cout << "type = " << result.type << endl;
+                //cout << "result:" << result.type << endl;
                 if (result.type != FUNCTION)
                 {
+                    //cout << "t.top: " << top->info.text << "t: " << t.text << endl;
                     result.type = NOTFUNCTIONERROR;
                     return (result);
                 }
