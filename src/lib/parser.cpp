@@ -1109,34 +1109,17 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
             }
         }
         else
-        {
-            //  << "IDENTIFIED" << endl;
-            // bool arrayAccess = true;
-            // if (top->branches.size() != 1) arrayAccess = false;
-            // if (arrayAccess)
-            // {
-            //     string index = top->branches[0]->info.text;
-            //     for (int i = 0; i < strlen(str); i++)
-            //     {
-            //         if (!isdigit(str[i])) arrayAccess = false;
-            //     }
-            // }
-            // if (arrayAccess) {
-            //     // cout << "searching...." << endl;
-            //     // int index = stoi(top->branches[0]->info.text);
-            //     // cout << "index = " << index << endl;
-            //     // cout << "size of array = ";
-            //     // cout << scopeMap[text].data.arrayValue->size() << endl;
-            //     // result = (*scopeMap[text].data.arrayValue)[index];
-            // }
+        {     
             // Gets a function pointer, array, boolean, null, or double
             result = scopeMap[text];
             // cout << (*result.data.arrayValue).size() << endl;
             // But...if result is a function, we need to call the function.
             if (top->isFunctionCall)
             {
+                //cout << "top = " << top->info.text << endl;
                 // NOT A FUNCTION ERROR (CASE 2 OF 2)
                 // Sometimes the function call node IS a variable but DOESN'T refer to a function. This is a runtime error.
+                //cout << "type = " << result.type << endl;
                 if (result.type != FUNCTION)
                 {
                     result.type = NOTFUNCTIONERROR;
@@ -1510,7 +1493,9 @@ typedValue Parser::executeHelper(Block b, map<string, typedValue> &scope, bool a
         b.capturedVariables = scope;
         // cout << "New captured variables has address " << &b.capturedVariables << " and is capturing from address " << &scope << endl;
         Func *newFunction = new Func(b, b.capturedVariables);
+        //cout << "before, type = " << newFunction->info.type << endl;
         globalFunctions.push_back(newFunction); // for memory clearing later
+        //cout << "after, type = " << newFunction->info.type << endl;
         newFunction->capturedVariables = b.capturedVariables;
         typedValue functionStorage;                                       // Stores the new function in a typedValue.
         newFunction->capturedVariables[b.functionName] = functionStorage; // For recursion, we need to store the function inside of its own captured variables.
