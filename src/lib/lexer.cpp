@@ -196,27 +196,41 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
         }
         catch (int columnNum)
         {
-            currentString = "";
-            std::ostringstream s;
-            if (pushEnds)
+            if (checkErrors)
             {
-                currentExpression.push_back(Token(1, columnNum, ""));
+                if (pushEnds)
+                {
+                    cout << "Syntax error on line " << 1 << " column " << columnNum << "." << endl;
+                }
+                else
+                {
+                    cout << "Syntax error on line " << lineNumber << " column " << columnNum << "." << endl;
+                }
+                if(exitOnError) exit(1);
+                else return;
             }
-            else
-            {
-                currentExpression.push_back(Token(lineNumber, columnNum, ""));
-            }
-            if (exitOnError)
-                exit(1);
             else
             {
                 if (pushEnds)
                 {
-                    currentExpression.push_back(Token(lineNumber, expression.length() + 1, "END"));
+                    currentExpression.push_back(Token(1, columnNum, ""));
                 }
-                tokens.push_back(currentExpression);
+                else
+                {
+                    currentExpression.push_back(Token(lineNumber, columnNum, ""));
+                }
+                if (exitOnError)
+                    exit(1);
+                else
+                {
+                    if (pushEnds)
+                    {
+                        currentExpression.push_back(Token(lineNumber, expression.length() + 1, "END"));
+                    }
+                    tokens.push_back(currentExpression);
+                }
+                return;
             }
-            return;
         }
     }
     if (currentString != "") // case for when a number is located directly before '\n'
@@ -232,3 +246,4 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
     }
     tokens.push_back(currentExpression);
 }
+
