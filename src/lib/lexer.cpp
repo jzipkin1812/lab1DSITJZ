@@ -17,8 +17,9 @@ void Lexer::print()
     }
 }
 
-Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complexity O(n^2), (number of lines) X (number of characters in each line)
+Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName, bool checkSyntaxErrors) // time complexity O(n^2), (number of lines) X (number of characters in each line)
 {
+    checkErrors = checkSyntaxErrors;
     // Handle text files
     ifstream fileStream;
     if(fileName != "") fileStream = ifstream(fileName);
@@ -196,11 +197,11 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
         catch (int columnNum)
         {
 
-            if (pushEnds)
+            if (pushEnds && checkErrors)
             {
                 cout << "Syntax error on line " << 1 << " column " << columnNum << "." << endl;
             }
-            else
+            else if (!pushEnds && checkErrors)
             {
                 cout << "Syntax error on line " << lineNumber << " column " << columnNum << "." << endl;
             }

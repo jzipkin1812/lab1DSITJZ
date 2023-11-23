@@ -10,7 +10,7 @@ using namespace std;
 
 int main()
 {
-    Lexer myLexer = Lexer(true);
+    Lexer myLexer = Lexer(true, false, "", false);
     // for(vector<Token> line : myLexer.getTokens())
     // {
     //     for(Token t : line)
