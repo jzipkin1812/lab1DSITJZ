@@ -1338,6 +1338,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         // To the right can be: Comma, Operator, ), ;, END, or (, but the ( means we're looking at a function call.
         else if (t.isOperand())
         {
+            //cout << "t = " << t.text << endl;
             // Check for a function call.
             if (expression[i + 1].text == "(")
             {
@@ -1346,7 +1347,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
             // Check right, if no function call exists.
             else if (!(expression[i + 1].text == ")" || expression[i + 1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "["))
             {
-                // cout << "error 8" << endl;
+                //cout << "error 8" << endl;
                 parseError(expression[i + 1], line);
                 return (true);
             }
