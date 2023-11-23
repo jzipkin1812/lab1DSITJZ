@@ -11,12 +11,11 @@
 #include "lex.h"
 #include "parse.h"
 using namespace std;
-
 Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
 {
     exitImmediately = allowStatements = statements;
     // Simple process of 1 expression per line used when statements are not present.
-    if(!statements)
+    if (!statements)
     {
         for (unsigned int line = 0; line < inputFromLexer.size(); line++)
         {
@@ -33,16 +32,16 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
         // The "target" points to the block vector that we should currently be stuffing things into.
         // It starts as the parser's block vector, but if we encounter while/if/else statements,
         // we'll have to change it so that future blocks are added to what is nested within.
-        Block * targetParent = nullptr;
-        vector<Block> * target = &(blocks);
+        Block *targetParent = nullptr;
+        vector<Block> *target = &(blocks);
         vector<Token> line;
         Token beginning(0, 0, "");
-        for(unsigned int i = 0; i < inputFromLexer.size(); i++)
+        for (unsigned int i = 0; i < inputFromLexer.size(); i++)
         {
             line = inputFromLexer[i];
             beginning = line[0];
             // Find the correct block vector to push things into. If parent is nullptr, that means we're not nested in anything and it should just be blocks.
-            if(!targetParent)
+            if (!targetParent)
             {
                 target = &(blocks);
             }
@@ -53,49 +52,49 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
 
             // CASE 0: An end token.
             // Skip it.
-            if(beginning.isEnd())
+            if (beginning.isEnd())
             {
                 continue;
             }
             // CASE 1: An expression.
             // Construct an AST and push it to target.
-            else if(!(beginning.isStatement() || beginning.isBrace()))
-            {   
+            else if (!(beginning.isStatement() || beginning.isBrace()))
+            {
                 // cout << "Expression " << beginning.text << " going to parent with addy: " << targetParent << endl;
                 (*target).push_back(Block(constructAST(line, i, true)));
             }
             // CASE 2: A print statement.
             // Pop the print token. Construct an AST. Push a new block to target with this AST and type "print".
             // We don't need to track the parents of print statements. They don't nest.
-            else if(beginning.text == "print")
+            else if (beginning.text == "print")
             {
                 line.erase(line.begin());
                 (*target).push_back(Block(beginning.text, constructAST(line, i, true), targetParent));
             }
-            else if(beginning.text == "return")
+            else if (beginning.text == "return")
             {
                 line.erase(line.begin());
                 (*target).push_back(Block(beginning.text, constructAST(line, i, true), targetParent));
             }
             // CASE 3: An if statement.
-            // Pop the if token. Pop the brace. Construct an AST for the condition. 
+            // Pop the if token. Pop the brace. Construct an AST for the condition.
             // Change "target" to this if statement's nestedStatements vector so that statements on future lines are added to it.
-            else if(beginning.text == "if")
+            else if (beginning.text == "if")
             {
-                line.erase(line.begin()); // The if
+                line.erase(line.begin());   // The if
                 line.erase(line.end() - 2); // The brace
                 Block newIf = Block("if", constructAST(line, i), targetParent);
                 // newIf.closingLine = chainEndIndex(inputFromLexer, i);
                 (*target).push_back(newIf);
-                
+
                 // The parent pointer is now the current statement we're about to be nested inside of.
                 // The target vector is the "nestedStatements" attribute of the statement we're about to be nested inside of.
                 targetParent = &((*target).back());
                 // cout << "Reached a pure if statement on line " << i << " ending index is " << newIf.closingLine << " address is " << targetParent << endl;
             }
-            else if(beginning.text == "else")
+            else if (beginning.text == "else")
             {
-                Block * newElse = new Block("else", nullptr, targetParent);
+                Block *newElse = new Block("else", nullptr, targetParent);
                 // newElse->closingLine = targetParent->closingLine;
                 // cout << "Putting an else inside of " << targetParent;
                 targetParent->elseStatement = newElse;
@@ -105,9 +104,9 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
                 // inputFromLexer.insert(inputFromLexer.begin() + newElse->closingLine, oneBracket);
             }
             // While case
-            else if(beginning.text == "while")
+            else if (beginning.text == "while")
             {
-                line.erase(line.begin()); // The while
+                line.erase(line.begin());   // The while
                 line.erase(line.end() - 2); // The brace
                 (*target).push_back(Block(beginning.text, constructAST(line, i), targetParent));
                 // The parent pointer is now the current statement we're about to be nested inside of.
@@ -116,18 +115,18 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
             }
 
             // Def statement
-            else if(beginning.text == "def")
+            else if (beginning.text == "def")
             {
-                line.erase(line.begin()); // The while
+                line.erase(line.begin());   // The while
                 line.erase(line.end() - 2); // The brace
                 Block defBlock;
-                defBlock.statementType = "def"; // Def
+                defBlock.statementType = "def";               // Def
                 defBlock.functionName = (*line.begin()).text; // Name of new function
-                line.erase(line.begin()); // Get rid of the function name
-                for(unsigned int j = 0; j < line.size(); j++)
+                line.erase(line.begin());                     // Get rid of the function name
+                for (unsigned int j = 0; j < line.size(); j++)
                 {
                     Token possibleArgument = line[j];
-                    if(possibleArgument.isVariable())
+                    if (possibleArgument.isVariable())
                     {
                         defBlock.argumentNames.push_back(possibleArgument.text);
                     }
@@ -140,22 +139,17 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
 
             // CASE BRACKET: A closed bracket.
             // Target should be redirected back up the control flow tree.
-            else if(beginning.text == "}")
+            else if (beginning.text == "}")
             {
-                if(targetParent && (*targetParent).statementType == "if" 
-                && i < inputFromLexer.size() - 1 && inputFromLexer[i + 1][0].text == "else")
+                if (targetParent && (*targetParent).statementType == "if" && i < inputFromLexer.size() - 1 && inputFromLexer[i + 1][0].text == "else")
                 {
-                    // cout << "BRACE (IGNORED)" << endl;
                     continue;
                 }
-                if(targetParent && targetParent->statementType == "else")
+                if (targetParent && targetParent->statementType == "else")
                 {
-                    // cout << "back twice..." << flush;
-                    targetParent = targetParent->parent;  
-                    // cout << "done. New parent is " << targetParent->statementType << endl;
+                    targetParent = targetParent->parent;
                 }
-                // cout << "BRACE (Old Parent " << (*targetParent).statementType << ")(Next " << inputFromLexer[i + 1][0].text << ")" << endl;
-                targetParent = targetParent->parent;  
+                targetParent = targetParent->parent;
                 continue;
             }
         }
@@ -164,19 +158,17 @@ Parser::Parser(vector<vector<Token>> inputFromLexer, bool statements)
 
 Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolons, bool ignoreErrors)
 {
-    // if (line == 90000) return nullptr;
-    
     // CHECK FOR ALL UNEXPECTED TOKEN ERRORS
     // The following function will print the error message on its own.
     // It returns true if there's an error detected.
     if (!ignoreErrors && (checkError(tokens, line, requireSemicolons) == true))
     {
-       return nullptr;
+        return nullptr;
     }
     // Remove the end token, which is no longer needed after checkError().
     tokens.pop_back();
     // Remove the semicolon token, which is no longer needed after checkError().
-    if(requireSemicolons)
+    if (requireSemicolons)
     {
         tokens.pop_back();
     }
@@ -186,63 +178,157 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
     Node *root = nullptr;
     Node *child1 = nullptr;
     Node *child2 = nullptr;
+
     if (tokens.size() == 0 || (tokens.size() == 1 && tokens[0].isEnd())) // handles case where expression is empty line
     {
         return nullptr;
     }
     for (unsigned int i = 0; i < tokens.size(); i++)
     {
-        if (tokens[i].text == "(") // signifies beginning of subtree
+        if (tokens[i].text == "len" || tokens[i].text == "push" || tokens[i].text == "pop")
         {
-            stringStack.push("(");
-        }
-        else if (tokens[i].isOperand()) // numbers and variables are treated the same at a base level
-        {
-            if (i+1<tokens.size() && tokens[i+1].text == "(")  //condition to handle function calls
+            string type = tokens[i].text;
+            Node *arrayFunction = new Node{tokens[i], vector<Node *>(), nullptr};
+            i += 2; // inside parenthesis
+            int parenthesis = 1;
+            if (tokens[i].text == ")")
+                parenthesis = 0; // empty function, no arguments
+            while (parenthesis != 0)
             {
-                unsigned int originalIndex = i;
-                int parenCount = 0;
                 vector<Token> argument;
-                root = new Node{tokens[i], vector<Node *>(), nullptr};
-                root->isFunctionCall = true;
-                i = i + 2;
-                while (true) 
+                bool endOfArgument = false;
+                int brackets = 0;
+                while (!endOfArgument)
                 {
-                    if (tokens[i].text == "(") parenCount++;
-                    if (tokens[i].text == ")") parenCount--;
-                    // Note that the following recursive calls to constructAST() pass "true" for ignoreErrors, which means that checkError will not be called again.
-                    // This is because such errors would have already been caught by the top-level call to checkError() and another call would be redundant.
-                    if (parenCount < 0) //checks if the end of the function call has been reached
+                    if (tokens[i].text == "(")
+                        parenthesis++;
+                    if (tokens[i].text == ")")
+                        parenthesis--;
+                    if (tokens[i].text == "[")
+                        brackets++;
+                    if (tokens[i].text == "]")
+                        brackets--;
+                    argument.push_back(tokens[i]);
+                    i++;
+                    if (parenthesis == 0 || (tokens[i].text == "," && parenthesis == 1 && brackets == 0))
                     {
-                        if(argument.size() == 0) break; // A no-argument function call will reach this statement
-                        argument.push_back(Token(0, 0, ")"));
-                        argument.push_back(Token(0, 0, ";"));
+                        endOfArgument = true;
+                        if (parenthesis == 0)
+                            argument.pop_back(); // pop the last ")"
                         argument.push_back(Token(0, 0, "END"));
-                        Node * temp = constructAST(argument, line, false, true);
-                        temp->parent = root;
-                        root->branches.push_back(temp);
-                        argument.clear();
-                        break;
+                        Node *argNode = constructAST(argument, 1, false, false);
+                        argNode->parent = arrayFunction;
+                        arrayFunction->branches.push_back(argNode);
+                        i++; // next element
                     }
-                    else if (tokens[i].text == "," && parenCount == 0) //checks if the end of argument (could be an expression) has been reached
+                }
+            }
+            if (type == "len") // push to node stack
+            {
+                nodeStack.push(arrayFunction);
+                i -= 2;
+                if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
+                {
+                    while (!stringStack.empty() && stringStack.top() != "(")
                     {
-                        argument.push_back(Token(0, 0, ")"));
-                        argument.push_back(Token(0, 0, ";"));
-                        argument.push_back(Token(0, 0, "END"));
-                        Node * temp = constructAST(argument, line, false, true); //construct AST for expression in argument of function call
-                        temp->parent = root;
-                        root->branches.push_back(temp);
-                        argument.clear();
-                        argument.push_back(Token(0, 0, "("));
+                        string currentString = stringStack.top();
+                        root = new Node{
+                            Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
+                        stringStack.pop();
+                        child1 = nodeStack.top();
+                        nodeStack.pop();
+                        child2 = nodeStack.top();
+                        nodeStack.pop();
+                        root->branches.push_back(child2);
+                        child2->parent = root;
+                        root->branches.push_back(child1);
+                        child1->parent = root;
+                        nodeStack.push(root);
                     }
-                    else { argument.push_back(tokens[i]); }
+                }
+            }
+            else // not a type, return root
+            {
+                root = arrayFunction;
+                return root;
+            }
+        }
+        else if (tokens[i].text == "[") // beginning of an array
+        {
+            Node *array = new Node{tokens[i], vector<Node *>(), nullptr};
+            vector<vector<Token>> elements; // each vector would be an element in the array
+            i++;                            // first token in the array
+            bool endOfArray = false;
+
+            while (!endOfArray)
+            {
+                vector<Token> element;
+                while (tokens[i].text != "," && tokens[i].text != "]")
+                {
+                    if (tokens[i].text == "[") // array inside array
+                    {
+                        int brackets = 1;
+                        element.push_back(tokens[i]);
+                        i++; // first token
+                        while (brackets > 0)
+                        {
+                            if (tokens[i].text == "[")
+                                brackets++;
+                            else if (tokens[i].text == "]")
+                                brackets--;
+                            element.push_back(tokens[i]);
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        element.push_back(tokens[i]);
+                        i++; // next token
+                    }
+                }
+                if (tokens[i].text == "]")
+                    endOfArray = true;
+                if (!element.empty())
+                {
+                    element.push_back(Token(0, 0, "END"));
+                    elements.push_back(element);
+                }
+                i++; // next element
+            }
+            i--;
+
+            for (vector<Token> element : elements)
+            {
+                Node *elementRoot = constructAST(element);
+                array->branches.push_back(elementRoot);
+            }
+
+            if (tokens[i + 1].text == "[") // previous array was anonymous
+            {
+                Node *search = new Node{Token{0, 0, "[.]"}, vector<Node *>(), nullptr};
+                vector<Token> index; // index inside second []
+                int brackets = 1;
+                i += 2; // first index element
+                while (brackets > 0)
+                {
+                    if (tokens[i].text == "[")
+                        brackets++;
+                    if (tokens[i].text == "]")
+                        brackets--;
+                    index.push_back(tokens[i]);
                     i++;
                 }
-                tokens.erase(tokens.begin() + originalIndex + 1, tokens.begin() + i + 1);
-                nodeStack.push(root);
-                i = originalIndex;
+                index.pop_back();
+                index.push_back(Token(0, 0, "END"));
+                Node *indexNode = constructAST(index, 0, false, false);
+                search->branches.push_back(array);
+                search->branches.push_back(indexNode);
+                indexNode->parent = search;
+                array->parent = search;
+                nodeStack.push(search);
+                i--;
             }
-            else{ nodeStack.push(new Node{tokens[i], vector<Node *>(), nullptr}); }
+            else nodeStack.push(array);
 
             if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
             {
@@ -264,7 +350,135 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
                 }
             }
         }
-        else if (tokens[i].text != ")") // operator case
+        else if (tokens[i].text == "(") // signifies beginning of subtree
+        {
+            stringStack.push("(");
+        }
+        else if (tokens[i].isOperand()) // numbers and variables are treated the same at a base level
+        {
+            if (!tokens[i].isVariable() && tokens[i + 1].text == "[")
+            {
+                Node *array = new Node{tokens[i], vector<Node *>(), nullptr};
+                Node *search = new Node{Token{0, 0, "[.]"}, vector<Node *>(), nullptr};
+                vector<Token> index; // index inside second []
+                int brackets = 1;
+                i += 2; // first index element
+                while (brackets > 0)
+                {
+                    if (tokens[i].text == "[")
+                        brackets++;
+                    if (tokens[i].text == "]")
+                        brackets--;
+                    index.push_back(tokens[i]);
+                    i++;
+                }
+                index.pop_back();
+                index.push_back(Token(0, 0, "END"));
+                Node *indexNode = constructAST(index, 0, false, false);
+                search->branches.push_back(array);
+                search->branches.push_back(indexNode);
+                indexNode->parent = search;
+                array->parent = search;
+                nodeStack.push(search);
+                i--;
+            }
+            else if (tokens[i].isVariable() && tokens[i + 1].text == "[") // accessing an element in an array
+            {
+                Node *array = new Node{tokens[i], vector<Node *>(), nullptr};
+                Node *bracket = new Node{tokens[i + 1], vector<Node *>(), array};
+                vector<Token> index;
+                int j = i + 2; // token after "["
+                while (tokens[j].text != "]")
+                {
+                    index.push_back(tokens[j]);
+                    j++;
+                }
+                index.push_back(Token(0, 0, "END"));
+                Node *indexNode = constructAST(index, 1, false, false);
+                bracket->branches.push_back(indexNode);
+                array->branches.push_back(bracket);
+                nodeStack.push(array);
+                i = j;
+            }
+            else if (i + 1 < tokens.size() && tokens[i + 1].text == "(") // condition to handle function calls
+            {
+                unsigned int originalIndex = i;
+                int parenCount = 0;
+                int brackets = 0;
+                vector<Token> argument;
+                root = new Node{tokens[i], vector<Node *>(), nullptr};
+                root->isFunctionCall = true;
+                i = i + 2;
+                while (true)
+                {
+                    if (tokens[i].text == "(")
+                        parenCount++;
+                    if (tokens[i].text == ")")
+                        parenCount--;
+                    if (tokens[i].text == "[")
+                        brackets++;
+                    if (tokens[i].text == "]")
+                        brackets--;
+                    // Note that the following recursive calls to constructAST() pass "true" for ignoreErrors, which means that checkError will not be called again.
+                    // This is because such errors would have already been caught by the top-level call to checkError() and another call would be redundant.
+                    if (parenCount < 0) // checks if the end of the function call has been reached
+                    {
+                        if (argument.size() == 0)
+                            break; // A no-argument function call will reach this statement
+                        argument.push_back(Token(0, 0, ")"));
+                        argument.push_back(Token(0, 0, ";"));
+                        argument.push_back(Token(0, 0, "END"));
+                        Node *temp = constructAST(argument, line, false, true);
+                        temp->parent = root;
+                        root->branches.push_back(temp);
+                        argument.clear();
+                        break;
+                    }
+                    else if (tokens[i].text == "," && parenCount == 0 && brackets == 0) // checks if the end of argument (could be an expression) has been reached
+                    {
+                        argument.push_back(Token(0, 0, ")"));
+                        argument.push_back(Token(0, 0, ";"));
+                        argument.push_back(Token(0, 0, "END"));
+                        Node *temp = constructAST(argument, line, false, true); // construct AST for expression in argument of function call
+                        temp->parent = root;
+                        root->branches.push_back(temp);
+                        argument.clear();
+                        argument.push_back(Token(0, 0, "("));
+                    }
+                    else
+                    {
+                        argument.push_back(tokens[i]);
+                    }
+                    i++;
+                }
+                tokens.erase(tokens.begin() + originalIndex + 1, tokens.begin() + i + 1);
+                nodeStack.push(root);
+                i = originalIndex;
+            }
+            else
+                nodeStack.push(new Node{tokens[i], vector<Node *>(), nullptr});
+
+            if (i == tokens.size() - 1 && !stringStack.empty()) // checks if it is the end of the expression and there is still linking to be done
+            {
+                while (!stringStack.empty() && stringStack.top() != "(")
+                {
+                    string currentString = stringStack.top();
+                    root = new Node{
+                        Node{Token{0, (int)i, currentString}, vector<Node *>(), nullptr}};
+                    stringStack.pop();
+                    child1 = nodeStack.top();
+                    nodeStack.pop();
+                    child2 = nodeStack.top();
+                    nodeStack.pop();
+                    root->branches.push_back(child2);
+                    child2->parent = root;
+                    root->branches.push_back(child1);
+                    child1->parent = root;
+                    nodeStack.push(root);
+                }
+            }
+        }
+        else if (tokens[i].text != ")" && tokens[i].text != "]") // operator case
         {
             while (!stringStack.empty() &&
                    stringStack.top() != "(" &&
@@ -330,49 +544,130 @@ Node *Parser::constructAST(vector<Token> tokens, int line, bool requireSemicolon
         }
     }
     Node *finalRoot = nodeStack.top();
-    /* if ((expectedValue == "Boolean") && (evaluate(finalRoot).type != BOOLEAN))
-    {
-        cout << "Runtime error: condition is not a bool." << endl;
-    } */
     return finalRoot;
 }
 
-typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
+typedValue Parser::evaluate(Node *top, map<string, typedValue> &scopeMap)
 {
-    typedValue result = typedValue{DOUBLE, {0}, ""};
+    typedValue result = typedValue{DOUBLE, {0}};
     if (!top)
     {
-        return typedValue{NONE, {0}, ""};
+        return typedValue{NONE, {0}};
     }
     Token t = top->info;
     string text = top->info.text;
-    // TYPE MISMATCH ERROR
+    //  TYPE MISMATCH ERROR
     typedValue left;
     typedValue right;
-    if(t.isOperator())
+    if (t.isOperator())
     {
         left = evaluate(top->branches[0], scopeMap);
         right = evaluate(top->branches[1], scopeMap);
         result.setType(left.type);
         result.setType(right.type);
     }
-    if(t.isOperator() && !(t.text == "="))
+    if (t.isOperator() && !(t.text == "="))
     {
         TypeTag type1 = evaluate(top->branches[0], scopeMap).type;
         TypeTag type2 = evaluate(top->branches[1], scopeMap).type;
-        if (!(left.isError() || right.isError()) && (
-            ((type1 != type2) && (t.text != "==" && t.text != "!="))
-        || (t.takesBoolsOnly() && (type1 == DOUBLE || type2 == DOUBLE))
-        || (t.takesDoublesOnly() && (type1 == BOOLEAN || type2 == BOOLEAN))))
+        if (!(left.isError() || right.isError()) && (((type1 != type2) && (t.text != "==" && t.text != "!=")) || (t.takesBoolsOnly() && (type1 == DOUBLE || type2 == DOUBLE)) || (t.takesDoublesOnly() && (type1 == BOOLEAN || type2 == BOOLEAN))))
         {
             result.type = TYPEERROR;
-            return(result);
+            return (result);
         }
     }
     // UNKNOWN IDENTIFIER ERROR
     if (text == "+")
     {
         result.data.doubleValue = left.data.doubleValue + right.data.doubleValue;
+    }
+    else if (text == "len")
+    {
+        if (top->branches.size() != 1)
+        {
+            result.setType(INCORRECTARGUMENTCOUNT);
+        }
+        else if (evaluate(top->branches[0], scopeMap).type != ARRAY)
+        {
+            result.setType(NOTARRAYERROR);
+        }
+        else
+        {
+            result.data.doubleValue = evaluate(top->branches[0], scopeMap).data.arrayValue->size();
+        }
+    }
+    else if (text == "push")
+    {
+        if (top->branches.size() != 2)
+        {
+            result.setType(INCORRECTARGUMENTCOUNT);
+        }
+        else if (evaluate(top->branches[0], scopeMap).type != ARRAY)
+        {
+            result.setType(NOTARRAYERROR);
+        }
+        else
+        {
+            result.setType(NONE);
+            typedValue newElement = evaluate(top->branches[1], scopeMap);
+            evaluate(top->branches[0], scopeMap).data.arrayValue->push_back(newElement);
+        }
+    }
+    else if (text == "pop")
+    {
+        if (top->branches.size() != 1)
+        {
+            result.setType(INCORRECTARGUMENTCOUNT);
+        }
+        else if (evaluate(top->branches[0], scopeMap).type != ARRAY)
+        {
+            result.setType(NOTARRAYERROR);
+        }
+        else if (evaluate(top->branches[0], scopeMap).data.arrayValue->size() == 0)
+        {
+            result.setType(UNDERFLOWERROR);
+        }
+        else
+        {
+            result = evaluate(top->branches[0], scopeMap).data.arrayValue->back();
+            evaluate(top->branches[0], scopeMap).data.arrayValue->pop_back();
+        }
+    }
+    else if (text == "[")
+    {
+        result.setType(ARRAY);
+        result.data.arrayValue = new vector<typedValue>();
+        arrays.push_back(result.data.arrayValue);
+        for (Node *node : top->branches)
+        {
+            typedValue newElement = evaluate(node, scopeMap);
+            result.data.arrayValue->push_back(newElement); // add elements to the array
+        }
+    }
+    else if (text == "[.]") // anonymous array
+    {
+        if (evaluate(top->branches[0], scopeMap).type != ARRAY)
+        {
+            result.setType(NOTARRAYERROR);
+        }
+        else if (evaluate(top->branches[1], scopeMap).type != DOUBLE)
+        {
+            result.setType(INDEXNOTNUMBERERROR);
+        }
+        else if (abs(evaluate(top->branches[1], scopeMap).data.doubleValue - (int)evaluate(top->branches[1], scopeMap).data.doubleValue) >= 1e-10)
+        {
+            result.setType(INDEXNOTINTEGERERROR);
+        }
+        else
+        {
+            int index = (int)evaluate(top->branches[1], scopeMap).data.doubleValue;
+            if (index < 0 || index > (int)evaluate(top->branches[0], scopeMap).data.arrayValue->size() - 1)
+            {
+                result.setType(OUTOFBOUNDS);
+            }
+            else
+                result = evaluate(top->branches[0], scopeMap).data.arrayValue->at(index);
+        }
     }
     else if (text == "-")
     {
@@ -381,18 +676,18 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     else if (text == "%")
     {
         result.data.doubleValue = left.data.doubleValue;
-        for (unsigned int i = 1 ; i < top->branches.size() ; i++)
+        for (unsigned int i = 1; i < top->branches.size(); i++)
         {
             // Do modulus, but check for division by 0
             double d2 = evaluate(top->branches[i], scopeMap).data.doubleValue;
             if (d2 == 0)
             {
-                while (top->parent) top = top -> parent;
+                while (top->parent)
+                    top = top->parent;
                 result.type = DIVZEROERROR;
                 result.data.doubleValue = std::numeric_limits<double>::quiet_NaN();
                 return (result);
             }
-            //result = result % d2;
             result.data.doubleValue = result.data.doubleValue - d2 * std::floor(result.data.doubleValue / d2);
         }
     }
@@ -420,25 +715,78 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
     {
         // Check for the invalid assignee runtime error
         Token assignee = top->branches[0]->info;
-        if(assignee.isVariable())
+        if (assignee.isVariable())
         {
             // There are no assignee errors at this point. Assign the variables.
             result = right;
             string key = top->branches[0]->info.text;
-            scopeMap[key] = result;
+            if (top->branches[0]->branches.size() == 1 && top->branches[0]->branches[0]->info.text == "[")
+            {
+                if (scopeMap[assignee.text].type != ARRAY)
+                {
+                    result.setType(NOTARRAYERROR);
+                }
+                else if (evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).type != DOUBLE)
+                {
+                    result.setType(INDEXNOTNUMBERERROR);
+                }
+                else if (abs(evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue - (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue) >= 1e-10)
+                {
+                    result.setType(INDEXNOTINTEGERERROR);
+                }
+                else
+                {
+                    int index = (int)evaluate(top->branches[0]->branches[0]->branches[0], scopeMap).data.doubleValue;
+                    if (index < 0 || index > (int)scopeMap[key].data.arrayValue->size() - 1)
+                    {
+                        result.setType(OUTOFBOUNDS);
+                    }
+                    else
+                        scopeMap[key].data.arrayValue->at(index) = result;
+                }
+            }
+            else
+            {
+                scopeMap[key] = result;
+            }
+        }
+        else if (assignee.text == "[.]")
+        {
+            result = right;
+            if (evaluate(top->branches[0]->branches[0], scopeMap).type != ARRAY)
+            {
+                result.setType(NOTARRAYERROR);
+            }
+            else if (evaluate(top->branches[0]->branches[1], scopeMap).type != DOUBLE)
+            {
+                result.setType(INDEXNOTNUMBERERROR);
+            }
+            else if (abs(evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue - (int)evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue) >= 1e-10)
+            {
+                result.setType(INDEXNOTINTEGERERROR);
+            }
+            else
+            {
+                int index = (int)evaluate(top->branches[0]->branches[1], scopeMap).data.doubleValue;
+                if (index < 0 || index > (int)evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->size() - 1)
+                {
+                    result.setType(OUTOFBOUNDS);
+                }
+                else
+                    evaluate(top->branches[0]->branches[0], scopeMap).data.arrayValue->at(index) = result;
+            }
         }
         else
         {
             // Invalid assignee error.
             result.type = ASSIGNEEERROR;
         }
-        
     }
     // NOT A FUNCTION ERROR (CASE 1 of 2): NON-VARIABLE
     else if (top->isFunctionCall && !(t.isVariable()))
     {
         result.type = NOTFUNCTIONERROR;
-        return(result);
+        return (result);
     }
     else if (t.isNumber())
     {
@@ -450,27 +798,51 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
         if (scopeMap.find(text) == scopeMap.end())
         {
             result.type = IDERROR;
-            result.unknownIDText = text;
+            unknownIDText = text;
             return (result);
+        }
+        else if (top->branches.size() == 1 && top->branches[0]->info.text == "[")
+        {
+            typedValue insideBrackets = evaluate(top->branches[0]->branches[0], scopeMap);
+            if (scopeMap[text].type != ARRAY)
+            {
+                result.setType(NOTARRAYERROR);
+            }
+            else if (insideBrackets.type != DOUBLE)
+            {
+                result.setType(INDEXNOTNUMBERERROR);
+            }
+            else if (abs(insideBrackets.data.doubleValue - (int)insideBrackets.data.doubleValue) >= 1e-10)
+            {
+                result.setType(INDEXNOTINTEGERERROR);
+            }
+            else
+            {
+                int index = (int)insideBrackets.data.doubleValue;
+                if (index < 0 || index > (int)scopeMap[text].data.arrayValue->size() - 1)
+                {
+                    result.setType(OUTOFBOUNDS);
+                }
+                else
+                    result = scopeMap[text].data.arrayValue->at(index);
+            }
         }
         else
         {
-            // Gets a function pointer, boolean, null, or double
+            // Gets a function pointer, array, boolean, null, or double
             result = scopeMap[text];
-            // But...if result is a function, we need to call the function.
-            if(top->isFunctionCall)
+            //  But...if result is a function, we need to call the function.
+            if (top->isFunctionCall)
             {
-                // NOT A FUNCTION ERROR (CASE 2 OF 2)
-                // Sometimes the function call node IS a variable but DOESN'T refer to a function. This is a runtime error.
-                if(result.type != FUNCTION)
+                if (result.type != FUNCTION)
                 {
                     result.type = NOTFUNCTIONERROR;
-                    return(result);
+                    return (result);
                 }
                 // At this point, we already know the "not a function" error was accounted for, so we don't have to check for it.
-                Func * converted = reinterpret_cast<Func*>(result.data.functionValue);
+                Func *converted = reinterpret_cast<Func *>(result.data.functionValue);
                 vector<typedValue> evaluatedArguments;
-                for(Node * child : top->branches)
+                for (Node *child : top->branches)
                 {
                     evaluatedArguments.push_back(evaluate(child, scopeMap));
                 }
@@ -478,12 +850,13 @@ typedValue Parser::evaluate(Node *top, map<string, typedValue>& scopeMap)
             }
         }
     }
-    else if(t.isBoolean())
+    else if (t.isBoolean())
     {
+
         result.setType(BOOLEAN);
         result.data.booleanValue = t.getValue().data.booleanValue;
     }
-    else if(t.isNull())
+    else if (t.isNull())
     {
         result.setType(NONE);
     }
@@ -544,7 +917,8 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
     int functionCallParentheses = 0;
     if (!theEnd.isEnd()) // make sure formatting of END is correct
     {
-        cout << "ERROR: END TOKEN NOT PUSHED BACK TO EXPRESSION" << "\n";
+        cout << "ERROR: END TOKEN NOT PUSHED BACK TO EXPRESSION"
+             << "\n";
         cout << expression.back().text << "\n";
         exit(4);
     }
@@ -561,12 +935,13 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
     {
         Token t = expression[i];
         // Statements should NEVER show up inside an expression. They're not part of ASTs. Same with curly braces.
-        if(t.isStatement() || t.isBrace())
+        if (t.isStatement() || t.isBrace())
         {
             parseError(t, line);
-            return(true);
-            
+            return (true);
         }
+        if (t.text == "len" || t.text == "push" || t.text == "pop")
+            isFunctionCall = true;
         // Operators should have two operands between them.
         // The left can be a RIGHT parenthesis or a number or an identifier.
         // The right can be a LEFT parenthesis or a number or an identifier.
@@ -574,7 +949,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         else if (t.isOperator() || t.isOrderComparison())
         {
             if (i == 0 ||
-                !(expression[i - 1].isOperand() || expression[i - 1].text == ")"))
+                !(expression[i - 1].isOperand() || expression[i - 1].text == ")" || expression[i - 1].text == "]"))
             {
                 parseError(t, line);
                 return (true);
@@ -587,13 +962,16 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         }
         // Assignee errors are no longer caught until runtime.
         // Parentheses should be balanced.
-        // After an open parentheses, we must see a number or an identifier or another open parenthesis.
+        // After an open parentheses/bracket, we must see a number or an identifier or another open parenthesis.
+        // After an opening bracket, there can come a closing bracket
         // There should never be an empty set of two parentheses unless we are in a function call.
         else if (t.text == "(" || t.text == "[")
         {
-            if (t.text == "(") parentheses++;
-            else brackets++;
-            if(isFunctionCall)
+            if (t.text == "(")
+                parentheses++;
+            else
+                brackets++;
+            if (isFunctionCall)
             {
                 functionCallParentheses++;
             }
@@ -602,8 +980,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 parseError(theEnd, line);
                 return (true);
             }
-            if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" 
-              || (expression[i + 1].text == ")" && isFunctionCall)))
+            if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "[" || (expression[i + 1].text == ")" && isFunctionCall) || (t.text == "[" && expression[i + 1].text == "]")))
             {
                 parseError(expression[i + 1], line);
                 return (true);
@@ -613,13 +990,15 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         // After a closed parentheses, we must see: operator, comma, semicolon, end token.
         else if (t.text == ")" || t.text == "]")
         {
-            if (t.text == ")") parentheses--;
-            else brackets--;
+            if (t.text == ")")
+                parentheses--;
+            else
+                brackets--;
             // The following checks if we've reached the end of a function call or multiple nested function calls.
-            if(isFunctionCall)
+            if (isFunctionCall)
             {
                 functionCallParentheses--;
-                if(functionCallParentheses == 0)
+                if (functionCallParentheses == 0)
                 {
                     isFunctionCall = false;
                 }
@@ -629,8 +1008,7 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
                 parseError(t, line);
                 return (true);
             }
-            if (!(expression[i + 1].isOperator() || expression[i + 1].text == ")" || expression[i + 1].isComma() 
-               || expression[i + 1].isSemicolon() || expression[i + 1].isEnd()))
+            if (!(expression[i + 1].isOperator() || expression[i + 1].text == ")" || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "]" || expression[i + 1].text == "["))
             {
                 parseError(expression[i + 1], line);
                 return (true);
@@ -642,54 +1020,53 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
         else if (t.isOperand())
         {
             // Check for a function call.
-            if(expression[i + 1].text == "(")
+            if (expression[i + 1].text == "(")
             {
                 isFunctionCall = true;
             }
             // Check right, if no function call exists.
-            else if (!(expression[i + 1].text == ")" || expression[i+1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() 
-                    || expression[i + 1].isSemicolon() || expression[i + 1].isEnd()))
+            else if (!(expression[i + 1].text == ")" || expression[i + 1].text == "]" || expression[i + 1].isOperator() || expression[i + 1].isComma() || expression[i + 1].isSemicolon() || expression[i + 1].isEnd() || expression[i + 1].text == "["))
             {
                 parseError(expression[i + 1], line);
                 return (true);
             }
         }
 
-        else if(t.isSemicolon())
+        else if (t.isSemicolon())
         {
-            // Semicolons are unexpected if not required. 
+            // Semicolons are unexpected if not required.
             // Semicolons are also unexpected if there are remaining open parentheses.
-            if(!requireSemicolons || parentheses > 0)
+            if (!requireSemicolons || parentheses > 0)
             {
                 parseError(t, line);
-                return(true);
+                return (true);
             }
             // The token AFTER a semicolon is always unexpected if it's not the END of the expression.
-            else if(!(expression[i + 1].isEnd()))
+            else if (!(expression[i + 1].isEnd()))
             {
                 parseError(expression[i + 1], line);
-                return(true);
+                return (true);
             }
         }
         // Commas should not appear outside function calls.
         // The right of a comma should be: An operand or a left parenthesis.
-        else if(t.isComma())
+        else if (t.isComma())
         {
-            if(!isFunctionCall)
+            if (!isFunctionCall && brackets == 0)
             {
                 parseError(t, line);
-                return(true);
+                return (true);
             }
-            else if(!(expression[i + 1].isOperand() || expression[i + 1].text == "("))
+            else if (!(expression[i + 1].isOperand() || expression[i + 1].text == "(" || expression[i + 1].text == "["))
             {
                 parseError(expression[i + 1], line);
-                return(true);
+                return (true);
             }
         }
     }
     // At the very end of the expression, all the parentheses should be balanced.
     // Additionally, the end of the expression should be a semicolon if required.
-    if (parentheses == 0 && (!requireSemicolons || expression[lastIndex].isSemicolon()))
+    if (parentheses == 0 && brackets == 0 && (!requireSemicolons || expression[lastIndex].isSemicolon()))
     {
         return (false);
     }
@@ -702,122 +1079,140 @@ bool Parser::checkError(vector<Token> expression, int line, bool requireSemicolo
 
 void Parser::parseError(Token token, int line)
 {
-    if(exitImmediately)
-    {   
-        cout << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n"; 
+    if (exitImmediately)
+    {
+        cout << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n";
         exit(2);
     }
     else
     {
-        token.line = 1;
-        outputPerExpression[line] << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n";
+        if (token.text == "")
+        {
+            token.line = 1;
+            outputPerExpression[line] << "Syntax error on line " << token.line << " column " << token.column << ".\n";
+        }
+        else
+        {
+            token.line = 1;
+            outputPerExpression[line] << "Unexpected token at line " << token.line << " column " << token.column << ": " << token.text << "\n";
+        }
     }
     return;
 }
 
-typedValue Parser::executeHelper(Block b, map<string, typedValue>& scope, bool allowReturns)
+typedValue Parser::executeHelper(Block b, map<string, typedValue> &scope, bool allowReturns)
 {
     typedValue noneReturn;
     typedValue doReturn;
     noneReturn.type = NONE;
-    if(b.statementType == "print")
+    if (b.statementType == "print")
     {
         typedValue printResult = evaluate(b.root, scope);
-        if(printResult.isError()) printResult.outputError(true);
+        if (printResult.isError())
+            printResult.outputError(true);
         cout << printResult << endl;
     }
-    else if(b.statementType == "if")
+    else if (b.statementType == "if")
     {
         typedValue conditionResult = evaluate(b.condition, scope);
-        if(conditionResult.type != BOOLEAN) conditionResult.setType(NOCONDITIONERROR);
-        if(conditionResult.isError()) conditionResult.outputError(true);
+        if (conditionResult.type != BOOLEAN)
+            conditionResult.setType(NOCONDITIONERROR);
+        if (conditionResult.isError())
+            conditionResult.outputError(true);
         bool branchTaken = conditionResult.data.booleanValue;
-        if(branchTaken)
+        if (branchTaken)
         {
-            for(Block nested : b.nestedStatements)
+            for (Block nested : b.nestedStatements)
             {
                 doReturn = executeHelper(nested, scope, allowReturns);
-                if(doReturn.type != NONE) return doReturn;
+                if (doReturn.type != NONE)
+                    return doReturn;
             }
         }
         else if (b.elseStatement)
         {
             doReturn = executeHelper(*(b.elseStatement), scope, allowReturns);
-            if(doReturn.type != NONE) return doReturn;
+            if (doReturn.type != NONE)
+                return doReturn;
         }
     }
-    else if(b.statementType == "else")
+    else if (b.statementType == "else")
     {
-        for(Block nested : b.nestedStatements)
+        for (Block nested : b.nestedStatements)
         {
             doReturn = executeHelper(nested, scope, allowReturns);
-            if(doReturn.type != NONE) return doReturn;
+            if (doReturn.type != NONE)
+                return doReturn;
         }
     }
-    else if(b.statementType == "while")
+    else if (b.statementType == "while")
     {
         typedValue conditionResult = evaluate(b.condition, scope);
         // If the condition is not boolean or another runtime error occurs in a condition, exit
-        if(conditionResult.type != BOOLEAN) conditionResult.setType(NOCONDITIONERROR);
-        if(conditionResult.isError()) conditionResult.outputError(true);
-        while(conditionResult.data.booleanValue)
+        if (conditionResult.type != BOOLEAN)
+            conditionResult.setType(NOCONDITIONERROR);
+        if (conditionResult.isError())
+            conditionResult.outputError(true);
+        while (conditionResult.data.booleanValue)
         {
-            for(Block nested : b.nestedStatements)
+            for (Block nested : b.nestedStatements)
             {
                 doReturn = executeHelper(nested, scope, allowReturns);
-                if(doReturn.type != NONE) return doReturn;
+                if (doReturn.type != NONE)
+                    return doReturn;
             }
             // If the condition is not boolean, exit
             conditionResult = evaluate(b.condition, scope);
-            if(conditionResult.type != BOOLEAN)
+            if (conditionResult.type != BOOLEAN)
             {
                 cout << "Runtime error: condition is not a bool." << endl;
                 exit(3);
             }
         }
     }
-    else if(b.statementType == "def")
+    else if (b.statementType == "def")
     {
         // Capture variables
         b.capturedVariables = scope;
-        // cout << "New captured variables has address " << &b.capturedVariables << " and is capturing from address " << &scope << endl;
-        Func * newFunction = new Func(b, b.capturedVariables);
+        Func *newFunction = new Func(b, b.capturedVariables);
         globalFunctions.push_back(newFunction); // for memory clearing later
         newFunction->capturedVariables = b.capturedVariables;
-        typedValue functionStorage; // Stores the new function in a typedValue.
-        newFunction->capturedVariables[b.functionName] = functionStorage; // For recursion, we need to store the function inside of its own captured variables.
+        typedValue functionStorage;      // Stores the new function in a typedValue.
         functionStorage.type = FUNCTION; // This typedvalue is of type FUNCTION.
-        functionStorage.data.functionValue = newFunction; 
-        scope[b.functionName] = functionStorage; // Remember the function for later.
+        functionStorage.data.functionValue = newFunction;
+        scope[b.functionName] = functionStorage;                          // Remember the function for later.
+        newFunction->capturedVariables[b.functionName] = functionStorage; // For recursion, we need to store the function inside of its own captured variables.
     }
-    else if(b.statementType == "return")
+    else if (b.statementType == "return")
     {
         // If the scope passed in was Parser's provisional, we don't expect any return statements.
-        if(!allowReturns)
+        if (!allowReturns)
         {
+            evaluate(b.root, scope);
             typedValue returnError;
             returnError.type = BADRETURNERROR;
             returnError.outputError(true);
         }
         // Otherwise, returns are expected and we can do this.
         typedValue returnResult = evaluate(b.root, scope);
-        if(returnResult.isError()) returnResult.outputError(true);
-        return(returnResult);
+        if (returnResult.isError())
+            returnResult.outputError(true);
+        return (returnResult);
     }
     else // Case for expression
     {
         typedValue expressionResult = evaluate(b.root, scope);
-        // cout << expressionResult.type << endl;
-        if(expressionResult.isError()) expressionResult.outputError(true);
+        if (expressionResult.isError())
+            expressionResult.outputError(true);
     }
 
-    return(noneReturn);
+    return (noneReturn);
 }
 
 void Parser::format()
 {
     Block currentBlock;
-    for(unsigned int i = 0; i < blocks.size(); i++)
+    for (unsigned int i = 0; i < blocks.size(); i++)
     {
         currentBlock = blocks[i];
         formatHelper(currentBlock);
@@ -830,57 +1225,59 @@ void Parser::formatHelper(Block b, unsigned int indents)
     string type = b.statementType;
     // First, all the indents
     string whitespace = "";
-    for(unsigned int i = 0; i < indents; i++)
+    for (unsigned int i = 0; i < indents; i++)
     {
         whitespace += "    ";
     }
     cout << whitespace;
     // Then the content of the statements
-    if(type == "expression")
+    if (type == "expression")
     {
         cout << printHelper(b.root, true) << ";";
     }
-    else if(type == "print" || type == "return")
+    else if (type == "print" || type == "return")
     {
-        if(b.root) cout << type << " " << printHelper(b.root, true) << ";";
-        else cout << type << printHelper(b.root, true) << ";";
+        if (b.root)
+            cout << type << " " << printHelper(b.root, true) << ";";
+        else
+            cout << type << printHelper(b.root, true) << ";";
     }
-    else if(type == "if" || type == "while" || type == "else")
+    else if (type == "if" || type == "while" || type == "else")
     {
-        if(b.condition)
-        {   
+        if (b.condition)
+        {
             cout << b.statementType << " " << printHelper(b.condition, true) << " {" << endl;
         }
         else
         {
             cout << b.statementType << " {" << endl;
         }
-        
-        for(Block nestedBlock : b.nestedStatements)
+
+        for (Block nestedBlock : b.nestedStatements)
         {
             formatHelper(nestedBlock, indents + 1);
             cout << endl;
         }
         cout << whitespace << "}";
-        if(b.elseStatement)
+        if (b.elseStatement)
         {
             cout << endl;
             formatHelper(*(b.elseStatement), indents);
         }
     }
-    if(type == "def")
+    if (type == "def")
     {
         cout << "def " << b.functionName << "(";
-        for(unsigned int arg = 0; arg < b.argumentNames.size(); arg++)
+        for (unsigned int arg = 0; arg < b.argumentNames.size(); arg++)
         {
             cout << b.argumentNames[arg];
-            if(arg < b.argumentNames.size() - 1)
+            if (arg < b.argumentNames.size() - 1)
             {
                 cout << ", ";
             }
         }
         cout << ") {\n";
-        for(Block nestedBlock : b.nestedStatements)
+        for (Block nestedBlock : b.nestedStatements)
         {
             formatHelper(nestedBlock, indents + 1);
             cout << endl;
@@ -898,25 +1295,25 @@ typedValue Parser::callFunction(Func givenFunction, vector<typedValue> arguments
     givenFunction.variables = givenFunction.capturedVariables;
 
     // Argument count incorrect error
-    if(arguments.size() != givenFunction.argumentNames.size())
+    if (arguments.size() != givenFunction.argumentNames.size())
     {
         result.type = ARGCERROR;
-        return(result);
+        return (result);
     }
-    // Use the arguments, which were passed in by value 
-    for(unsigned int i = 0; i < arguments.size(); i++)
+    // Use the arguments, which were passed in by value
+    for (unsigned int i = 0; i < arguments.size(); i++)
     {
         givenFunction.variables[givenFunction.argumentNames[i]] = arguments[i];
     }
 
-    for(Block b : givenFunction.nestedStatements)
+    for (Block b : givenFunction.nestedStatements)
     {
         result = executeHelper(b, givenFunction.variables, true);
-        if(result.type != NONE)
+        if (result.type != NONE)
         {
-            return(result);
+            return (result);
         }
     }
 
-    return(result);
+    return (result);
 }

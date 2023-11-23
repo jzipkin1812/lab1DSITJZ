@@ -14,7 +14,7 @@ struct Node
     bool isArrayAssignment = false;
     bool isArrayLiteral = false;
     bool isArrayLookup = false;
-
 };
 
 #endif
+

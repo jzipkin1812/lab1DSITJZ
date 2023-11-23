@@ -17,8 +17,9 @@ void Lexer::print()
     }
 }
 
-Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complexity O(n^2), (number of lines) X (number of characters in each line)
+Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName, bool checkSyntaxErrors) // time complexity O(n^2), (number of lines) X (number of characters in each line)
 {
+    checkErrors = checkSyntaxErrors;
     // Handle text files
     ifstream fileStream;
     if(fileName != "") fileStream = ifstream(fileName);
@@ -26,14 +27,8 @@ Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complex
     pushEnds = addEnd;
     exitOnError = exitImmediately;
     string expression = ""; // expression is set equal to each new line read by cin
-    if(fileName == "")
-    {
-        getline(cin, expression);
-    }
-    else
-    {
-        getline(fileStream, expression);
-    }
+    if(fileName == "") getline(cin, expression);
+    else getline(fileStream, expression);
     
     int lineNumber = 0;
     int count = 0; // when count reaches 2 (two consecutive empty lines), the program should stop asking for input
@@ -48,18 +43,20 @@ Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName) // time complex
         if(fileName == "")
         {
             getline(cin, expression);
-            //cout << expression << endl;
             endOfFile = cin.eof();
         }
         else
         {
             getline(fileStream, expression);
-            //cout << expression << endl;
             endOfFile = fileStream.eof();
         }
     }
     lineNumber++;
     parseString(expression, lineNumber);                                        // parseString runs one more time after cin.eof() in the case of an eof being located on the same line as an expression
+    if (expression != "")
+    {
+        parseString("", lineNumber + 1);
+    }
     tokens.back().push_back(Token(lineNumber, expression.length() + 1, "END")); // tokens: vector of vectors, each vector contains a new expression
     fileStream.close();
 }
@@ -188,17 +185,41 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
         }
         catch (int columnNum)
         {
-
-            if (pushEnds)
+            if (checkErrors)
             {
-                cout << "Syntax error on line " << 1 << " column " << columnNum << "." << endl;
+                if (pushEnds)
+                {
+                    cout << "Syntax error on line " << 1 << " column " << columnNum << "." << endl;
+                }
+                else
+                {
+                    cout << "Syntax error on line " << lineNumber << " column " << columnNum << "." << endl;
+                }
+                if(exitOnError) exit(1);
+                else return;
             }
-            else
+            else // only used for calc
             {
-                cout << "Syntax error on line " << lineNumber << " column " << columnNum << "." << endl;
+                if (pushEnds)
+                {
+                    currentExpression.push_back(Token(1, columnNum, ""));
+                }
+                else
+                {
+                    currentExpression.push_back(Token(lineNumber, columnNum, ""));
+                }
+                if (exitOnError)
+                    exit(1);
+                else
+                {
+                    if (pushEnds)
+                    {
+                        currentExpression.push_back(Token(lineNumber, expression.length() + 1, "END"));
+                    }
+                    tokens.push_back(currentExpression);
+                }
+                return;
             }
-            if(exitOnError) exit(1);
-            else return;
         }
     }
     if (currentString != "") // case for when a number is located directly before '\n'
@@ -214,3 +235,4 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
     }
     tokens.push_back(currentExpression);
 }
+

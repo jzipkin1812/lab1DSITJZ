@@ -46,6 +46,8 @@ class Block
         vector<string> argumentNames; // Used for DEF only
         map<string, typedValue> capturedVariables; // Used for DEF only
         Node * root; // Used for expressions and print only
+        //Node * array; // Used for "len", "push", and "pop"
+        //Node * newElement; // Used for "push"
         Block * parent; // Used for nested blocks only
         Block * elseStatement; // Used for if statements only
         int closingLine; // used for if statements only to track when exactly they end for blocking
