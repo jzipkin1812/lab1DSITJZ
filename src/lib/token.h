@@ -97,10 +97,8 @@ class Token
         {
             typedValue result;
             result.type = type;
-            //cout << "The type of " << text << " is a " << type << endl;
             if(type == DOUBLE)
             {
-                //cout << "Calling stod on: " << text << endl;
                 result.data.doubleValue = stod(text);
             }
             else if(type == BOOLEAN)

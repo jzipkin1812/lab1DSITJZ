@@ -48,50 +48,6 @@ struct typedValue
 
     d data;
 
-    // ~typedValue()
-    // {
-    //     if (data.arrayValue != nullptr)
-    //     {
-    //         //delete data.arrayValue;
-    //         //data.arrayValue = nullptr;  // Set to nullptr after deletion
-    //         cout << "deleted" << endl;
-    //     }
-    // }
-
-    string toString()
-    {
-        string result = "";
-        if (type == BOOLEAN)
-        {
-            if (data.booleanValue == true)
-                result += "true";
-            else
-                result += "false";
-        }
-        else if (type == DOUBLE)
-        {
-            result += data.doubleValue;
-        }
-        else if (type == ARRAY)
-        {
-            result += "[";
-            for (unsigned int i = 0; i < data.arrayValue->size(); i++)
-            {
-                result += data.arrayValue->at(i).toString();
-                if (i != data.arrayValue->size() - 1)
-                    result += ", ";
-            }
-            result += "]";
-        }
-        else if (type == NONE)
-        {
-            result += "null";
-        }else if(type == FUNCTION){
-            result+="FUNC";
-        }
-        return (result);
-    }
-
     friend ostream &operator<<(ostream &o, const typedValue &tValue)
     {
         if (tValue.type == BOOLEAN)
@@ -100,17 +56,13 @@ struct typedValue
         }
         else if (tValue.type == DOUBLE)
         {
-            // if (tValue.data.doubleValue < 1e-6)
-            //     o << scientific << setprecision(2);
             o << tValue.data.doubleValue;
         }
         else if (tValue.type == ARRAY)
         {
             o << "[";
-            // vector<typedValue> * arrPtr = tValue.data.arrayValue;
             for (unsigned int i = 0; i < tValue.data.arrayValue->size(); i++)
             {
-                // if (!(tValue.data.arrayValue->at(i).type == NONE))
                 o << tValue.data.arrayValue->at(i);
                 if (i != tValue.data.arrayValue->size() - 1)
                     o << ", ";

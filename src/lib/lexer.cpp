@@ -27,16 +27,8 @@ Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName, bool checkSynta
     pushEnds = addEnd;
     exitOnError = exitImmediately;
     string expression = ""; // expression is set equal to each new line read by cin
-    if(fileName == "")
-    {
-        getline(cin, expression);
-        //cout << "Expression: " << expression << endl;
-    }
-    else
-    {
-        getline(fileStream, expression);
-        //cout << "Expression: " << expression << endl;
-    }
+    if(fileName == "") getline(cin, expression);
+    else getline(fileStream, expression);
     
     int lineNumber = 0;
     int count = 0; // when count reaches 2 (two consecutive empty lines), the program should stop asking for input
@@ -51,18 +43,15 @@ Lexer::Lexer(bool addEnd, bool exitImmediately, string fileName, bool checkSynta
         if(fileName == "")
         {
             getline(cin, expression);
-            //cout << "Expression: " << expression << endl;
             endOfFile = cin.eof();
         }
         else
         {
             getline(fileStream, expression);
-            //cout << "Expression: " << expression << endl;
             endOfFile = fileStream.eof();
         }
     }
     lineNumber++;
-    //cout << "final expression = \"" << expression << "\"" << endl;
     parseString(expression, lineNumber);                                        // parseString runs one more time after cin.eof() in the case of an eof being located on the same line as an expression
     if (expression != "")
     {
@@ -209,7 +198,7 @@ void Lexer::parseString(string expression, int lineNumber) // time complexity O(
                 if(exitOnError) exit(1);
                 else return;
             }
-            else
+            else // only used for calc
             {
                 if (pushEnds)
                 {

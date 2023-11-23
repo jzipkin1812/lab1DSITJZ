@@ -37,15 +37,12 @@ int Parser::getPrecedence(string token) // Helper function for constructAST
 
 string Parser::printHelper(Node *top, bool lastChild)
 {
-    //cout << "???????" << endl;
-    // cout << "top = " << top->info.text << endl;
     string finalText = "";
     if (!top)
         return finalText;
     bool last;
     if (top->info.text == "[") // array
     {
-        //cout << "last = " << lastChild << endl;
         finalText += "[";
         vector<Node *> elements = top->branches;
         for (unsigned int i = 0; i < elements.size(); i++)
@@ -72,21 +69,6 @@ string Parser::printHelper(Node *top, bool lastChild)
         }
         finalText += ")";
     }
-    // else if (top->info.text == "len" || top->info.text == "pop")
-    // {
-    //     finalText += top->info.text;
-    //     finalText += "(";
-    //     finalText += printHelper(top->branches[0], true);
-    //     finalText += ")";
-    // }
-    // else if (top->info.text == "push")
-    // {
-    //     finalText += "push(";
-    //     finalText += printHelper(top->branches[0], true);
-    //     finalText += ", ";
-    //     finalText += printHelper(top->branches[1], true);
-    //     finalText += ")";
-    // }
     else if (top->info.text == "[.]")
     {
         finalText += printHelper(top->branches[0], true);
@@ -102,7 +84,6 @@ string Parser::printHelper(Node *top, bool lastChild)
     else if (top->info.isOperator())
     {
         finalText += "(";
-        //cout << "top = " << top->info.text << " and size = " << top->branches.size() << endl;
         for (unsigned int i = 0; i < top->branches.size(); i++)
         {
             last = (i == top->branches.size() - 1);
@@ -127,19 +108,12 @@ string Parser::printHelper(Node *top, bool lastChild)
         }
         finalText += ")";
     }
-    // else if (top->info.isVariable() && top->branches.size() == 1 && top->branches[0]->info.text == "[")
-    // {
-    //     finalText += top->info.text;
-    //     finalText += printHelper(top->branches[0], false);
-    // }
     else
     {
         string converted = top->info.text;
-        //cout << "text = \"" << converted << "\"" << endl;
         // Formatting removes trailing 0s
         if (converted != "0" && converted.find('.') != string::npos)
         {
-            //cout << "converting..." << endl;
             if (stod(converted) < 1e-06)
             {
                 ostringstream oss;
@@ -153,12 +127,6 @@ string Parser::printHelper(Node *top, bool lastChild)
                 converted.erase(converted.find_last_not_of('.') + 1, std::string::npos);
             }
         }
-        //cout << "text after = " << converted << endl;
-
-        // if (top->info.type == DOUBLE && stod(converted) < 1e-6)
-        // {
-        //     converted
-        // }
 
         finalText += converted;
 
@@ -187,18 +155,6 @@ Parser::~Parser()
     {
         delete funcPtr;
     }
-    // for (const auto &pair : variables)
-    // {
-    //     //cout << "remove variable" << pair.second << endl;
-    //     if (pair.second.data.arrayValue != nullptr)
-    //         delete pair.second.data.arrayValue;
-    // }
-    // for (const auto &pair : provisional)
-    // {
-    //     //cout << "remove provisional" << pair.second << endl;
-    //     if (pair.second.data.arrayValue != nullptr)
-    //         delete pair.second.data.arrayValue;
-    // }
     for (vector<typedValue>* array : arrays)
     {
         if (array != nullptr) delete array;
@@ -239,19 +195,6 @@ void Parser::execute()
     {
         executeHelper(b, provisional, false);
     }
-    // for(auto variablePair : provisional)
-    // {
-    //     if(variablePair.second.type != FUNCTION) cout << variablePair.first << " : " << variablePair.second << endl;
-    //     else
-    //     {
-    //         typedValue var = variablePair.second;
-
-    //         Func * converted = reinterpret_cast<Func*>(var.data.functionValue);
-    //         cout << variablePair.first << " is a function with this information:\n";
-    //         cout << converted->argc << " arguments, " << converted->nestedStatements.size() << " nested blocks, and the name " << converted->functionName << endl;
-    //     }
-
-    // }
 }
 
 bool Parser::containsOpen(vector<Token> line)
@@ -348,26 +291,18 @@ vector<vector<Token>> Parser::cleanInput(vector<vector<Token>> inputFromLexer)
         line = inputFromLexer[i];
         Token beginning = line[0];
         Token second = line[1];
-        // cout << "\t " << i << endl;
         if (beginning.text == "if")
         {
-            // cout << "closing line: ";
             closingLines.push(chainEndIndex(inputFromLexer, i));
-            // cout << closingLines.top() << endl;
         }
         else if (beginning.text == "else" && second.text == "if")
         {
-            // cout << "elif at " << i << flush;
             vector<Token> ifStatement = vector<Token>(line.begin() + 1, line.end());
-            // cout << " created if statement " << flush;
             inputFromLexer[i].erase(inputFromLexer[i].begin() + 1, inputFromLexer[i].end());
-            // cout << " erased " << flush;
             inputFromLexer[i].push_back(Token(0, 0, "{"));
             inputFromLexer.insert(inputFromLexer.begin() + i + 1, ifStatement); // cout << " inserted back in " << flush;
             vector<Token> oneBracket = {Token(0, 0, "}"), Token(0, 0, "END")};
             inputFromLexer.insert(inputFromLexer.begin() + closingLines.top() + 1, oneBracket);
-            // cout << " bracketed " << flush;
-            // cout << " is DONE" << endl;
         }
         else
         {
@@ -375,14 +310,6 @@ vector<vector<Token>> Parser::cleanInput(vector<vector<Token>> inputFromLexer)
                 closingLines.pop();
         }
     }
-    // for(auto myLine : inputFromLexer)
-    // {
-    //     for(auto t : myLine)
-    //     {
-    //         cout << t.text << " ";
-    //     }
-    //     cout << endl;
-    // }
     return (inputFromLexer);
 }
 
@@ -445,7 +372,6 @@ void Parser::print() // Infix, no statements, no semicolons
         }
 
         typedValue finalValue = evaluate(oneBlock.root, provisional);
-        // cout << finalValue.type << "\n";
         string finalInfix = printHelper(oneBlock.root, true);
         outputPerExpression[i] << finalInfix << "\n";
         if (finalValue.isError())
